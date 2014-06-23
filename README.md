@@ -72,7 +72,8 @@ After opening Qt Creator and the plugin loaded successfully the following steps 
     - Under "*Tools*" -> "*Spell Checker*" the above actions can also be performed.
 
 <h2>Pre-Build Plugins</h2>
-Currently I do not have access to the correct compilers and/or Qt versions thus I was not able to build the plugin for a release version of Qt Creator. I am in the process to download, install and set up the correct versions to enable me to create release builds that can be used with release versions of Qt Creator. Also I am not sure where such files can be hosted and what the implications are since the plugin requires Hunspell.
+I have created a release for the Plugin. The release is listed at version 0.0.0 and can be obtained from the "Releases" page. Read the README.txt file associated with the release for information on how to install the plugin into a Release
+version of Qt Creator (Currently 3.1.x). 
 <h2>C++ Document Parser</h2>
 The C++ document parser that is supplied with the plugin by default has settings that affects how the following types of words will be handled:
 - Email Addresses
@@ -86,10 +87,12 @@ The C++ document parser that is supplied with the plugin by default has settings
 
 <h2>TODO</h2>
 The following list is a list with a hint into priority of some outstanding tasks I want to do. 
-- [ ] Get correct Qt Versions to make deployment versions and upload somewhere(??). 
+- [x] Get correct Qt Versions to make deployment versions and upload somewhere (Under Releases). 
 - [ ] Get all spelling mistakes for a active project. The idea was to 1st finish this before releasing, this has changed to start to track the code and get it into a repository. 
 - [ ] Underline words that are spelling mistakes (red squigly lines, did attempt once, but did not work).
 - [ ] Parse and ignore website URLs correclty.
+- [ ] Test in other OS's (Linux, etc.)
+  - [ ] Make releases for other OS's.
 - [ ] Spell check string literals
 - [ ] Update to Hunspell 1.3.3
 
