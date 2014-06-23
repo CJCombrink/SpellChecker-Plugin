@@ -26,3 +26,6 @@ Makefile*
 # QtCreator
 
 *.autosave
+
+# SpellChecker Plugin
+spellchecker_local_paths.pri

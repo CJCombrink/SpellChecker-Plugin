@@ -1,0 +1,1 @@
+include(HunspellChecker/HunspellChecker.pri)

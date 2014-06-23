@@ -1,0 +1,26 @@
+# Local paths for the needed libraries and sources to build the SpellChecker Plugin
+#
+# This file is used instead of setting these paths in the pro file since the paths are custom for
+# each system where the plugin is build. This way this file is added to the .gitignore list
+# to ensure that local system changes are not checked into the git repository. Since these
+# changes will change for each local build.
+#
+# The spellchecker_local_paths.pri.example file must be renamed and updated to
+# point to the correct paths. If this is not done the plugin will not be able to
+# build.
+#
+# The following paths must be set, and are required by the plugin:
+# LOCAL_QTCREATOR_SOURCES - Path to the Qt Creator Sources
+# LOCAL_IDE_BUILD_TREE    - Path to the Qt Creator Build folder
+#
+# LOCAL_HUNSPELL_SRC_DIR - Path to the Hunspell Sources
+# LOCAL_HUNSPELL_LIB_DIR - Path to the Hunspell Libs
+LOCAL_QTCREATOR_SOURCES=C:/Development/Qt/sources/Creator/3.1.0
+
+win32-g++ {
+    Debug  :LOCAL_IDE_BUILD_TREE=C:/Development/Qt/builds/Creator/3.1/qtcreator-Desktop_Qt_5_3_0_MinGW_32bit-Debug
+    Release:LOCAL_IDE_BUILD_TREE=C:/Development/Qt/builds/Creator/3.1/qtcreator-Desktop_Qt_5_3_0_MinGW_32bit-Release
+
+    LOCAL_HUNSPELL_LIB_DIR=C:/Development/Libraries/Hunspell/builds/1.3.2-mingw-2.4.8/lib
+    LOCAL_HUNSPELL_SRC_DIR=C:/Development/Libraries/Hunspell/sources/1.3.2-mingw/src
+}
