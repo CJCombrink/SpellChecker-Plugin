@@ -8,12 +8,12 @@ Currently the plugin only checks C++ files and uses the Hunspell Spell Checker t
 The plugin provides an options page in Qt Creator that can be used to configure the parsers as well as the spell checkers available. <br><br>
 To build the plugin self, see section 2. <br>
 To download a pre-built version of the plugin, refer to section 4. <br><br>
-The motivation for this plugin is that my spelling is terrible and I was looking for a plugin that could spell check my doxygen comments. I feel that good comments are essential to any piece of software. I could not find one suitable to my needs so I decided to challenge myself to see if I can implement one myself. In one of my courses on varsity I investigated the Qt Creator source code and was amazed with the whole plugin system, thus it also inspired me to try and
+The motivation for this plugin is that my spelling is terrible and I was looking for a plugin that could spell check my Doxygen comments. I feel that good comments are essential to any piece of software. I could not find one suitable to my needs so I decided to challenge myself to see if I can implement one myself. In one of my courses on varsity I investigated the Qt Creator source code and was amazed with the whole plugin system, thus it also inspired me to try and
 contribute to such a project. <br><br>
-I did look a lot at the code in the TODO plugin as a basis for my own implementation. I do not think that I have violated any licences doing so since I have never just copied code from the plugin. If there are any places that can be problematic regarding any licences, please contact me so that I can resolve the issues. I want to contibute to the Open Source Community, but it is not my intention to step on any toes in the process. <br>
+I did look a lot at the code in the TODO plugin as a basis for my own implementation. I do not think that I have violated any licences doing so since I have never just copied code from the plugin. If there are any places that can be problematic regarding any licences, please contact me so that I can resolve the issues. I want to contribute to the Open Source Community, but it is not my intention to step on any toes in the process. <br>
 <h2>2. Building The Plugin</h2>
 As is, the plugin requires the Qt Creator source files as well as the Hunspell spell checker library. The next section describes how to get and compile Hunspell. <br>
-It is assumed that the Qt Creator source files are already donwloaded to the system. <br>
+It is assumed that the Qt Creator source files are already downloaded to the system. <br>
 For now all steps are done on Windows using MinGW, but as time and testing continues the steps and tests will include other compilers and operating systems. <br>
 Qt 5.3.0 was used along with Qt Creator 3.1
 <h3>2.1 Setting up Hunspell 1.3.2</h3>
@@ -41,7 +41,7 @@ The following steps can be used to build the plugin for a local build of Qt Crea
     - Update the renamed file and make sure that all of the variables point to the correct locations. Read the comments in the example for more information
   3. Build the plugin
     - Open the pro file of the plugin in Qt Creator
-    - Build the plugin. If Hunspell was build correctly and the local paths was set up correctly, the plugin should build correclty.
+    - Build the plugin. If Hunspell was build correctly and the local paths was set up correctly, the plugin should build correctly.
   4. Run Qt Creator
     - Make sure that the correct Hunspell DLL can be obtained by either adding the path to it to the system path or by copying the correct dll to the Qt Creator folder.
     - Run Qt Creator. If everything was done correctly, Qt Creator should open and load the plugin without any problems.
@@ -86,14 +86,14 @@ The C++ document parser that is supplied with the plugin by default has settings
 - Words that appear in source
 - Words.with.dots
 
-Appart from these settings, the plugin also attempts to remove Doxgen Tags in Doxygen comments, in an effort to reduce the number of false positives. 
+Apart from these settings, the plugin also attempts to remove Doxygen Tags in Doxygen comments, in an effort to reduce the number of false positives. 
 
 <h2>TODO</h2>
 The following list is a list with a hint into priority of some outstanding tasks I want to do. 
 - [x] Get correct Qt Versions to make deployment versions and upload somewhere (Under Releases). 
 - [ ] Get all spelling mistakes for a active project. The idea was to 1st finish this before releasing, this has changed to start to track the code and get it into a repository. 
-- [ ] Underline words that are spelling mistakes (red squigly lines, did attempt once, but did not work).
-- [ ] Parse and ignore website URLs correclty.
+- [ ] Underline words that are spelling mistakes (red squiggly lines, did attempt once, but did not work).
+- [ ] Parse and ignore website URLs correctly.
 - [ ] Test in other OS's (Linux, etc.)
   - [ ] Make releases for other OS's.
 - [ ] Spell check string literals
