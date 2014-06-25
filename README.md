@@ -3,16 +3,16 @@
 
 <h2>1. Introduction</h2>
 The SpellChecker Plugin is a spellchecker plugin for the Qt Creator IDE. 
-This plugin spell checks comments in source files for spelling mistakes and tries to suggest the correct spelling for misspelled words. <br>
+This plugin spell checks comments in source files for spelling mistakes and suggestt the correct spelling for misspelled words, if possible. <br>
 Currently the plugin only checks C++ files and uses the Hunspell Spell Checker to check words for spelling mistakes. 
 The plugin provides an options page in Qt Creator that can be used to configure the parsers as well as the spell checkers available. <br><br>
 To build the plugin self, see section 2. <br>
 To download a pre-built version of the plugin, refer to section 4. <br><br>
 The motivation for this plugin is that my spelling is terrible and I was looking for a plugin that could spell check my doxygen comments. I feel that good comments are essential to any piece of software. I could not find one suitable to my needs so I decided to challenge myself to see if I can implement one myself. In one of my courses on varsity I investigated the Qt Creator source code and was amazed with the whole plugin system, thus it also inspired me to try and
-contribute to such a projetc. <br><br>
-I did look a lot at the code in the TODO plugin as a basis for my own implementation. I do not think that I have violated any licences doing so since I have never just copied code from the plugin. If there are any places that can be problematinc regarding any licences, please contact me so that I can resolve the issues. I want to contibute to the Open Source Community, but it is not my intention to step on any toes in the process. <br>
+contribute to such a project. <br><br>
+I did look a lot at the code in the TODO plugin as a basis for my own implementation. I do not think that I have violated any licences doing so since I have never just copied code from the plugin. If there are any places that can be problematic regarding any licences, please contact me so that I can resolve the issues. I want to contibute to the Open Source Community, but it is not my intention to step on any toes in the process. <br>
 <h2>2. Building The Plugin</h2>
-As is the plugin requires the Qt Creator source files as well as the Hunspell spell checker library. The next section describes how to get and compile Hunspell. <br>
+As is, the plugin requires the Qt Creator source files as well as the Hunspell spell checker library. The next section describes how to get and compile Hunspell. <br>
 It is assumed that the Qt Creator source files are already donwloaded to the system. <br>
 For now all steps are done on Windows using MinGW, but as time and testing continues the steps and tests will include other compilers and operating systems. <br>
 Qt 5.3.0 was used along with Qt Creator 3.1
@@ -57,8 +57,9 @@ After opening Qt Creator and the plugin loaded successfully the following steps 
     - In the Options page, go to the "*Spell Checker*" options page.
     - On the "*SpellChecker*" tab, select the required Spell Checker in the dropdown box. 
       Currently only the Hunspell Spell Checker will be available, but perhaps in future more might be added. 
-    - Set the "*Dictionary*" and "*User Dictionary*" paths for the spell checker to use
-      Dictionaries can be downloaded from http://archive.services.openoffice.org/pub/mirror/OpenOffice.org/contrib/dictionaries/
+    - Set the "*Dictionary*" and "*User Dictionary*" paths for the spell checker to use. <br>
+      Dictionaries can be downloaded from http://archive.services.openoffice.org/pub/mirror/OpenOffice.org/contrib/dictionaries/ <br>
+      The *User Dictionary* is a custom file used to store words added to the dictionary of the spell checker. If such a file does not exist, the plugin will create the file for this purpose.
   3. Set the Parser Options
     - For the different available parsers there will be tabs with the settings for the parser. 
       Currently there is only one parser available, a C++ Parser. Change its settings according to what is required. For more information
@@ -84,6 +85,8 @@ The C++ document parser that is supplied with the plugin by default has settings
 - CamelCase words
 - Words that appear in source
 - Words.with.dots
+
+Appart from these settings, the plugin also attempts to remove Doxgen Tags in Doxygen comments, in an effort to reduce the number of false positives. 
 
 <h2>TODO</h2>
 The following list is a list with a hint into priority of some outstanding tasks I want to do. 
