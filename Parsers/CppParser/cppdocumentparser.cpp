@@ -37,6 +37,8 @@
 #include <projectexplorer/project.h>
 #include <projectexplorer/session.h>
 
+#include <QRegularExpression>
+
 namespace SpellChecker {
 namespace CppSpellChecker {
 namespace Internal {
@@ -346,6 +348,10 @@ void CppDocumentParser::tokenizeWords(const QString& fileName, const QString &co
 
 void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &words, bool isDoxygenComment)
 {
+    /* Regular Expressions that might be used, defined here so that it does not get cleared in the loop */
+    QRegularExpression doubleRe(QLatin1String("\\A\\d+(\\.\\d+)?\\z"));
+    QRegularExpression hexRe(QLatin1String("\\A0x[0-9A-Fa-f]+\\z"));
+    QRegularExpression emailRe(QLatin1String("\\A") + QLatin1String(SpellChecker::Parsers::CppParser::Constants::EMAIL_ADDRESS_REGEXP_PATTERN) + QLatin1String("\\z"));
     /* Word list that can be added to in the case that a word is split up into different words
      * due to some setting or rule. These words can also be checked against the settings using
      * recursion or not. It depends on the implementation that did the splitting of the
@@ -362,6 +368,17 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
         /* Remove reserved words first. Although this does not depend on settings, this
          * is done here to prevent multiple iterations through the word list where possible */
         removeCurrentWord = isReservedWord(currentWord);
+
+        if(removeCurrentWord == false) {
+            /* Remove the word if it is a number, checking for floats and doubles as well. */
+            if(doubleRe.match(currentWord).hasMatch() == true) {
+                removeCurrentWord = true;
+            }
+            /* Remove the word if it is a hex number. */
+            if(hexRe.match(currentWord).hasMatch() == true) {
+                removeCurrentWord = true;
+            }
+        }
 
         if((removeCurrentWord == false) && (d->settings->checkQtKeywords == false)) {
             /* Remove the basic Qt Keywords using the isQtKeyword() function in the CppTools */
@@ -390,8 +407,7 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
         }
 
         if((d->settings->removeEmailAddresses == true) && (removeCurrentWord == false)) {
-            QRegExp emailRegExp = QRegExp(QLatin1String(SpellChecker::Parsers::CppParser::Constants::EMAIL_ADDRESS_REGEXP_PATTERN));
-            if(emailRegExp.exactMatch(currentWord) == true) {
+            if(emailRe.match(currentWord).hasMatch() == true) {
                 removeCurrentWord = true;
             }
         }
@@ -404,8 +420,6 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
         }
 
         if((d->settings->wordsWithNumberOption != CppParserSettings::LeaveWordsWithNumbers) && (removeCurrentWord == false)) {
-            /* TODO: On some level remove words that are just numbers, a possible check is to try and cast it to a
-             * double, if that works, it is a number */
             /* Before doing anything, check if the word contains any numbers. If it does then we can go to the
              * settings to handle the word differently */
             if(currentWord.contains(QRegExp(QLatin1String("[0-9]"))) == true) {
