@@ -101,12 +101,17 @@ private:
         Ignore,
         Add
     };
-    /*!
-     * \brief isWordUnderCursorMistake
+    /*! \brief isWordUnderCursorMistake
      * \param[out] word If the word is a mistake, this will return the misspelled word.
      * \return True if the word is misspelled.
      */
     bool isWordUnderCursorMistake(Word& word);
+    /*! \brief Get All Occurrences Of a Word.
+     * \param[in] word Word that must be retrieved.
+     * \param[out] List of words that are the same as the \a word.
+     * \return true if at least one occurrence was found.
+     */
+    bool getAllOccurrencesOfWord(const Word &word, WordList& words);
     void removeWordUnderCursor(RemoveAction action);
     
 signals:

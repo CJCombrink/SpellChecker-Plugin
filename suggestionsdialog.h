@@ -36,14 +36,23 @@ class SuggestionsDialog : public QDialog
     Q_OBJECT
     
 public:
-    explicit SuggestionsDialog(const QString& word, const QStringList& suggestions, QWidget *parent = 0);
+    explicit SuggestionsDialog(const QString& word, const QStringList& suggestions, qint32 occurrences, QWidget *parent = 0);
     QString replacementWord() const;
     ~SuggestionsDialog();
+
+    enum ReturnCode {
+        Rejected = DialogCode::Rejected,
+        Accepted = DialogCode::Accepted,
+        AcceptAll /*!< Accept and Replace All. */
+    };
     
 private slots:
     void on_listWidgetSuggestions_doubleClicked(const QModelIndex &index);
     void on_lineEditReplacement_textChanged(const QString &arg1);
     void on_listWidgetSuggestions_currentTextChanged(const QString &currentText);
+    void on_pushButtonReplace_clicked();
+    void on_pushButtonReplaceAll_clicked();
+    void on_pushButtonCancel_clicked();
 
 private:
     Ui::SuggestionsDialog *ui;

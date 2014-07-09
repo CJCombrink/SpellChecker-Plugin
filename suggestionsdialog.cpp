@@ -25,7 +25,7 @@
 
 using namespace SpellChecker::Internal;
 
-SuggestionsDialog::SuggestionsDialog(const QString &word, const QStringList &suggestions, QWidget *parent) :
+SuggestionsDialog::SuggestionsDialog(const QString &word, const QStringList &suggestions, qint32 occurrences, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SuggestionsDialog)
 {
@@ -35,6 +35,12 @@ SuggestionsDialog::SuggestionsDialog(const QString &word, const QStringList &sug
     ui->listWidgetSuggestions->setFocus();
     if(suggestions.count() > 0) {
         ui->lineEditReplacement->setText(suggestions.front());
+    }
+
+    if(occurrences > 1) {
+        ui->pushButtonReplaceAll->setText(ui->pushButtonReplaceAll->text().replace(QLatin1String("xxx"), QString::number(occurrences)));
+    } else {
+        ui->pushButtonReplaceAll->setVisible(false);
     }
 }
 //--------------------------------------------------
@@ -68,7 +74,8 @@ void SpellChecker::Internal::SuggestionsDialog::on_lineEditReplacement_textChang
     Q_ASSERT(ui->buttonBox->button(QDialogButtonBox::Ok) != NULL);
     /* Only enable the Ok button, when there is valid text to replace the
      * word with */
-    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(arg1.isEmpty() == false);
+    ui->pushButtonReplace->setEnabled(arg1.isEmpty() == false);
+    ui->pushButtonReplaceAll->setEnabled(arg1.isEmpty() == false);
 }
 //--------------------------------------------------
 
@@ -76,5 +83,23 @@ void SpellChecker::Internal::SuggestionsDialog::on_listWidgetSuggestions_current
 {
     Q_ASSERT(currentText.isEmpty() == false);
     ui->lineEditReplacement->setText(currentText);
+}
+//--------------------------------------------------
+
+void SpellChecker::Internal::SuggestionsDialog::on_pushButtonReplace_clicked()
+{
+    accept();
+}
+//--------------------------------------------------
+
+void SpellChecker::Internal::SuggestionsDialog::on_pushButtonReplaceAll_clicked()
+{
+    done(AcceptAll);
+}
+//--------------------------------------------------
+
+void SpellChecker::Internal::SuggestionsDialog::on_pushButtonCancel_clicked()
+{
+    reject();
 }
 //--------------------------------------------------
