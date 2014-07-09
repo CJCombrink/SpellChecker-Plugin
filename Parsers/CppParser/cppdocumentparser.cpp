@@ -281,9 +281,9 @@ WordList CppDocumentParser::parseAndSpellCheckCppDocument(CPlusPlus::Document::P
         CPlusPlus::Token token = docPtr->translationUnit()->commentAt(comment);
         bool isDoxygenComment = ((token.kind() == CPlusPlus::T_DOXY_COMMENT)
                                  || (token.kind() == CPlusPlus::T_CPP_DOXY_COMMENT));
-        QString commentString = QString::fromUtf8(docPtr->utf8Source().mid(token.begin(), token.length()).trimmed());
+        QString commentString = QString::fromUtf8(docPtr->utf8Source().mid(token.bytesBegin(), token.bytes()).trimmed());
         /* Tokenize the comment to extract words that should be checked from the comment */
-        tokenizeWords(docPtr->fileName(), commentString, token.begin(), docPtr->translationUnit(), words);
+        tokenizeWords(docPtr->fileName(), commentString, token.bytesBegin(), docPtr->translationUnit(), words);
         /* Filter out words based on settings */
         applySettingsToWords(commentString, words, isDoxygenComment);
         /* If there are no words to check at this stage it probably means all potential words were removed
