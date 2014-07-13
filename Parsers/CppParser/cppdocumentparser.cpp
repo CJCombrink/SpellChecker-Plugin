@@ -34,10 +34,13 @@
 #include <cpptools/cppdoxygen.h>
 #include <cplusplus/Overview.h>
 #include <cppeditor/cppeditorconstants.h>
+#include <texteditor/basetexteditor.h>
+#include <texteditor/syntaxhighlighter.h>
 #include <projectexplorer/project.h>
 #include <projectexplorer/session.h>
 
 #include <QRegularExpression>
+#include <QTextBlock>
 
 namespace SpellChecker {
 namespace CppSpellChecker {
@@ -228,6 +231,51 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
     }
     WordList words = parseAndSpellCheckCppDocument(docPtr);
     SpellCheckerCore::instance()->addWordsWithSpellingMistakes(fileName, words);
+
+    /* Underlining the mistakes does not work as intended. Applying the format to the
+     * word does work but it gets cleared immediately (the underline flashes in and
+     * out). It does stay if changing editors and changing back. Since this is not
+     * fully working this is for now removed using a preprocessor macro. */
+#define ATTEMPT_UNDERLINE_MISTAKES
+#ifdef ATTEMPT_UNDERLINE_MISTAKES
+    /* Apply the formatting for spelling mistakes */
+    if(d->currentEditor == NULL) {
+        return;
+    }
+    TextEditor::BaseTextEditor* baseText = qobject_cast<TextEditor::BaseTextEditor*>(d->currentEditor);
+    if(baseText == NULL) {
+        return;
+    }
+    TextEditor::SyntaxHighlighter *highlighter = baseText->baseTextDocument()->syntaxHighlighter();
+        // Clear all additional formats since they may have changed
+    QTextBlock b = baseText->baseTextDocument()->document()->firstBlock();
+    WordList::ConstIterator wordIter;
+    unsigned int line = 0;
+    while (b.isValid()) {
+        line++;
+        wordIter = words.constBegin();
+        QList<QTextLayout::FormatRange> mistakeFormats;
+        while(wordIter != words.constEnd()) {
+            const Word& currentWord = wordIter.value();
+            if(currentWord.lineNumber == line) {
+                /* Set the formatting for the word in the block */
+                QTextLayout::FormatRange mistake;
+                mistake.start = currentWord.columnNumber - 1;
+                mistake.length = currentWord.length;
+                mistake.format.setFontUnderline(true);
+                mistake.format.setUnderlineStyle(QTextCharFormat::WaveUnderline);
+                mistake.format.setUnderlineColor(Qt::red);
+                mistakeFormats.append(mistake);
+            }
+            ++wordIter;
+        }
+
+        if(mistakeFormats.count() != 0) {
+            highlighter->setExtraAdditionalFormats(b, mistakeFormats);
+        }
+        b = b.next();
+    }
+#endif /* ATTEMPT_UNDERLINE_MISTAKES */
 }
 //--------------------------------------------------
 
