@@ -50,7 +50,7 @@ isEmpty(QTCREATOR_SOURCES):QTCREATOR_SOURCES=$${LOCAL_QTCREATOR_SOURCES}
 IDE_BUILD_TREE = $$(QTC_BUILD)
 isEmpty(IDE_BUILD_TREE):IDE_BUILD_TREE=$${LOCAL_IDE_BUILD_TREE}
 # Does not seem to need this one as it is added by Qt Creator already
-#include(spellchecker_dependencies.pri)
+include(spellchecker_dependencies.pri)
 
 ## uncomment to build plugin into user config directory
 ## <localappdata>/plugins/<ideversion>
@@ -59,6 +59,6 @@ isEmpty(IDE_BUILD_TREE):IDE_BUILD_TREE=$${LOCAL_IDE_BUILD_TREE}
 ##    "$XDG_DATA_HOME/data/QtProject/qtcreator" or "~/.local/share/data/QtProject/qtcreator" on Linux
 ##    "~/Library/Application Support/QtProject/Qt Creator" on Mac
 # USE_USER_DESTDIR = yes
-
+#
 PROVIDER = CJC
 include($$QTCREATOR_SOURCES/src/qtcreatorplugin.pri)
