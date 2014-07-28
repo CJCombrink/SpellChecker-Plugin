@@ -21,7 +21,7 @@
 #ifndef SPELLCHECKER_INTERNAL_HUNSPELLCHECKER_H
 #define SPELLCHECKER_INTERNAL_HUNSPELLCHECKER_H
 
-#include "..\..\ISpellChecker.h"
+#include "ISpellChecker.h"
 
 #include <QObject>
 

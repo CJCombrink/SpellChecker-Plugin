@@ -29,7 +29,7 @@
 #include <coreplugin/icore.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
-#include <cpptools/CppModelManagerInterface.h>
+#include <cpptools/cppmodelmanagerinterface.h>
 #include <cpptools/cpptoolsreuse.h>
 #include <cpptools/cppdoxygen.h>
 #include <cplusplus/Overview.h>
