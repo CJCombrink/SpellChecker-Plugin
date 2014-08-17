@@ -27,7 +27,9 @@ namespace CppParser {
 namespace Constants {
 
 /* Pattern based on pattern found on http://gskinner.com/RegExr/ for email addresses */
-const char EMAIL_ADDRESS_REGEXP_PATTERN[] = "[\\w-\\.]+@((?:[\\w]+\\.)+)[a-zA-Z]{2,4}";
+const char EMAIL_ADDRESS_REGEXP_PATTERN[]   = "[\\w-\\.]+@((?:[\\w]+\\.)+)[a-zA-Z]{2,4}";
+/* Custom pattern used for website addresses. Probably not optimal nor a good option. */
+const char WEBSITE_ADDRESS_REGEXP_PATTERN[] = "((http(s)?):\\/\\/)?(\\w+\\.){1,10}[0-9A-z./?=#%\\-]+";
 
 const char CPP_PARSER_GROUP[]       = "CppParser";
 const char CHECK_QT_KEYWORDS[]      = "CheckQtKeywords";
@@ -38,6 +40,7 @@ const char CHECK_CAMELCASE[]        = "camelCaseWordOption";
 const char REMOVE_WORDS_SOURCE[]    = "removeWordsThatAppearInSource";
 const char REMOVE_EMAIL_ADDRESSES[] = "removeEmailAddresses";
 const char CHECK_DOTS[]             = "wordsWithDotsOption";
+const char REMOVE_WEBSITES[]        = "removeWebsites";
 
 } // namespace Constants
 } // namespace CppParser

@@ -236,7 +236,7 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
      * word does work but it gets cleared immediately (the underline flashes in and
      * out). It does stay if changing editors and changing back. Since this is not
      * fully working this is for now removed using a preprocessor macro. */
-#define ATTEMPT_UNDERLINE_MISTAKES
+//#define ATTEMPT_UNDERLINE_MISTAKES
 #ifdef ATTEMPT_UNDERLINE_MISTAKES
     /* Apply the formatting for spelling mistakes */
     if(d->currentEditor == NULL) {
@@ -246,8 +246,7 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
     if(baseText == NULL) {
         return;
     }
-    TextEditor::SyntaxHighlighter *highlighter = baseText->baseTextDocument()->syntaxHighlighter();
-        // Clear all additional formats since they may have changed
+    // Clear all additional formats since they may have changed
     QTextBlock b = baseText->baseTextDocument()->document()->firstBlock();
     WordList::ConstIterator wordIter;
     unsigned int line = 0;
@@ -271,7 +270,13 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
         }
 
         if(mistakeFormats.count() != 0) {
-            highlighter->setExtraAdditionalFormats(b, mistakeFormats);
+            /* Get the current formats on the layout and then add the formats for
+             * the spelling mistakes to the list of formats before it is written
+             * back to the layout. This is done to prevent overwriting the formats
+             * added by other plugins. */
+            QList<QTextLayout::FormatRange> formats = b.layout()->additionalFormats();
+            formats << mistakeFormats;
+            b.layout()->setAdditionalFormats(formats);
         }
         b = b.next();
     }
@@ -400,6 +405,7 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
     QRegularExpression doubleRe(QLatin1String("\\A\\d+(\\.\\d+)?\\z"));
     QRegularExpression hexRe(QLatin1String("\\A0x[0-9A-Fa-f]+\\z"));
     QRegularExpression emailRe(QLatin1String("\\A") + QLatin1String(SpellChecker::Parsers::CppParser::Constants::EMAIL_ADDRESS_REGEXP_PATTERN) + QLatin1String("\\z"));
+    QRegularExpression websiteRe(QLatin1String(SpellChecker::Parsers::CppParser::Constants::WEBSITE_ADDRESS_REGEXP_PATTERN));
     /* Word list that can be added to in the case that a word is split up into different words
      * due to some setting or rule. These words can also be checked against the settings using
      * recursion or not. It depends on the implementation that did the splitting of the
@@ -456,6 +462,13 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
 
         if((d->settings->removeEmailAddresses == true) && (removeCurrentWord == false)) {
             if(emailRe.match(currentWord).hasMatch() == true) {
+                removeCurrentWord = true;
+            }
+        }
+
+        /* Attempt to remove website addresses using the websiteRe Regular Expression. */
+        if((d->settings->removeWebsites == true) && (removeCurrentWord == false)) {
+            if(websiteRe.match(currentWord).hasMatch() == true) {
                 removeCurrentWord = true;
             }
         }
@@ -771,6 +784,24 @@ bool CppDocumentParser::isEndOfCurrentWord(const QString &comment, int currentPo
         if((wordChars.indexIn(comment.at(currentPos + 1)) != -1)
                 &&(wordChars.indexIn(comment.at(currentPos - 1)) != -1)) {
             return false;
+        }
+    }
+
+    /* Check for websites. This will only check the website characters if the
+     * option for website addresses are enabled due to the amount of false positives
+     * that this setting can remove. Also this can put some overhead to other settings
+     * that are not always desired.
+     * This setting might require some rework in the future. */
+    if(d->settings->removeEmailAddresses == true) {
+        QRegularExpression websiteChars(QLatin1String("\\/|:|\\?|\\=|#|%|\\w|\\-"));
+        if(websiteChars.match(currentChar).hasMatch() == true) {
+            if((currentPos == 0) || (currentPos == (comment.length() - 1))) {
+                return true;
+            }
+            if((websiteChars.match(comment.at(currentPos + 1)).hasMatch() == true)
+                    &&(websiteChars.match(comment.at(currentPos - 1)).hasMatch() == true)) {
+                return false;
+            }
         }
     }
 

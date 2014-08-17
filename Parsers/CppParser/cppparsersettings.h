@@ -77,6 +77,10 @@ public:
     bool removeWordsThatAppearInSource;
     bool removeEmailAddresses;
     WordsWithDotsOption wordsWithDotsOption;
+    /*! The words with websites uses a very zealous regular expression that
+     * can remove a lot of actual errors in the code. For this reason it
+     * will be false by default. */
+    bool removeWebsites;
 
     void loadFromSettings(QSettings *settings);
     void saveToSetting(QSettings *settings) const;

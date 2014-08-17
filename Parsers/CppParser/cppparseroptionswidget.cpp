@@ -35,6 +35,7 @@ CppParserOptionsWidget::CppParserOptionsWidget(const CppParserSettings* const se
 {
     ui->setupUi(this);
     ui->labelDescriptionEmail->setText(ui->labelDescriptionEmail->text().arg(QLatin1String(SpellChecker::Parsers::CppParser::Constants::EMAIL_ADDRESS_REGEXP_PATTERN)));
+    ui->labelDescriptionWebsites->setText(ui->labelDescriptionWebsites->text().arg(QLatin1String(SpellChecker::Parsers::CppParser::Constants::WEBSITE_ADDRESS_REGEXP_PATTERN)));
     /* Set up the options for words with numbers. */
     ui->radioButtonNumbersRemove->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::RemoveWordsWithNumbers);
     ui->radioButtonNumbersSplit->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::SplitWordsOnNumbers);
@@ -56,7 +57,7 @@ CppParserOptionsWidget::CppParserOptionsWidget(const CppParserSettings* const se
     connect(ui->radioButtonCamelRemove, SIGNAL(toggled(bool)), this, SLOT(radioButtonCamelCaseToggled()));
     connect(ui->radioButtonCamelSplit, SIGNAL(toggled(bool)), this, SLOT(radioButtonCamelCaseToggled()));
     connect(ui->radioButtonCamelLeave, SIGNAL(toggled(bool)), this, SLOT(radioButtonCamelCaseToggled()));
-    /* Set up the options for words with dots */
+    /* Set up the options for words with dots. */
     ui->radioButtonDotsRemove->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::RemoveWordsWithDots);
     ui->radioButtonDotsSplit->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::SplitWordsOnDots);
     ui->radioButtonDotsLeave->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::LeaveWordsWithDots);
@@ -80,6 +81,7 @@ const CppParserSettings &CppParserOptionsWidget::settings()
     m_settings.checkQtKeywords = !ui->checkBoxIgnoreKeywords->isChecked();
     m_settings.checkAllCapsWords = !ui->checkBoxIgnoreCaps->isChecked();
     m_settings.removeWordsThatAppearInSource = ui->checkBoxWordsInSource->isChecked();
+    m_settings.removeWebsites = ui->checkBoxWebsiteAddresses->isChecked();
     return m_settings;
 }
 //--------------------------------------------------
@@ -130,6 +132,7 @@ void CppParserOptionsWidget::updateWithSettings(const CppParserSettings *const s
     ui->checkBoxWordsInSource->setChecked(settings->removeWordsThatAppearInSource);
     QRadioButton* dotsButtons[] = {ui->radioButtonDotsRemove, ui->radioButtonDotsSplit, ui->radioButtonDotsLeave};
     dotsButtons[settings->wordsWithDotsOption]->setChecked(true);
+    ui->checkBoxWebsiteAddresses->setChecked(settings->removeWebsites);
 }
 //--------------------------------------------------
 

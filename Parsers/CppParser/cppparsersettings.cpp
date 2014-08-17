@@ -1,4 +1,5 @@
-/**************************************************************************
+/***************
+***********************************************************
 **
 ** Copyright (c) 2014 Carel Combrink
 **
@@ -44,6 +45,7 @@ CppParserSettings::CppParserSettings(const CppParserSettings &settings) :
     camelCaseWordOption = settings.camelCaseWordOption;
     removeWordsThatAppearInSource = settings.removeWordsThatAppearInSource;
     wordsWithDotsOption = settings.wordsWithDotsOption;
+    removeWebsites = settings.removeWebsites;
 }
 //--------------------------------------------------
 
@@ -68,6 +70,7 @@ void CppParserSettings::loadFromSettings(QSettings *settings)
     removeWordsThatAppearInSource = settings->value(QLatin1String(Parsers::CppParser::Constants::REMOVE_WORDS_SOURCE), removeWordsThatAppearInSource).toBool();
     removeEmailAddresses = settings->value(QLatin1String(Parsers::CppParser::Constants::REMOVE_EMAIL_ADDRESSES), removeEmailAddresses).toBool();
     wordsWithDotsOption = static_cast<WordsWithDotsOption>(settings->value(QLatin1String(Parsers::CppParser::Constants::CHECK_DOTS), wordsWithDotsOption).toInt());
+    removeWebsites = settings->value(QLatin1String(Parsers::CppParser::Constants::REMOVE_WEBSITES), removeWebsites).toBool();
 
     settings->endGroup(); /* CPP_PARSER_GROUP */
     settings->endGroup(); /* CORE_PARSERS_GROUP */
@@ -91,6 +94,7 @@ void CppParserSettings::saveToSetting(QSettings *settings) const
     settings->setValue(QLatin1String(Parsers::CppParser::Constants::REMOVE_WORDS_SOURCE), removeWordsThatAppearInSource);
     settings->setValue(QLatin1String(Parsers::CppParser::Constants::REMOVE_EMAIL_ADDRESSES), removeEmailAddresses);
     settings->setValue(QLatin1String(Parsers::CppParser::Constants::CHECK_DOTS), wordsWithDotsOption);
+    settings->setValue(QLatin1String(Parsers::CppParser::Constants::REMOVE_WEBSITES), removeWebsites);
 
     settings->endGroup(); /* CPP_PARSER_GROUP */
     settings->endGroup(); /* CORE_PARSERS_GROUP */
@@ -109,6 +113,7 @@ void CppParserSettings::setDefaults()
     camelCaseWordOption = SplitWordsOnCamelCase;
     removeWordsThatAppearInSource = true;
     wordsWithDotsOption = SplitWordsOnDots;
+    removeWebsites = false;
 }
 //--------------------------------------------------
 
@@ -124,6 +129,7 @@ CppParserSettings &CppParserSettings::operator=(const CppParserSettings &other)
         this->removeWordsThatAppearInSource = other.removeWordsThatAppearInSource;
         this->removeEmailAddresses = other.removeEmailAddresses;
         this->wordsWithDotsOption = other.wordsWithDotsOption;
+        this->removeWebsites = other.removeWebsites;
         emit settingsChanged();
     }
 
@@ -142,6 +148,7 @@ bool CppParserSettings::operator==(const CppParserSettings &other) const
     different = different | (removeWordsThatAppearInSource != other.removeWordsThatAppearInSource);
     different = different | (removeEmailAddresses != other.removeEmailAddresses);
     different = different | (wordsWithDotsOption != other.wordsWithDotsOption);
+    different = different | (removeWebsites != other.removeWebsites);
     return (different == false);
 }
 //--------------------------------------------------
