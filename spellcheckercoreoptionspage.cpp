@@ -21,6 +21,7 @@
 #include "spellcheckercoreoptionspage.h"
 #include "spellcheckercoresettings.h"
 #include "spellcheckercoreoptionswidget.h"
+#include "spellcheckerconstants.h"
 
 using namespace SpellChecker::Internal;
 
@@ -32,6 +33,7 @@ SpellCheckerCoreOptionsPage::SpellCheckerCoreOptionsPage(SpellCheckerCoreSetting
     setDisplayName(tr("SpellChecker"));
     setCategory("SpellChecker");
     setDisplayCategory(tr("Spell Checker"));
+    setCategoryIcon(QLatin1String(Constants::ICON_SPELLCHECKERPLUGIN_OPTIONS));
 }
 //--------------------------------------------------
 

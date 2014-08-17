@@ -60,6 +60,8 @@ const char MISTAKES_MODEL_COLUMN_NAMES[][20] = {
     QT_TRANSLATE_NOOP("SpellChecker::Internal::SpellingMistakesModel", "Col")
 };
 
+const char ICON_SPELLCHECKERPLUGIN_OPTIONS[] = ":/spellcheckerplugin/Resources/images/optionspageicon.png";
+
 } // namespace SpellChecker
 } // namespace Constants
 

@@ -31,6 +31,9 @@ FORMS += \
         spellcheckercoreoptionswidget.ui \
         suggestionsdialog.ui
 
+RESOURCES += \
+        spellcheckerplugin.qrc
+
 # Include a pri file that sets the local paths to needed
 # folders. It is done in this way so that the main pro
 # file does not need to change depending on the environment of the
@@ -62,3 +65,5 @@ include(spellchecker_dependencies.pri)
 #
 PROVIDER = CJC
 include($$QTCREATOR_SOURCES/src/qtcreatorplugin.pri)
+
+message(Qt Creator Version: $$QTCREATOR_VERSION)
