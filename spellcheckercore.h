@@ -101,7 +101,9 @@ private:
         Ignore,
         Add
     };
-    /*! \brief isWordUnderCursorMistake
+    /*! \brief Is the Word Under the Cursor a Mistake
+     * Check if the word under the cursor is a spelling mistake, and if it is,
+     * return the misspelled word.
      * \param[out] word If the word is a mistake, this will return the misspelled word.
      * \return True if the word is misspelled.
      */
@@ -112,7 +114,18 @@ private:
      * \return true if at least one occurrence was found.
      */
     bool getAllOccurrencesOfWord(const Word &word, WordList& words);
+    /*! \brief Remove Word Under Cursor.
+     * Remove the word under the cursor using the remove action.
+     * \param[in] action Action to use to remove the word.
+     */
     void removeWordUnderCursor(RemoveAction action);
+    /*! \brief Replace Words In CurrentEditor.
+     * Replace the given words in the current editor with the supplied replacement word.
+     * \param[in] wordsToReplace List of words to replace
+     * \param[in] replacementWord Word to replace all occurances of the \a wordsToReplace
+     *              with.
+     */
+    void replaceWordsInCurrentEditor(const WordList& wordsToReplace, const QString& replacementWord);
     
 signals:
     void wordUnderCursorMistake(bool isMistake, const Word& word = Word());
@@ -122,6 +135,7 @@ public slots:
     void giveSuggestionsForWordUnderCursor();
     void ignoreWordUnderCursor();
     void addWordUnderCursor();
+    void replaceWordUnderCursorFirstSuggestion();
 
 private slots:
     void cursorPositionChanged();

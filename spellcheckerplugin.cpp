@@ -109,20 +109,25 @@ bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *error
     Core::Context globalContext(Core::Constants::C_GLOBAL);
     /* Create the menu */
     QAction *actionSuggest = new QAction(tr("Give Suggestions"), this);
-    QAction *actionIgnore = new QAction(tr("Ignore Word"), this);
-    QAction *actionAdd = new QAction(tr("Add Word"), this);
+    QAction *actionIgnore  = new QAction(tr("Ignore Word"), this);
+    QAction *actionAdd     = new QAction(tr("Add Word"), this);
+    QAction *actionLucky   = new QAction(tr("Feeling Lucky"), this);
     Core::Command *cmdSuggest = Core::ActionManager::registerAction(actionSuggest, Constants::ACTION_SUGGEST_ID, textContext);
-    Core::Command *cmdIgnore = Core::ActionManager::registerAction(actionIgnore, Constants::ACTION_IGNORE_ID, textContext);
-    Core::Command *cmdAdd = Core::ActionManager::registerAction(actionAdd, Constants::ACTION_ADD_ID, textContext);
+    Core::Command *cmdIgnore  = Core::ActionManager::registerAction(actionIgnore, Constants::ACTION_IGNORE_ID, textContext);
+    Core::Command *cmdAdd     = Core::ActionManager::registerAction(actionAdd, Constants::ACTION_ADD_ID, textContext);
+    Core::Command *cmdLucky   = Core::ActionManager::registerAction(actionLucky, Constants::ACTION_LUCKY_ID, textContext);
     cmdSuggest->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+S")));
     cmdIgnore->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+I")));
     cmdAdd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+A")));
+    cmdLucky->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+L")));
     connect(actionSuggest, SIGNAL(triggered()), m_spellCheckerCore, SLOT(giveSuggestionsForWordUnderCursor()));
     connect(actionIgnore, SIGNAL(triggered()), m_spellCheckerCore, SLOT(ignoreWordUnderCursor()));
     connect(actionAdd, SIGNAL(triggered()), m_spellCheckerCore, SLOT(addWordUnderCursor()));
+    connect(actionLucky, SIGNAL(triggered()), m_spellCheckerCore, SLOT(replaceWordUnderCursorFirstSuggestion()));
     connect(m_spellCheckerCore, SIGNAL(wordUnderCursorMistake(bool)), actionSuggest, SLOT(setEnabled(bool)));
     connect(m_spellCheckerCore, SIGNAL(wordUnderCursorMistake(bool)), actionIgnore, SLOT(setEnabled(bool)));
     connect(m_spellCheckerCore, SIGNAL(wordUnderCursorMistake(bool)), actionAdd, SLOT(setEnabled(bool)));
+    connect(m_spellCheckerCore, SIGNAL(wordUnderCursorMistake(bool)), actionLucky, SLOT(setEnabled(bool)));
 
     QAction *actionProject = new QAction(tr("Project..."), this);
     Core::Command *cmdProject = Core::ActionManager::registerAction(actionProject, Constants::ACTION_PROJECT, globalContext);
@@ -133,6 +138,7 @@ bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *error
     menu->addAction(cmdSuggest);
     menu->addAction(cmdIgnore);
     menu->addAction(cmdAdd);
+    menu->addAction(cmdLucky);
     menu->addSeparator(globalContext);
     menu->addAction(cmdProject);
     Core::ActionManager::actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
@@ -143,6 +149,7 @@ bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *error
     contextMenu->addAction(cmdSuggest);
     contextMenu->addAction(cmdIgnore);
     contextMenu->addAction(cmdAdd);
+    contextMenu->addAction(cmdLucky);
 
     /* --- Create the default Spell Checker and Document Parser --- */
     /* Hunspell Spell Checker */

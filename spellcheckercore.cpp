@@ -336,28 +336,7 @@ void SpellCheckerCore::giveSuggestionsForWordUnderCursor()
     }
 
     QString replacement = dialog.replacementWord();
-
-    d->currentEditor->document();
-    d->currentEditor->widget();
-    TextEditor::BaseTextEditorWidget* editorWidget = qobject_cast<TextEditor::BaseTextEditorWidget*>(d->currentEditor->widget());
-    if(editorWidget == NULL) {
-        Q_ASSERT(editorWidget != NULL);
-        return;
-    }
-
-    QTextCursor cursor = editorWidget->textCursor();
-    /* Iterate the words and replace all one by one */
-    foreach(const Word& wordToReplace, wordsToReplace) {
-        editorWidget->gotoLine(wordToReplace.lineNumber, wordToReplace.columnNumber - 1);
-        int wordStartPos = editorWidget->textCursor().position();
-        editorWidget->gotoLine(wordToReplace.lineNumber, wordToReplace.columnNumber + wordToReplace.length - 1);
-        int wordEndPos = editorWidget->textCursor().position();
-
-        cursor.setPosition(wordStartPos);
-        cursor.setPosition(wordEndPos, QTextCursor::KeepAnchor);
-        cursor.removeSelectedText();
-        cursor.insertText(replacement);
-    }
+    replaceWordsInCurrentEditor(wordsToReplace, replacement);
 }
 //--------------------------------------------------
 
@@ -370,6 +349,20 @@ void SpellCheckerCore::ignoreWordUnderCursor()
 void SpellCheckerCore::addWordUnderCursor()
 {
     removeWordUnderCursor(Add);
+}
+//--------------------------------------------------
+
+void SpellCheckerCore::replaceWordUnderCursorFirstSuggestion() {
+    Word word;
+    /* Get the word under the cursor. */
+    bool wordMistake = isWordUnderCursorMistake(word);
+    if(wordMistake == false) {
+        Q_ASSERT(wordMistake);
+        return;
+    }
+    WordList words;
+    words.append(word);
+    replaceWordsInCurrentEditor(words, word.suggestions.first());
 }
 //--------------------------------------------------
 
@@ -417,6 +410,38 @@ void SpellCheckerCore::removeWordUnderCursor(RemoveAction action)
         }
     }
     return;
+}
+//--------------------------------------------------
+
+void SpellCheckerCore::replaceWordsInCurrentEditor(const WordList &wordsToReplace, const QString &replacementWord)
+{
+    if(wordsToReplace.count() == 0) {
+        Q_ASSERT(wordsToReplace.count() != 0);
+        return;
+    }
+    if(d->currentEditor == NULL) {
+        Q_ASSERT(d->currentEditor != NULL);
+        return;
+    }
+    TextEditor::BaseTextEditorWidget* editorWidget = qobject_cast<TextEditor::BaseTextEditorWidget*>(d->currentEditor->widget());
+    if(editorWidget == NULL) {
+        Q_ASSERT(editorWidget != NULL);
+        return;
+    }
+
+    QTextCursor cursor = editorWidget->textCursor();
+    /* Iterate the words and replace all one by one */
+    foreach(const Word& wordToReplace, wordsToReplace) {
+        editorWidget->gotoLine(wordToReplace.lineNumber, wordToReplace.columnNumber - 1);
+        int wordStartPos = editorWidget->textCursor().position();
+        editorWidget->gotoLine(wordToReplace.lineNumber, wordToReplace.columnNumber + wordToReplace.length - 1);
+        int wordEndPos = editorWidget->textCursor().position();
+
+        cursor.setPosition(wordStartPos);
+        cursor.setPosition(wordEndPos, QTextCursor::KeepAnchor);
+        cursor.removeSelectedText();
+        cursor.insertText(replacementWord);
+    }
 }
 //--------------------------------------------------
 

@@ -40,6 +40,7 @@ public:
     QToolButton* buttonIgnore;
     QToolButton* buttonAdd;
     QToolButton* buttonSuggest;
+    QToolButton* buttonLucky;
 
     OutputPanePrivate()
     {}
@@ -96,6 +97,13 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
     d->buttonAdd->setToolTip(tr("Add the word to the user dictionary"));
     d->toolbarWidgets.push_back(d->buttonAdd);
     connect(d->buttonAdd, SIGNAL(clicked()), SpellCheckerCore::instance(), SLOT(addWordUnderCursor()));
+
+    d->buttonLucky = new QToolButton();
+    d->buttonLucky->setIcon(QIcon(QLatin1String(Constants::ICON_OUTPUTPANE_LUKCY_BUTTON)));
+    d->buttonLucky->setText(tr("Feeling Lucky"));
+    d->buttonLucky->setToolTip(tr("Replace the word with the first suggestion"));
+    d->toolbarWidgets.push_back(d->buttonLucky);
+    connect(d->buttonLucky, SIGNAL(clicked()), SpellCheckerCore::instance(), SLOT(replaceWordUnderCursorFirstSuggestion()));
 
     SpellCheckerCore* core = SpellCheckerCore::instance();
     connect(core, SIGNAL(wordUnderCursorMistake(bool,Word)), this, SLOT(wordUnderCursorMistake(bool,Word)));
@@ -251,5 +259,6 @@ void OutputPane::wordUnderCursorMistake(bool isMistake, const Word &word)
     d->buttonSuggest->setEnabled(isMistake);
     d->buttonIgnore->setEnabled(isMistake);
     d->buttonAdd->setEnabled(isMistake);
+    d->buttonLucky->setEnabled(isMistake);
 }
 //--------------------------------------------------

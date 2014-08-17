@@ -24,16 +24,17 @@
 namespace SpellChecker {
 namespace Constants {
 
-const char MENU_ID[] = "SpellChecker.Menu";
-const char CONTEXT_MENU_ID[] = "SpellChecker.ContextMenu";
+const char MENU_ID[]           = "SpellChecker.Menu";
+const char CONTEXT_MENU_ID[]   = "SpellChecker.ContextMenu";
 const char ACTION_SUGGEST_ID[] = "SpellChecker.ActionSuggest";
-const char ACTION_IGNORE_ID[] = "SpellChecker.ActionIgnore";
-const char ACTION_ADD_ID[] = "SpellChecker.ActionAdd";
-const char ACTION_PROJECT[] = "SpellChecker.ActionProject";
+const char ACTION_IGNORE_ID[]  = "SpellChecker.ActionIgnore";
+const char ACTION_ADD_ID[]     = "SpellChecker.ActionAdd";
+const char ACTION_LUCKY_ID[]   = "SpellChecker.ActionLucky";
+const char ACTION_PROJECT[]    = "SpellChecker.ActionProject";
 
-const char CORE_SETTINGS_GROUP[] = "SpellCheckerPlugin";
+const char CORE_SETTINGS_GROUP[]      = "SpellCheckerPlugin";
 const char CORE_SPELLCHECKERS_GROUP[] = "SpellCheckers";
-const char CORE_PARSERS_GROUP[] = "Parsers";
+const char CORE_PARSERS_GROUP[]       = "Parsers";
 
 const char ACTIVE_SPELLCHECKER[] = "ActiveSpellChecker";
 
@@ -60,7 +61,9 @@ const char MISTAKES_MODEL_COLUMN_NAMES[][20] = {
     QT_TRANSLATE_NOOP("SpellChecker::Internal::SpellingMistakesModel", "Col")
 };
 
+/* Image resource paths */
 const char ICON_SPELLCHECKERPLUGIN_OPTIONS[] = ":/spellcheckerplugin/Resources/images/optionspageicon.png";
+const char ICON_OUTPUTPANE_LUKCY_BUTTON[]    = ":/spellcheckerplugin/Resources/images/clover.png";
 
 } // namespace SpellChecker
 } // namespace Constants
