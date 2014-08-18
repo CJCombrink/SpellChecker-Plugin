@@ -35,6 +35,7 @@ namespace SpellChecker {
 namespace Internal {
 class SpellCheckerCorePrivate;
 class OutputPane;
+class SpellCheckerCoreSettings;
 }
 class IDocumentParser;
 class ISpellChecker;
@@ -69,7 +70,6 @@ public:
      */
     void removeDocumentParser(IDocumentParser* parser);
 
-    void addWordsWithSpellingMistakes(const QString& fileName, const WordList& words);
 
     Internal::OutputPane* outputPane() const;
 
@@ -94,6 +94,8 @@ public:
     void spellCheckWords(const QString &comment, WordList& words);
 
     Core::IOptionsPage* optionsPage();
+    /*! \brief Get the Core Settings. */
+    Internal::SpellCheckerCoreSettings* settings() const;
 
 private:
     enum RemoveAction {
@@ -136,6 +138,7 @@ public slots:
     void ignoreWordUnderCursor();
     void addWordUnderCursor();
     void replaceWordUnderCursorFirstSuggestion();
+    void addWordsWithSpellingMistakes(const QString& fileName, const SpellChecker::WordList& words);
 
 private slots:
     void cursorPositionChanged();

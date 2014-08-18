@@ -247,6 +247,11 @@ Core::IOptionsPage *SpellCheckerCore::optionsPage()
 {
     return d->optionsPage;
 }
+
+SpellCheckerCoreSettings *SpellCheckerCore::settings() const
+{
+    return d->settings;
+}
 //--------------------------------------------------
 
 bool SpellCheckerCore::isWordUnderCursorMistake(Word& word)

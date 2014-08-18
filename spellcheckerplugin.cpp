@@ -77,6 +77,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 SpellCheckerPlugin::SpellCheckerPlugin() :
     m_spellCheckerCore(0)
 {
+    qRegisterMetaType<SpellChecker::WordList>("SpellChecker::WordList");
 }
 
 SpellCheckerPlugin::~SpellCheckerPlugin()

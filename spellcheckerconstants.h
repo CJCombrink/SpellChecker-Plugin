@@ -36,7 +36,8 @@ const char CORE_SETTINGS_GROUP[]      = "SpellCheckerPlugin";
 const char CORE_SPELLCHECKERS_GROUP[] = "SpellCheckers";
 const char CORE_PARSERS_GROUP[]       = "Parsers";
 
-const char ACTIVE_SPELLCHECKER[] = "ActiveSpellChecker";
+const char SETTING_ACTIVE_SPELLCHECKER[] = "ActiveSpellChecker";
+const char SETTING_ONLY_PARSE_CURRENT[]  = "OnlyParseCurrentFile";
 
 const char OUTPUT_PANE_TITLE[] = QT_TRANSLATE_NOOP("SpellChecker::Internal::OutputPane", "Spelling Mistakes");
 

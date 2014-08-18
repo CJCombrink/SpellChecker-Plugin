@@ -42,6 +42,7 @@ public:
     bool operator==(const SpellCheckerCoreSettings& other) const;
 
     QString activeSpellChecker;
+    bool onlyParseCurrentFile;
     
 signals:
     void settingsChanged();

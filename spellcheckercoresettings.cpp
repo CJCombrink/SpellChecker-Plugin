@@ -25,14 +25,16 @@ using namespace SpellChecker::Internal;
 
 SpellCheckerCoreSettings::SpellCheckerCoreSettings() :
     QObject(NULL),
-    activeSpellChecker()
+    activeSpellChecker(),
+    onlyParseCurrentFile(true)
 {
 }
 //--------------------------------------------------
 
 SpellCheckerCoreSettings::SpellCheckerCoreSettings(const SpellCheckerCoreSettings &settings) :
     QObject(settings.parent()),
-    activeSpellChecker(settings.activeSpellChecker)
+    activeSpellChecker(settings.activeSpellChecker),
+    onlyParseCurrentFile(settings.onlyParseCurrentFile)
 {
 }
 //--------------------------------------------------
@@ -45,7 +47,8 @@ SpellCheckerCoreSettings::~SpellCheckerCoreSettings()
 void SpellCheckerCoreSettings::saveToSettings(QSettings *settings) const
 {
     settings->beginGroup(QLatin1String(Constants::CORE_SETTINGS_GROUP));
-    settings->setValue(QLatin1String(Constants::ACTIVE_SPELLCHECKER), activeSpellChecker);
+    settings->setValue(QLatin1String(Constants::SETTING_ACTIVE_SPELLCHECKER), activeSpellChecker);
+    settings->setValue(QLatin1String(Constants::SETTING_ONLY_PARSE_CURRENT), onlyParseCurrentFile);
     settings->endGroup(); /* CORE_SETTINGS_GROUP */
     settings->sync();
 }
@@ -54,7 +57,8 @@ void SpellCheckerCoreSettings::saveToSettings(QSettings *settings) const
 void SpellCheckerCoreSettings::loadFromSettings(QSettings *settings)
 {
     settings->beginGroup(QLatin1String(Constants::CORE_SETTINGS_GROUP));
-    activeSpellChecker = settings->value(QLatin1String(Constants::ACTIVE_SPELLCHECKER), activeSpellChecker).toString();
+    activeSpellChecker   = settings->value(QLatin1String(Constants::SETTING_ACTIVE_SPELLCHECKER), activeSpellChecker).toString();
+    onlyParseCurrentFile = settings->value(QLatin1String(Constants::SETTING_ONLY_PARSE_CURRENT), onlyParseCurrentFile).toBool();
     settings->endGroup(); /* CORE_SETTINGS_GROUP */
 }
 //--------------------------------------------------
@@ -63,7 +67,8 @@ SpellCheckerCoreSettings &SpellCheckerCoreSettings::operator =(const SpellChecke
 {
     bool settingsSame = (operator==(other));
     if(settingsSame == false) {
-        this->activeSpellChecker = other.activeSpellChecker;
+        this->activeSpellChecker   = other.activeSpellChecker;
+        this->onlyParseCurrentFile = other.onlyParseCurrentFile;
         emit settingsChanged();
     }
     return *this;
@@ -73,7 +78,8 @@ SpellCheckerCoreSettings &SpellCheckerCoreSettings::operator =(const SpellChecke
 bool SpellCheckerCoreSettings::operator ==(const SpellCheckerCoreSettings &other) const
 {
     bool different = false;
-    different = different | (activeSpellChecker != other.activeSpellChecker);
+    different = different | (activeSpellChecker   != other.activeSpellChecker);
+    different = different | (onlyParseCurrentFile != other.onlyParseCurrentFile);
     return (different == false);
 }
 //--------------------------------------------------

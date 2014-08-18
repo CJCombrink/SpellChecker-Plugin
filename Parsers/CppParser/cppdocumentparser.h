@@ -53,6 +53,7 @@ public:
     void setCurrentEditor(Core::IEditor *editor);
 
 signals:
+    void addWordsWithSpellingMistakes(const QString& fileName, const SpellChecker::WordList& words);
     
 public slots:
 

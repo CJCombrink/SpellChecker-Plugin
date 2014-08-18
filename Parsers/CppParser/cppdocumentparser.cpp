@@ -19,6 +19,7 @@
 ****************************************************************************/
 
 #include "../../spellcheckercore.h"
+#include "../../spellcheckercoresettings.h"
 #include "../../spellcheckerconstants.h"
 #include "../../Word.h"
 #include "cppdocumentparser.h"
@@ -76,8 +77,10 @@ CppDocumentParser::CppDocumentParser(QObject *parent) :
     d->settings = new SpellChecker::CppSpellChecker::Internal::CppParserSettings();
     d->settings->loadFromSettings(Core::ICore::settings());
     connect(d->settings, SIGNAL(settingsChanged()), this, SLOT(settingsChanged()));
+    connect(SpellCheckerCore::instance()->settings(), SIGNAL(settingsChanged()), this, SLOT(settingsChanged()));
     /* Crete the options page for the parser */
     d->optionsPage = new CppParserOptionsPage(d->settings, this);
+    connect(this, SIGNAL(addWordsWithSpellingMistakes(QString,SpellChecker::WordList)), SpellCheckerCore::instance(), SLOT(addWordsWithSpellingMistakes(QString,SpellChecker::WordList)));
 
     CppTools::CppModelManagerInterface *modelManager = CppTools::CppModelManagerInterface::instance();
     connect(modelManager, SIGNAL(documentUpdated(CPlusPlus::Document::Ptr)), this, SLOT(parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr)), Qt::DirectConnection);
@@ -194,35 +197,19 @@ void CppDocumentParser::setCurrentEditor(Core::IEditor *editor)
         return;
     }
     d->currentEditorFileName = editor->document()->filePath();
-
-    CppTools::CppModelManagerInterface *modelManager = CppTools::CppModelManagerInterface::instance();
-    if(modelManager->isCppEditor(editor) == false) {
-        return;
-    }
-    modelManager->updateSourceFiles(QStringList() << d->currentEditorFileName);
-#ifdef true
-    /* I have tried to get a CPlusPlus::Document::Ptr from the editor but for some
-     * reason when trying this Qt Creator crashes when calling
-     * docPtr->translationUnit()->commentCount() on the ptr. For now asking
-     * the CppModelManagerInterface to update the file so that it can be parsed. */
-    CPlusPlus::Snapshot snapshot = modelManager->snapshot();
-    CPlusPlus::Document::Ptr docPtr = snapshot.document(d->currentEditorFileName);
-    if(docPtr.isNull() == true) {
-        return;
-    }
-    parseCppDocumentOnUpdate(docPtr);
-#endif /* true */
 }
 //--------------------------------------------------
 
 void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr)
 {
-    if(docPtr == NULL) {
+    if(docPtr.isNull() == true) {
         return;
     }
 
     QString fileName = docPtr->fileName();
-    if(d->currentEditorFileName != fileName) {
+
+    if((SpellCheckerCore::instance()->settings()->onlyParseCurrentFile == true)
+            && (d->currentEditorFileName != fileName)) {
         return;
     }
 
@@ -230,7 +217,7 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
         return;
     }
     WordList words = parseAndSpellCheckCppDocument(docPtr);
-    SpellCheckerCore::instance()->addWordsWithSpellingMistakes(fileName, words);
+    emit addWordsWithSpellingMistakes(fileName, words);
 
     /* Underlining the mistakes does not work as intended. Applying the format to the
      * word does work but it gets cleared immediately (the underline flashes in and
@@ -286,8 +273,7 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
 
 void CppDocumentParser::settingsChanged()
 {
-    /* Depending on the global parse setting, parse current file or project */
-    setCurrentEditor(d->currentEditor);
+    reparseProject();
 }
 //--------------------------------------------------
 
@@ -314,8 +300,6 @@ bool CppDocumentParser::shouldParseDocument(const QString& fileName)
 
 WordList CppDocumentParser::parseAndSpellCheckCppDocument(CPlusPlus::Document::Ptr docPtr)
 {
-    QTime time;
-    time.start();
     if(docPtr.isNull() == true) {
         return WordList();
     }
