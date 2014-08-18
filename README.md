@@ -60,6 +60,7 @@ After opening Qt Creator and the plugin loaded successfully the following steps 
     - Set the "*Dictionary*" and "*User Dictionary*" paths for the spell checker to use. <br>
       Dictionaries can be downloaded from http://archive.services.openoffice.org/pub/mirror/OpenOffice.org/contrib/dictionaries/ <br>
       The *User Dictionary* is a custom file used to store words added to the dictionary of the spell checker. If such a file does not exist, the plugin will create the file for this purpose.
+    - After setting the Spell Checker, restart Qt Creator.
   3. Set the Parser Options
     - For the different available parsers there will be tabs with the settings for the parser. 
       Currently there is only one parser available, a C++ Parser. Change its settings according to what is required. For more information
