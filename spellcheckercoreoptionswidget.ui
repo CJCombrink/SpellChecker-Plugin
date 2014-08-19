@@ -14,18 +14,28 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
+   <item row="2" column="0" colspan="2">
+    <widget class="QWidget" name="spellCheckerOptionsWidgetHolder" native="true"/>
+   </item>
+   <item row="1" column="0">
     <widget class="QLabel" name="label">
      <property name="text">
       <string>Spell Checker</string>
      </property>
     </widget>
    </item>
-   <item row="0" column="1">
+   <item row="1" column="1">
     <widget class="QComboBox" name="comboBoxSpellChecker"/>
    </item>
-   <item row="1" column="0" colspan="2">
-    <widget class="QWidget" name="spellCheckerOptionsWidgetHolder" native="true"/>
+   <item row="0" column="0" colspan="2">
+    <widget class="QCheckBox" name="checkBoxOnlyCheckCurrent">
+     <property name="toolTip">
+      <string>Parsing the whole project can sometimes take a lot of time, especially for large projects. This setting will restrict the number of files parsed to only the current editor when a project is opened or a setting is changed.</string>
+     </property>
+     <property name="text">
+      <string>Only check current editor</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

@@ -51,7 +51,8 @@ SpellCheckerCoreOptionsWidget::~SpellCheckerCoreOptionsWidget()
 
 const SpellCheckerCoreSettings &SpellCheckerCoreOptionsWidget::settings()
 {
-    m_settings.activeSpellChecker = ui->comboBoxSpellChecker->currentText();
+    m_settings.activeSpellChecker   = ui->comboBoxSpellChecker->currentText();
+    m_settings.onlyParseCurrentFile = ui->checkBoxOnlyCheckCurrent->isChecked();
     return m_settings;
 }
 //--------------------------------------------------
@@ -65,6 +66,7 @@ void SpellCheckerCoreOptionsWidget::updateWithSettings(const SpellCheckerCoreSet
         return;
     }
     ui->comboBoxSpellChecker->setCurrentIndex(index);
+    ui->checkBoxOnlyCheckCurrent->setChecked(settings->onlyParseCurrentFile);
 }
 //--------------------------------------------------
 
