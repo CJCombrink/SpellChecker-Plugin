@@ -44,7 +44,6 @@
 #include <QMouseEvent>
 #include <QTextCursor>
 
-
 class SpellChecker::Internal::SpellCheckerCorePrivate {
 public:
 
@@ -56,12 +55,14 @@ public:
     SpellChecker::Internal::SpellCheckerCoreOptionsPage* optionsPage;
     QMap<QString, ISpellChecker*> addedSpellCheckers;
     SpellChecker::ISpellChecker* spellChecker;
-    Core::IEditor *currentEditor;
+    QPointer<Core::IEditor> currentEditor;
     Core::ActionContainer *contextMenu;
+    QString currentFilePath;
 
     SpellCheckerCorePrivate() :
         spellChecker(NULL),
-        currentEditor(NULL)
+        currentEditor(NULL),
+        currentFilePath()
     {}
     ~SpellCheckerCorePrivate() {}
 };
@@ -123,8 +124,14 @@ SpellCheckerCore *SpellCheckerCore::instance()
 
 bool SpellCheckerCore::addDocumentParser(IDocumentParser *parser)
 {
+    /* Check that the parser was not already added. If it was, do not
+     * add it again and return false. */
     if(d->documentParsers.contains(parser) == false) {
         d->documentParsers << parser;
+        /* Connect all signals and slots between the parser and the core. */
+        connect(this, SIGNAL(currentEditorChanged(QString)), parser, SLOT(setCurrentEditor(QString)));
+        connect(this, SIGNAL(activeProjectChanged(ProjectExplorer::Project*)), parser, SLOT(setActiveProject(ProjectExplorer::Project*)));
+        connect(parser, SIGNAL(spellcheckWordsParsed(QString,SpellChecker::WordList)), this, SLOT(spellcheckWordsFromParser(QString,SpellChecker::WordList)), Qt::DirectConnection);
         return true;
     }
     return false;
@@ -133,6 +140,13 @@ bool SpellCheckerCore::addDocumentParser(IDocumentParser *parser)
 
 void SpellCheckerCore::removeDocumentParser(IDocumentParser *parser)
 {
+    if(parser == NULL) {
+        return;
+    }
+    /* Disconnect all signals between the parser and the core. */
+    disconnect(this, SIGNAL(currentEditorChanged(QString)), parser, SLOT(setCurrentEditor(QString)));
+    disconnect(this, SIGNAL(activeProjectChanged(ProjectExplorer::Project*)), parser, SLOT(setActiveProject(ProjectExplorer::Project*)));
+    disconnect(parser, SIGNAL(spellcheckWordsParsed(QString,SpellChecker::WordList)), this, SLOT(spellcheckWordsFromParser(QString,SpellChecker::WordList)));
     /* Remove the parser from the Core. The removeOne() function is used since
      * the check in the addDocumentParser() would prevent the list from having
      * more than one occurrence of the parser in the list of parsers */
@@ -140,7 +154,7 @@ void SpellCheckerCore::removeDocumentParser(IDocumentParser *parser)
 }
 //--------------------------------------------------
 
-void SpellCheckerCore::addWordsWithSpellingMistakes(const QString &fileName, const WordList &words)
+void SpellCheckerCore::addMisspelledWords(const QString &fileName, const WordList &words)
 {
     /* Remove the spelling mistakes for the given file name. This is done because
      * the new words should replace the old ones, and if there is no spelling mistakes
@@ -150,13 +164,7 @@ void SpellCheckerCore::addWordsWithSpellingMistakes(const QString &fileName, con
         d->spellingMistakes.insert(fileName, words);
     }
 
-    /* If the words belong to a file that is not the current open editor, do
-     * nothing. Otherwise if it does belong to the current editor then update
-     * the model to display the spelling mistakes on the open editor */
-    if(d->currentEditor == NULL) {
-        return;
-    }
-    if(d->currentEditor->document()->filePath() == fileName) {
+    if(d->currentFilePath == fileName) {
         d->mistakesModel->setCurrentSpellingMistakes(words);
     }
 }
@@ -202,6 +210,11 @@ void SpellCheckerCore::addSpellChecker(ISpellChecker *spellChecker)
 
 void SpellCheckerCore::setSpellChecker(ISpellChecker *spellChecker)
 {
+    if(d->spellChecker != NULL) {
+        /* Disconnect all signals connected to the current set spellchecker */
+        connect(this, SIGNAL(spellcheckWords(QString,SpellChecker::WordList)), d->spellChecker, SLOT(spellcheckWords(QString,SpellChecker::WordList)), Qt::DirectConnection);
+        connect(d->spellChecker, SIGNAL(misspelledWordsForFile(QString,SpellChecker::WordList)), this, SLOT(addMisspelledWords(QString,SpellChecker::WordList)));
+    }
     if(spellChecker == NULL) {
         return;
     }
@@ -211,35 +224,15 @@ void SpellCheckerCore::setSpellChecker(ISpellChecker *spellChecker)
     }
 
     d->spellChecker = spellChecker;
+    /* Connect the signals between the core and the spellchecker. */
+    connect(this, SIGNAL(spellcheckWords(QString,SpellChecker::WordList)), d->spellChecker, SLOT(spellcheckWords(QString,SpellChecker::WordList)), Qt::DirectConnection);
+    connect(d->spellChecker, SIGNAL(misspelledWordsForFile(QString,SpellChecker::WordList)), this, SLOT(addMisspelledWords(QString,SpellChecker::WordList)));
 }
 //--------------------------------------------------
 
-void SpellCheckerCore::spellCheckWords(const QString& comment, WordList &words)
+void SpellCheckerCore::spellcheckWordsFromParser(const QString& fileName, const WordList &words)
 {
-    if(d->spellChecker == NULL) {
-        Q_ASSERT(d->spellChecker != NULL);
-        return;
-    }
-    WordList::Iterator iter = words.begin();
-    while(iter != words.end()) {
-        bool spellingMistake = d->spellChecker->isSpellingMistake((*iter).text);
-        /* Check to see if the char after the word is a period. If it is,
-         * add the period to the word an see if it passes the checker. */
-        if((spellingMistake == true)
-                && ((*iter).end < comment.length())
-                && (comment.at((*iter).end) == QLatin1Char('.'))) {
-            /* Recheck the word with the period added */
-            spellingMistake = d->spellChecker->isSpellingMistake((*iter).text + QLatin1Char('.'));
-        }
-
-        if(spellingMistake == true) {
-            d->spellChecker->getSuggestionsForWord((*iter).text, (*iter).suggestions);
-            ++iter;
-        } else {
-            /* Not a spelling mistake, remove it from the list of words */
-            iter = words.erase(iter);
-        }
-    }
+    emit spellcheckWords(fileName, words);
 }
 //--------------------------------------------------
 
@@ -256,7 +249,7 @@ SpellCheckerCoreSettings *SpellCheckerCore::settings() const
 
 bool SpellCheckerCore::isWordUnderCursorMistake(Word& word)
 {
-    if(d->currentEditor == NULL) {
+    if(d->currentEditor.isNull() == true) {
         return false;
     }
 
@@ -285,7 +278,7 @@ bool SpellCheckerCore::isWordUnderCursorMistake(Word& word)
 
 bool SpellCheckerCore::getAllOccurrencesOfWord(const Word &word, WordList& words)
 {
-    if(d->currentEditor == NULL) {
+    if(d->currentEditor.isNull() == true) {
         return false;
     }
     WordList wl;
@@ -309,7 +302,7 @@ bool SpellCheckerCore::getAllOccurrencesOfWord(const Word &word, WordList& words
 
 void SpellCheckerCore::giveSuggestionsForWordUnderCursor()
 {
-    if(d->currentEditor == NULL) {
+    if(d->currentEditor.isNull() == true) {
         return;
     }
     Word word;
@@ -382,7 +375,7 @@ void SpellCheckerCore::cursorPositionChanged()
 
 void SpellCheckerCore::removeWordUnderCursor(RemoveAction action)
 {
-    if(d->currentEditor == NULL) {
+    if(d->currentEditor.isNull() == true) {
         return;
     }
     if(d->spellChecker == NULL) {
@@ -402,7 +395,7 @@ void SpellCheckerCore::removeWordUnderCursor(RemoveAction action)
         WordList wl;
         wl = d->spellingMistakes.value(currentFileName);
         wl.remove(wordToRemove);
-        addWordsWithSpellingMistakes(currentFileName, wl);
+        addMisspelledWords(currentFileName, wl);
         switch(action) {
         case Ignore:
             d->spellChecker->ignoreWord(wordToRemove);
@@ -452,32 +445,24 @@ void SpellCheckerCore::replaceWordsInCurrentEditor(const WordList &wordsToReplac
 
 void SpellCheckerCore::startupProjectChanged(ProjectExplorer::Project *startupProject)
 {
-    QList<QPointer<SpellChecker::IDocumentParser> >::Iterator iter;
-    for(iter = d->documentParsers.begin(); iter != d->documentParsers.end(); ++iter) {
-        if((*iter).isNull() == true) {
-            continue;
-        }
-        (*iter)->setStartupProject(startupProject);
-    }
+    emit activeProjectChanged(startupProject);
 }
 //--------------------------------------------------
 
 void SpellCheckerCore::currentEditorChanged(Core::IEditor *editor)
 {
-    QList<QPointer<SpellChecker::IDocumentParser> >::Iterator iter;
-    for(iter = d->documentParsers.begin(); iter != d->documentParsers.end(); ++iter) {
-        if((*iter).isNull() == true) {
-            continue;
-        }
-        (*iter)->setCurrentEditor(editor);
-    }
-
-    WordList wl;
+    d->currentFilePath = QLatin1String("");
     d->currentEditor = editor;
     if(editor != NULL) {
-        QString currentFileName = editor->document()->filePath();
-        if(d->spellingMistakes.contains(currentFileName) == true) {
-            wl = d->spellingMistakes.value(currentFileName);
+        d->currentFilePath = editor->document()->filePath();
+    }
+
+    emit currentEditorChanged(d->currentFilePath);
+
+    WordList wl;
+    if(d->currentFilePath.isEmpty() == false) {
+        if(d->spellingMistakes.contains(d->currentFilePath) == true) {
+            wl = d->spellingMistakes.value(d->currentFilePath);
         }
     }
     d->mistakesModel->setCurrentSpellingMistakes(wl);

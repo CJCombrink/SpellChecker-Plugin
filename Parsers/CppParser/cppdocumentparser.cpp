@@ -49,8 +49,7 @@ namespace Internal {
 
 class CppDocumentParserPrivate {
 public:
-    ProjectExplorer::Project* startupProject;
-    Core::IEditor* currentEditor;
+    ProjectExplorer::Project* activeProject;
     QString currentEditorFileName;
     CppParserOptionsPage* optionsPage;
     CppParserSettings* settings;
@@ -58,8 +57,7 @@ public:
     QStringList sourceFilesInStartupProject;
 
     CppDocumentParserPrivate() :
-        startupProject(NULL),
-        currentEditor(NULL),
+        activeProject(NULL),
         currentEditorFileName(),
         filesInStartupProject(),
         sourceFilesInStartupProject()
@@ -80,7 +78,6 @@ CppDocumentParser::CppDocumentParser(QObject *parent) :
     connect(SpellCheckerCore::instance()->settings(), SIGNAL(settingsChanged()), this, SLOT(settingsChanged()));
     /* Crete the options page for the parser */
     d->optionsPage = new CppParserOptionsPage(d->settings, this);
-    connect(this, SIGNAL(addWordsWithSpellingMistakes(QString,SpellChecker::WordList)), SpellCheckerCore::instance(), SLOT(addWordsWithSpellingMistakes(QString,SpellChecker::WordList)));
 
     CppTools::CppModelManagerInterface *modelManager = CppTools::CppModelManagerInterface::instance();
     connect(modelManager, SIGNAL(documentUpdated(CPlusPlus::Document::Ptr)), this, SLOT(parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr)), Qt::DirectConnection);
@@ -101,65 +98,6 @@ CppDocumentParser::~CppDocumentParser()
 }
 //--------------------------------------------------
 
-FileWordList CppDocumentParser::parseFiles(const QStringList &fileNames)
-{
-    qDebug() << "in CppDocumentParser::parseFiles: " << fileNames << "(" << fileNames.count() << ")";
-    FileWordList fileWords;
-    WordList words;
-    return fileWords;
-
-    /* Get the Snapshot from the Model Manager Interface instance. This snapshot is then used
-     * to get a C++ Doc pointer from for the given file name. If the file is a C++ file then
-     * the snapshot will return a valid pointer for the given file. Otherwise the file is not a
-     * valid C++ document and it will be ignored by this parser */
-    const CPlusPlus::Snapshot &snapshot = CppTools::CppModelManagerInterface::instance()->snapshot();
-
-    CPlusPlus::Snapshot::const_iterator itr;
-    for(itr = snapshot.begin(); itr != snapshot.end(); ++itr) {
-        qDebug() << "File: " << itr.key() << " (" << itr.value()->fileName() << ")";
-        qDebug() << "size = " << CppTools::CppModelManagerInterface::instance()->snapshot().size();
-    }
-
-    /* Iterate all of the files in the list of files and get their C++ document pointers. Parse
-     * the valid C++ documents */
-    foreach(const QString& fileName, fileNames) {
-        qApp->processEvents();
-        qDebug() << "size = " << CppTools::CppModelManagerInterface::instance()->snapshot().size();
-        CPlusPlus::Document::Ptr doc = snapshot.document(fileName);
-        qDebug() << "Snapshot size: " << snapshot.size();
-        qDebug() << "doc == NULL: " << (doc == NULL);
-        qDebug() << "Snapshot contains: " << snapshot.contains(fileName);
-        if(doc == NULL) {
-            /* The current file is not a valid C++ file. Continue to the next file */
-            continue;
-        }
-        words = parseAndSpellCheckCppDocument(doc);
-        if(words.isEmpty() == true) {
-            /* No spelling mistakes found in the current file, continue to the next file */
-            continue;
-        }
-        /* For the given file, there were spelling mistakes. Insert the file along with the
-         * words into the list that will be returned by this function */
-        fileWords.insert(fileName, words);
-    }
-    return fileWords;
-}
-//--------------------------------------------------
-
-WordList CppDocumentParser::parseFile(const QString &fileName)
-{
-    qDebug() << "CppDocParser::parseFile(): fileName" << fileName;
-    /* See comments in parseFiles() */
-    const CPlusPlus::Snapshot &snapshot = CppTools::CppModelManagerInterface::instance()->snapshot();
-    CPlusPlus::Document::Ptr doc = snapshot.document(fileName);
-    qDebug() << "doc == NULL: " << (doc == NULL);
-    if(doc == NULL) {
-        return WordList();
-    }
-    return parseAndSpellCheckCppDocument(doc);
-}
-//--------------------------------------------------
-
 QString CppDocumentParser::displayName()
 {
     return tr("C++ Document Parser");
@@ -172,31 +110,30 @@ Core::IOptionsPage *CppDocumentParser::optionsPage()
 }
 //--------------------------------------------------
 
-void CppDocumentParser::setStartupProject(ProjectExplorer::Project *startupProject)
+void CppDocumentParser::setActiveProject(ProjectExplorer::Project *activeProject)
 {
-    d->startupProject = startupProject;
+    d->activeProject = activeProject;
     d->filesInStartupProject.clear();
     d->sourceFilesInStartupProject.clear();
-    if(d->startupProject == NULL) {
+    if(d->activeProject == NULL) {
         return;
     }
     /* Get all the files in the startup project */
     CppTools::CppModelManagerInterface *modelManager = CppTools::CppModelManagerInterface::instance();
-    Q_ASSERT(modelManager != NULL); // NOT SURE IF THIS IS POSSIBLE
-    CppTools::CppModelManagerInterface::ProjectInfo startupProjectInfo = modelManager->projectInfo(d->startupProject);
+    if(modelManager == NULL) {
+        /* Not sure if this is possible. But check just to make sure. */
+        Q_ASSERT(modelManager != NULL);
+        return;
+    }
+    CppTools::CppModelManagerInterface::ProjectInfo startupProjectInfo = modelManager->projectInfo(d->activeProject);
     d->filesInStartupProject = startupProjectInfo.project().data()->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
     d->sourceFilesInStartupProject = startupProjectInfo.sourceFiles();
 }
 //--------------------------------------------------
 
-void CppDocumentParser::setCurrentEditor(Core::IEditor *editor)
+void CppDocumentParser::setCurrentEditor(const QString& editorFilePath)
 {
-    d->currentEditorFileName.clear();
-    d->currentEditor = editor;
-    if(d->currentEditor == NULL) {
-        return;
-    }
-    d->currentEditorFileName = editor->document()->filePath();
+    d->currentEditorFileName = editorFilePath;
 }
 //--------------------------------------------------
 
@@ -212,17 +149,20 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
             && (d->currentEditorFileName != fileName)) {
         return;
     }
-
     if(shouldParseDocument(fileName) == false) {
         return;
     }
-    WordList words = parseAndSpellCheckCppDocument(docPtr);
-    emit addWordsWithSpellingMistakes(fileName, words);
+    WordList words = parseCppDocument(docPtr);
+    /* Now that we have all of the words from the parser, emit the signal
+     * so that they will get spell checked. */
+    emit spellcheckWordsParsed(fileName, words);
 
     /* Underlining the mistakes does not work as intended. Applying the format to the
      * word does work but it gets cleared immediately (the underline flashes in and
      * out). It does stay if changing editors and changing back. Since this is not
      * fully working this is for now removed using a preprocessor macro. */
+    /* NB: This code will not work anymore due to the changes made to the parsers, this
+     * will probably be moved to the core when this gets looked at again. */
 //#define ATTEMPT_UNDERLINE_MISTAKES
 #ifdef ATTEMPT_UNDERLINE_MISTAKES
     /* Apply the formatting for spelling mistakes */
@@ -279,13 +219,17 @@ void CppDocumentParser::settingsChanged()
 
 void CppDocumentParser::reparseProject()
 {
-    if(d->startupProject == NULL) {
+    if(d->activeProject == NULL) {
         return;
     }
 
     CppTools::CppModelManagerInterface *modelManager = CppTools::CppModelManagerInterface::instance();
-    Q_ASSERT(modelManager != NULL); // NOT SURE IF THIS IS POSSIBLE
-    CppTools::CppModelManagerInterface::ProjectInfo startupProjectInfo = modelManager->projectInfo(d->startupProject);
+    if(modelManager == NULL) {
+        /* Again not sure if this will ever be possible, but just make sure. */
+        Q_ASSERT(modelManager != NULL);
+        return;
+    }
+    CppTools::CppModelManagerInterface::ProjectInfo startupProjectInfo = modelManager->projectInfo(d->activeProject);
     QStringList filesInProject = startupProjectInfo.project().data()->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
     modelManager->updateSourceFiles(filesInProject);
 }
@@ -298,13 +242,13 @@ bool CppDocumentParser::shouldParseDocument(const QString& fileName)
 }
 //--------------------------------------------------
 
-WordList CppDocumentParser::parseAndSpellCheckCppDocument(CPlusPlus::Document::Ptr docPtr)
+WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 {
     if(docPtr.isNull() == true) {
         return WordList();
     }
 
-    WordList finalWords;
+    WordList parsedWords;
     QStringList wordsInSource;
     /* If the setting is set to remove words from the list based on words found in the source,
      * parse the source file and then remove all words found in the source files from the list
@@ -336,13 +280,9 @@ WordList CppDocumentParser::parseAndSpellCheckCppDocument(CPlusPlus::Document::P
         if(d->settings->removeWordsThatAppearInSource == true) {
             removeWordsThatAppearInSource(wordsInSource, words);
         }
-
-        /* The list that we are left with, is the list of words that should be checked for potential
-         * spelling mistakes. Now check the words for spelling mistakes. */
-         SpellCheckerCore::instance()->spellCheckWords(commentString, words);
-         finalWords.append(words);
+         parsedWords.append(words);
     }
-    return finalWords;
+    return parsedWords;
 }
 //--------------------------------------------------
 
@@ -372,12 +312,12 @@ void CppDocumentParser::tokenizeWords(const QString& fileName, const QString &co
             word.start = wordStartPos;
             word.end = currentPos;
             word.length = currentPos - wordStartPos;
+            word.charAfter = (currentPos < strLength)? comment.at(currentPos): QChar(QLatin1Char(' '));
             translationUnit->getPosition(commentStart + wordStartPos, &word.lineNumber, &word.columnNumber);
             words.append(word);
             busyWithWord = false;
             wordStartPos = 0;
         }
-
     }
     return;
 }
@@ -776,7 +716,7 @@ bool CppDocumentParser::isEndOfCurrentWord(const QString &comment, int currentPo
      * that this setting can remove. Also this can put some overhead to other settings
      * that are not always desired.
      * This setting might require some rework in the future. */
-    if(d->settings->removeEmailAddresses == true) {
+    if(d->settings->removeWebsites == true) {
         QRegularExpression websiteChars(QLatin1String("\\/|:|\\?|\\=|#|%|\\w|\\-"));
         if(websiteChars.match(currentChar).hasMatch() == true) {
             if((currentPos == 0) || (currentPos == (comment.length() - 1))) {

@@ -48,6 +48,7 @@ public:
     unsigned int columnNumber;
     QString text;
     QString fileName;
+    QChar charAfter; /*!< Next character after the end of the word in the comment. */
     QStringList suggestions;
 };
 

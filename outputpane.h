@@ -63,7 +63,7 @@ public slots:
 private slots:
     void updateMistakesCount();
     void mistakeSelected(const QModelIndex& index);
-    void wordUnderCursorMistake(bool isMistake, const Word& word);
+    void wordUnderCursorMistake(bool isMistake, const SpellChecker::Word& word);
 
 private:
     OutputPanePrivate* const d;

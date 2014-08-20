@@ -23,6 +23,7 @@
 
 #include "Word.h"
 
+#include <QObject>
 #include <QSettings>
 
 namespace SpellChecker {
@@ -31,7 +32,8 @@ namespace SpellChecker {
  *
  * Interface for spellchecker implementations.
  */
-class ISpellChecker {
+class ISpellChecker : public QObject {
+    Q_OBJECT
 public:
     ISpellChecker() {}
     virtual ~ISpellChecker() {}
@@ -64,7 +66,7 @@ public:
      *
      * A more permanent solution to ignoring the word is to
      * add the word to the user's personal dictionary using the
-     * addWord() function/
+     * addWord() function.
      * \param[in] word Word to ignore.
      */
     virtual void ignoreWord(const QString& word) = 0;
@@ -72,6 +74,21 @@ public:
      * \return Pointer to the options widget.
      */
     virtual QWidget* optionsWidget() = 0;
+
+public slots:
+    /*! \brief Slot on the interface that will spellcheck the words for the given file.
+     *
+     * This slot will get called from the SpellChecker Core.
+     * \param[in] fileName Name of the file that the words belong to.
+     * \param[in] words List of words that should be spellchecked.*/
+    void spellcheckWords(const QString& fileName, const SpellChecker::WordList& words);
+signals:
+    /*! \brief Signal emitted with misspelled words after they are checked.
+     *
+     * This signal is the result of checking the words using the slot spellcheckWords().
+     * \param[in] fileName Name of the file that the misspelled words belong to.
+     * \param[in] words List of misspelled words. */
+    void misspelledWordsForFile(const QString& fileName, const SpellChecker::WordList& words);
 };
 
 }

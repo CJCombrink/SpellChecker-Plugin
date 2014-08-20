@@ -43,19 +43,14 @@ class CppDocumentParser : public SpellChecker::IDocumentParser
 public:
     CppDocumentParser(QObject *parent = 0);
     virtual ~CppDocumentParser();
-
-    FileWordList parseFiles(const QStringList& fileNames);
-    WordList parseFile(const QString& fileName);
     QString displayName();
-
     Core::IOptionsPage* optionsPage();
-    void setStartupProject(ProjectExplorer::Project* startupProject);
-    void setCurrentEditor(Core::IEditor *editor);
 
 signals:
-    void addWordsWithSpellingMistakes(const QString& fileName, const SpellChecker::WordList& words);
     
-public slots:
+protected:
+    void setCurrentEditor(const QString& editorFilePath) Q_DECL_OVERRIDE;
+    void setActiveProject(ProjectExplorer::Project* activeProject) Q_DECL_OVERRIDE;
 
 protected slots:
     void parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr);
@@ -64,7 +59,7 @@ protected slots:
 protected:
     void reparseProject();
     bool shouldParseDocument(const QString& fileName);
-    WordList parseAndSpellCheckCppDocument(CPlusPlus::Document::Ptr docPtr);
+    WordList parseCppDocument(CPlusPlus::Document::Ptr docPtr);
     void tokenizeWords(const QString &fileName, const QString& comment, unsigned int commentStart, const CPlusPlus::TranslationUnit *const translationUnit, WordList& words);
     void applySettingsToWords(const QString& comment, WordList& words, bool isDoxygenComment);
     void getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr, QStringList& wordsInSource);

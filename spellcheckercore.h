@@ -78,30 +78,15 @@ public:
     void addSpellChecker(ISpellChecker* spellChecker);
     void setSpellChecker(ISpellChecker* spellChecker);
 
-    /*! \brief SpellCheck Words
-     *
-     * Use the current spellchecker that is set to check the spelling of the given
-     * \a words. The full comment that the words appears in is also passed to the
-     * spell checker so that it can have some context for the words. This will be
-     * needed for abbreviated words. For instance the word 'etc.'. The tokenizer
-     * will give the word 'etc' which will fail the spell checker. The spell checker
-     * can then check if the word with the full stop added ('etc.') pass the check. This
-     * will then also remove some false positives.
-     *
-     * \param comment Comment that the list of given words belong to
-     * \param words List of words that must be checked for spelling mistakes.
-     */
-    void spellCheckWords(const QString &comment, WordList& words);
-
     Core::IOptionsPage* optionsPage();
     /*! \brief Get the Core Settings. */
     Internal::SpellCheckerCoreSettings* settings() const;
 
 private:
     enum RemoveAction {
-        None = 0,
-        Ignore,
-        Add
+        None = 0, /*!< No Action should be taken. */
+        Ignore,   /*!< Ignore the word for the current Qt Creator Session. */
+        Add       /*!< Add the word to the user's custom dictionary. */
     };
     /*! \brief Is the Word Under the Cursor a Mistake
      * Check if the word under the cursor is a spelling mistake, and if it is,
@@ -130,24 +115,84 @@ private:
     void replaceWordsInCurrentEditor(const WordList& wordsToReplace, const QString& replacementWord);
     
 signals:
-    void wordUnderCursorMistake(bool isMistake, const Word& word = Word());
+    /*! \brief Signal emitted to inform the plugin if the word under the cursor is a mistake.
+     *
+     * This signal gets emitted in response to the cursorPositionChanged() slot getting
+     * called if the cursor position changes.
+     * \param isMistake True if the word under the cursor is a mistake.
+     * \param word The misspelled word if the word under the cursor is a mistake. */
+    void wordUnderCursorMistake(bool isMistake, const SpellChecker::Word& word = SpellChecker::Word());
+    /*! \brief Signal emitted by the core to notify the parsers that the editor changed.
+     *
+     * This signal gets emitted in response to the Qt Creator framework invoking the
+     * currentEditorChanged(Core::IEditor *editor) slot on the core if the editor is
+     * changed.
+     *
+     * The signal gets the name of the editor and then communicate the name with the
+     * parsers. There should be no need for the parsers to have a pointer to the editor.
+     * \param filePath The file path/ name of the current editor. */
+    void currentEditorChanged(const QString& filePath);
+    /*! \brief Signal emitted by the core if the active project changes.
+     *
+     * This signal gets emitted in response to the Qt Creator framework invoking the
+     * startupProjectChanged() slot to notify parsers that the active project changed.
+     * \param startupProject Pointer to the startup porject. */
+    void activeProjectChanged(ProjectExplorer::Project *startupProject);
+    /*! \brief Signal between the Core and the active spellchecker to spellcheck the
+     *          list of given words.
+     * \param fileName Name of the file that the words belong to.
+     * \param words List of words that must be spellchecked. */
+    void spellcheckWords(const QString& fileName, const SpellChecker::WordList& words);
     
 public slots:
-    void startupProjectChanged(ProjectExplorer::Project* startupProject);
+    /*! \brief Open the suggestions widget for the word under the cursor. */
     void giveSuggestionsForWordUnderCursor();
+    /*! \brief Ignore the word under the cursor for this instance of the Qt Creator application. */
     void ignoreWordUnderCursor();
+    /*! \brief Add the word under the cursor to the user dictionary. */
     void addWordUnderCursor();
+    /*! \brief Feeling Lucky Option.
+     *
+     * Replaces the misspelled word with the first suggestion for the word.
+     * This is very useful when there is only one suggestion for the word
+     * and it is the correct spelling for the misspelled word.*/
     void replaceWordUnderCursorFirstSuggestion();
-    void addWordsWithSpellingMistakes(const QString& fileName, const SpellChecker::WordList& words);
+    /*! \brief Add the misspelled words to the list of mistakes.
+     *
+     * This function gets called to add word to the list of misspelled word.
+     * As a slot this function gets called by the spellchecker when finished
+     * checking all words for the given file.
+     * \param[in] fileName Name of the file that the misspelled words belong to.
+     * \param[in] words List of misspelled words for the given file. */
+    void addMisspelledWords(const QString& fileName, const SpellChecker::WordList& words);
 
 private slots:
+    /*! \brief Spellcheck Words from Parser
+     * Spell check words parsed by the parser of the given file. This
+     * will relay the words to the set spellchecker that will then spell
+     * check the words and give suggestions for misspelled words.
+     *
+     * \param[in] fileName Name of the file that the words belong to.
+     * \param[in] words List of words that must be checked for spelling mistakes.
+     */
+    void spellcheckWordsFromParser(const QString &fileName, const SpellChecker::WordList& words);
+    /*! \brief Slot called when the Qt Creator Startup or active project changes. */
+    void startupProjectChanged(ProjectExplorer::Project* startupProject);
+    /*! \brief Slot called when the cursor position for the current editor changes.
+     *
+     * If the curser is over a misspelled word, then the controls and actions for
+     * spelling mistakes should become active so that the user can interact with the
+     * misspelled words. */
     void cursorPositionChanged();
+    /*! \brief Slot called when the current editor changes. */
     void currentEditorChanged(Core::IEditor* editor);
+    /*! \brief Slot called when an editor is opened. */
     void editorOpened(Core::IEditor* editor);
+    /*! \brief Slot called when an editor is closed. */
     void editorAboutToClose(Core::IEditor* editor);
+
 private:
     Internal::SpellCheckerCorePrivate* const d;
-    
 };
 }
 

@@ -8,6 +8,7 @@ SOURCES += \
         idocumentparser.cpp \
         spellingmistakesmodel.cpp \
         outputpane.cpp \
+        ISpellChecker.cpp \
         spellcheckercoreoptionspage.cpp \
         spellcheckercoresettings.cpp \
         spellcheckercoreoptionswidget.cpp \

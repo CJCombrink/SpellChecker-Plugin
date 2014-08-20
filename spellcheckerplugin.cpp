@@ -54,6 +54,7 @@ using namespace SpellChecker::Internal;
  * the application based on some text output from the application. */
 //#define DEBUG_INSTALL_MESSAGE_HANDLER
 #ifdef DEBUG_INSTALL_MESSAGE_HANDLER
+// To debug a function: __PRETTY_FUNCTION__
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     QByteArray localMsg = msg.toLocal8Bit();

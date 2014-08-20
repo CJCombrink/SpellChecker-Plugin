@@ -106,7 +106,7 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
     connect(d->buttonLucky, SIGNAL(clicked()), SpellCheckerCore::instance(), SLOT(replaceWordUnderCursorFirstSuggestion()));
 
     SpellCheckerCore* core = SpellCheckerCore::instance();
-    connect(core, SIGNAL(wordUnderCursorMistake(bool,Word)), this, SLOT(wordUnderCursorMistake(bool,Word)));
+    connect(core, SIGNAL(wordUnderCursorMistake(bool,SpellChecker::Word)), this, SLOT(wordUnderCursorMistake(bool,SpellChecker::Word)), Qt::DirectConnection);
 
     connect(d->model, SIGNAL(mistakesUpdated()), SIGNAL(navigateStateUpdate()));
     connect(d->model, SIGNAL(mistakesUpdated()), this, SLOT(updateMistakesCount()));
@@ -253,7 +253,7 @@ void OutputPane::mistakeSelected(const QModelIndex &index)
 }
 //--------------------------------------------------
 
-void OutputPane::wordUnderCursorMistake(bool isMistake, const Word &word)
+void OutputPane::wordUnderCursorMistake(bool isMistake, const SpellChecker::Word &word)
 {
     Q_UNUSED(word);
     d->buttonSuggest->setEnabled(isMistake);

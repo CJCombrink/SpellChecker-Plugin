@@ -33,18 +33,6 @@ IDocumentParser::~IDocumentParser()
 }
 //--------------------------------------------------
 
-FileWordList IDocumentParser::parseFiles(const QStringList &fileNames)
-{
-    FileWordList fileWordList;
-    WordList wordList;
-    foreach(const QString& file, fileNames) {
-        wordList = parseFile(file);
-        fileWordList.insert(file, wordList);
-    }
-    return fileWordList;
-}
-//--------------------------------------------------
-
 void IDocumentParser::getWordsFromSplitString(const QStringList &stringList, const Word &word, WordList &wordList)
 {
     /* Now that the words are split, they need to be added to the WordList correctly */

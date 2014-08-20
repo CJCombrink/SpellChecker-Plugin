@@ -30,8 +30,7 @@ namespace Checker {
 namespace Hunspell {
 
 class HunspellCheckerPrivate;
-class HunspellChecker : public QObject,
-        public SpellChecker::ISpellChecker
+class HunspellChecker : public SpellChecker::ISpellChecker
 {
     Q_OBJECT
 public:

@@ -47,52 +47,33 @@ class IDocumentParser : public QObject
 public:
     IDocumentParser(QObject *parent = 0);
     virtual ~IDocumentParser();
-
-    /*!
-     * \brief parse the list of files and return the words found in each file.
-     *
-     * This function takes a list of files to parse. For each file it should then
-     * parse the file and get a list of the words that should be checked. This must
-     * be done for each file in the list and then the words must be combined into a
-     * list and returned to the caller.
-     *
-     * The base implementation iterates through the list of files and then calls
-     * parseFile() on each of the files in the list. This can be changed if there
-     * is a more optimised way to do this.
-     *
-     * \param fileNames List of file names that should be parsed.
-     * \return A list containing the file names along with all potential spelling
-     *          words that were found in that file.
-     * \sa parseFile()
-     */
-    virtual FileWordList parseFiles(const QStringList& fileNames);
-    /*! \brief Parse an individual file and get potential words from it.
-     *
-     * While the parseFiles() function checks a list of files, this function
-     * only checks a single file and returns the list of words that must be checked
-     * in that function.
-     *
-     *
-     * \sa parseFiles() for some optimisation options around this file.
-     *
-     * \param fileName Name of the file that must be parsed.
-     * \return List of words that must be checked by the spell checker.
-     */
-    virtual WordList parseFile(const QString& fileName) = 0;
-
     virtual QString displayName() = 0;
-
     virtual Core::IOptionsPage* optionsPage() = 0;
-
-    virtual void setStartupProject(ProjectExplorer::Project* startupProject) = 0;
-    virtual void setCurrentEditor(Core::IEditor *editor) = 0;
     
 protected:
     void getWordsFromSplitString(const QStringList& stringList, const Word& word, WordList& wordList);
 signals:
+    void spellcheckWordsParsed(const QString& fileName, const SpellChecker::WordList& wordlist);
     
 public slots:
-    
+    /*! Slot that will get called when the current editor changes.
+     * If the parser needs to know about the current editor, it should
+     * implement this function.
+     * \note Because of the Qt Signals and slots magic the implementation
+     * of this slot does not have to be a slot for the function to get
+     * called when the editor changes.
+     * \param[in] editorFilePath File path of the current editor. This
+     *      can be empty if there is no current editor. */
+    virtual void setCurrentEditor(const QString& editorFilePath) { Q_UNUSED(editorFilePath) }
+    /*! Slot that will get called when the active project changes.
+     * The active project in Qt Creator is the current project selected as
+     * the "Active Project", or otherwise referred to as the startup project.
+     * \note Because of the Qt Signals and slots magic the implementation
+     * of this slot does not have to be a slot for the function to get
+     * called when the editor changes.
+     * \param[in] activeProject Project pointer to the current Active
+     *      project. */
+    virtual void setActiveProject(ProjectExplorer::Project* activeProject) { Q_UNUSED(activeProject) }
 };
 
 } // namespace SpellChecker
