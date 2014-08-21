@@ -415,6 +415,10 @@ void SpellCheckerCore::removeWordUnderCursor(RemoveAction action)
             iter.value().remove(word.text);
             addMisspelledWords(iter.key(), iter.value());
         }
+        /* Since the word is now removed from the list of spelling mistakes,
+         * the word under the cursor is not a spelling mistake anymore. Notify
+         * this. */
+        emit wordUnderCursorMistake(false);
     }
     return;
 }
