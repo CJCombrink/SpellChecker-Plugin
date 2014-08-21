@@ -147,30 +147,33 @@ void HunspellChecker::getSuggestionsForWord(const QString &word, QStringList &su
 }
 //--------------------------------------------------
 
-void HunspellChecker::addWord(const QString &word)
+bool HunspellChecker::addWord(const QString &word)
 {
-    d->hunspell->add(word.toAscii());
     /* Save the word to the user dictionary */
     if(d->userDictionary.isEmpty() == true) {
         qDebug() << "User dictionary name empty";
-        return;
+        return false;
     }
 
     QFile dictionary(d->userDictionary);
     if(dictionary.open(QIODevice::Append) == false) {
         qDebug() << "Could not open user dictionary file: " << d->userDictionary;
-        return;
+        return false;
     }
+    /* Only add the word to the spellchecker if the previous checkes passed. */
+    d->hunspell->add(word.toAscii());
 
     QTextStream stream(&dictionary);
     stream << word << endl;
     dictionary.close();
+    return true;
 }
 //--------------------------------------------------
 
-void HunspellChecker::ignoreWord(const QString &word)
+bool HunspellChecker::ignoreWord(const QString &word)
 {
     d->hunspell->add(word.toAscii());
+    return true;
 }
 //--------------------------------------------------
 

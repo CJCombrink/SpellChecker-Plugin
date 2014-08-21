@@ -387,24 +387,33 @@ void SpellCheckerCore::removeWordUnderCursor(RemoveAction action)
     }
     Word word;
     bool wordMistake = isWordUnderCursorMistake(word);
+    bool wordRemoved = false;
     if(wordMistake == true) {
         QString wordToRemove = word.text;
-        /* TODO: Instead of removing just for this file, it might be
-         * beneficial to remove this word from all files. When doing
-         * this, attempt to do it in place... */
-        WordList wl;
-        wl = d->spellingMistakes.value(currentFileName);
-        wl.remove(wordToRemove);
-        addMisspelledWords(currentFileName, wl);
         switch(action) {
         case Ignore:
-            d->spellChecker->ignoreWord(wordToRemove);
+            wordRemoved = d->spellChecker->ignoreWord(wordToRemove);
             break;
         case Add:
-            d->spellChecker->addWord(wordToRemove);
+            wordRemoved = d->spellChecker->addWord(wordToRemove);
             break;
         default:
             break;
+        }
+    }
+
+    if(wordRemoved == true) {
+        /* Iterate all files added and remove the words. This is done so that
+         * adding or ignoring the word will immediately remove the misspelled
+         * word from all files without the need to re-parse the whole project.
+         * Even if this takes a bit of time, it is magnitudes faster than parsing
+         * even one average file. */
+        /* Make a local copy to prevent access violations */
+        QHash<QString /* fileName */, WordList> mistakes = d->spellingMistakes;
+        QHash<QString /* fileName */, WordList>::Iterator iter;
+        for(iter = mistakes.begin(); iter != mistakes.end(); ++iter) {
+            iter.value().remove(word.text);
+            addMisspelledWords(iter.key(), iter.value());
         }
     }
     return;

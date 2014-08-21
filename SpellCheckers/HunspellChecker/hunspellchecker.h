@@ -37,12 +37,12 @@ public:
     HunspellChecker();
     ~HunspellChecker();
 
-    QString name() const;
-    bool isSpellingMistake(const QString& word) const;
-    void getSuggestionsForWord(const QString& word, QStringList& suggestionsList) const;
-    void addWord(const QString& word);
-    void ignoreWord(const QString& word);
-    QWidget* optionsWidget();
+    QString name() const Q_DECL_OVERRIDE;
+    bool isSpellingMistake(const QString& word) const Q_DECL_OVERRIDE;
+    void getSuggestionsForWord(const QString& word, QStringList& suggestionsList) const Q_DECL_OVERRIDE;
+    bool addWord(const QString& word) Q_DECL_OVERRIDE;
+    bool ignoreWord(const QString& word) Q_DECL_OVERRIDE;
+    QWidget* optionsWidget() Q_DECL_OVERRIDE;
 
 signals:
     void dictionaryChanged(const QString& dictionary);

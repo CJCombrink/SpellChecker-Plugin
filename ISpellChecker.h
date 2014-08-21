@@ -56,8 +56,9 @@ public:
     virtual void getSuggestionsForWord(const QString& word, QStringList& suggestions) const = 0;
     /*! \brief Add a word to the user's dictionary.
      * \param[in] word Word to add to the dictionary.
+     * \returns True if the word was added.
      */
-    virtual void addWord(const QString& word) = 0;
+    virtual bool addWord(const QString& word) = 0;
     /*! \brief Ignore a word.
      *
      * Ignoring a word is only temporary for the current session.
@@ -68,8 +69,9 @@ public:
      * add the word to the user's personal dictionary using the
      * addWord() function.
      * \param[in] word Word to ignore.
+     * \returns True if the words was ignored.
      */
-    virtual void ignoreWord(const QString& word) = 0;
+    virtual bool ignoreWord(const QString& word) = 0;
     /*! \brief Get the options widget for the Spell Checker implementation.
      * \return Pointer to the options widget.
      */
