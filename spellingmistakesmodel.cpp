@@ -22,15 +22,19 @@
 #include "Word.h"
 #include "spellcheckerconstants.h"
 
+#include <QDir>
+
 class SpellChecker::Internal::SpellingMistakesModelPrivate {
 public:
     QList<SpellChecker::Word> wordList;
     Constants::MistakesModelColumn sortColumn;
     Qt::SortOrder sortOrder;
+    QDir projectDir;
 
     SpellingMistakesModelPrivate() :
         sortColumn(Constants::MISTAKE_COLUMN_LINE),
-        sortOrder(Qt::AscendingOrder)
+        sortOrder(Qt::AscendingOrder),
+        projectDir()
     {}
 
 };
@@ -99,6 +103,14 @@ QVariant SpellingMistakesModel::data(const QModelIndex &index, int role) const
         return currentWord.text;
     case Constants::MISTAKE_COLUMN_FILE:
         return currentWord.fileName;
+    case Constants::MISTAKE_COLUMN_FILE_RELATIVE: {
+        if((d->projectDir.exists() == true)
+                && (d->projectDir.path() != QLatin1String("."))) {
+            return d->projectDir.relativeFilePath(currentWord.fileName);
+        } else {
+            return currentWord.fileName;
+        }
+    }
     case Constants::MISTAKE_COLUMN_LINE:
         return currentWord.lineNumber;
     case Constants::MISTAKE_COLUMN_COLUMN:
@@ -182,5 +194,19 @@ void SpellingMistakesModel::sort(int column, Qt::SortOrder order)
     qSort(d->wordList.begin(), d->wordList.end(), predicate);
     emit layoutChanged();
     emit mistakesUpdated();
+}
+//--------------------------------------------------
+
+void SpellingMistakesModel::setActiveProject(ProjectExplorer::Project *activeProject)
+{
+    if(activeProject == NULL) {
+        /* Clear the directory path. This would mean that the
+         * directory will point to the current application directory
+         * but this should not be a problem. */
+        d->projectDir.setPath(QLatin1String("."));
+        return;
+    }
+    d->projectDir.setPath(activeProject->projectDirectory().toString());
+    Q_ASSERT(d->projectDir.exists() == true);
 }
 //--------------------------------------------------

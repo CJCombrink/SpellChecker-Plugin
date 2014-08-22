@@ -87,6 +87,7 @@ SpellCheckerCore::SpellCheckerCore(QObject *parent) :
 
     d->mistakesModel = new SpellingMistakesModel(this);
     d->mistakesModel->setCurrentSpellingMistakes(WordList());
+    connect(this, SIGNAL(activeProjectChanged(ProjectExplorer::Project*)), d->mistakesModel, SLOT(setActiveProject(ProjectExplorer::Project*)));
 
     d->outputPane = new OutputPane(d->mistakesModel, this);
 

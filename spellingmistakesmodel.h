@@ -21,7 +21,10 @@
 #ifndef SPELLINGMISTAKESMODEL_H
 #define SPELLINGMISTAKESMODEL_H
 
+#include <projectexplorer/project.h>
+
 #include "Word.h"
+
 #include <QAbstractTableModel>
 
 namespace SpellChecker {
@@ -45,8 +48,13 @@ public:
     
 signals:
     void mistakesUpdated();
-    
 public slots:
+    /*! \brief Slot called when the active project changes.
+     *
+     * The path to the active project is used by the model to
+     * show the relative paths to the files with the spelling mistakes.
+     * \param[in] activeProject Pointer to the active project. */
+    void setActiveProject(ProjectExplorer::Project* activeProject);
 private:
     SpellingMistakesModelPrivate* const d;
     

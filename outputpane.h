@@ -64,6 +64,7 @@ private slots:
     void updateMistakesCount();
     void mistakeSelected(const QModelIndex& index);
     void wordUnderCursorMistake(bool isMistake, const SpellChecker::Word& word);
+    void setRelativeFileNameDisplay(bool showRelative);
 
 private:
     OutputPanePrivate* const d;
