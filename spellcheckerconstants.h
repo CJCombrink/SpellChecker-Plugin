@@ -35,9 +35,12 @@ const char ACTION_PROJECT[]    = "SpellChecker.ActionProject";
 const char CORE_SETTINGS_GROUP[]      = "SpellCheckerPlugin";
 const char CORE_SPELLCHECKERS_GROUP[] = "SpellCheckers";
 const char CORE_PARSERS_GROUP[]       = "Parsers";
+const char CORE_OUTPUTPANE_GROUP[]    = "OutputPane";
 
 const char SETTING_ACTIVE_SPELLCHECKER[] = "ActiveSpellChecker";
 const char SETTING_ONLY_PARSE_CURRENT[]  = "OnlyParseCurrentFile";
+const char SETTING_SUGGESTION_COL_SIZE[] = "ColSuggestionsSize";
+const char SETTING_FILE_NAME_COL_SIZE[]  = "ColFileNameSize";
 
 const char OUTPUT_PANE_TITLE[] = QT_TRANSLATE_NOOP("SpellChecker::Internal::OutputPane", "Spelling Mistakes");
 

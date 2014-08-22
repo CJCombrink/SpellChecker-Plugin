@@ -23,6 +23,7 @@
 #include "spellingmistakesmodel.h"
 #include "spellcheckerconstants.h"
 
+#include <coreplugin/icore.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 
@@ -72,11 +73,20 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
     header->setResizeMode(Constants::MISTAKE_COLUMN_IDX, QHeaderView::ResizeToContents);
     header->setResizeMode(Constants::MISTAKE_COLUMN_WORD, QHeaderView::ResizeToContents);
     header->setResizeMode(Constants::MISTAKE_COLUMN_SUGGESTIONS, QHeaderView::Interactive);
-    header->setResizeMode(Constants::MISTAKE_COLUMN_FILE, QHeaderView::ResizeToContents);
+    header->setResizeMode(Constants::MISTAKE_COLUMN_FILE, QHeaderView::Interactive);
     header->setResizeMode(Constants::MISTAKE_COLUMN_LINE, QHeaderView::ResizeToContents);
     header->setResizeMode(Constants::MISTAKE_COLUMN_COLUMN, QHeaderView::ResizeToContents);
     header->setStretchLastSection(false);
     header->setMovable(false);
+
+    /* Get the last values from the config file for the interactive columns */
+    QSettings* settings = Core::ICore::settings();
+    settings->beginGroup(QLatin1String(Constants::CORE_SETTINGS_GROUP));
+    settings->beginGroup(QLatin1String(Constants::CORE_OUTPUTPANE_GROUP));
+    header->resizeSection(Constants::MISTAKE_COLUMN_SUGGESTIONS, settings->value(QLatin1String(Constants::SETTING_SUGGESTION_COL_SIZE), header->sectionSize(Constants::MISTAKE_COLUMN_SUGGESTIONS)).toInt());
+    header->resizeSection(Constants::MISTAKE_COLUMN_FILE, settings->value(QLatin1String(Constants::SETTING_FILE_NAME_COL_SIZE), header->sectionSize(Constants::MISTAKE_COLUMN_FILE)).toInt());
+    settings->endGroup();
+    settings->endGroup();
 
     /* Create the toolbar buttons */
     d->buttonSuggest = new QToolButton();
@@ -116,6 +126,16 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
 
 OutputPane::~OutputPane()
 {
+    /* Save the last values to the config file for the interactive columns */
+    QHeaderView *header = d->treeView->header();
+    QSettings* settings = Core::ICore::settings();
+    settings->beginGroup(QLatin1String(Constants::CORE_SETTINGS_GROUP));
+    settings->beginGroup(QLatin1String(Constants::CORE_OUTPUTPANE_GROUP));
+    settings->setValue(QLatin1String(Constants::SETTING_SUGGESTION_COL_SIZE), header->sectionSize(Constants::MISTAKE_COLUMN_SUGGESTIONS));
+    settings->setValue(QLatin1String(Constants::SETTING_FILE_NAME_COL_SIZE), header->sectionSize(Constants::MISTAKE_COLUMN_FILE));
+    settings->endGroup();
+    settings->endGroup();
+
     delete d->treeView;
     foreach(QWidget* widget, d->toolbarWidgets) {
         delete widget;
