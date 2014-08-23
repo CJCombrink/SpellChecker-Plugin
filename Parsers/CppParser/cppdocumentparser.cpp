@@ -325,11 +325,12 @@ void CppDocumentParser::tokenizeWords(const QString& fileName, const QString &co
 
 void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &words, bool isDoxygenComment)
 {
+    using namespace SpellChecker::Parsers::CppParser;
     /* Regular Expressions that might be used, defined here so that it does not get cleared in the loop */
     QRegularExpression doubleRe(QLatin1String("\\A\\d+(\\.\\d+)?\\z"));
     QRegularExpression hexRe(QLatin1String("\\A0x[0-9A-Fa-f]+\\z"));
     QRegularExpression emailRe(QLatin1String("\\A") + QLatin1String(SpellChecker::Parsers::CppParser::Constants::EMAIL_ADDRESS_REGEXP_PATTERN) + QLatin1String("\\z"));
-    QRegularExpression websiteRe(QLatin1String(SpellChecker::Parsers::CppParser::Constants::WEBSITE_ADDRESS_REGEXP_PATTERN));
+    QRegularExpression websiteRe(QLatin1String("") + QLatin1String(SpellChecker::Parsers::CppParser::Constants::WEBSITE_ADDRESS_REGEXP_PATTERN));
     /* Word list that can be added to in the case that a word is split up into different words
      * due to some setting or rule. These words can also be checked against the settings using
      * recursion or not. It depends on the implementation that did the splitting of the

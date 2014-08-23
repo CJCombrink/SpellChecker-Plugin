@@ -22,7 +22,7 @@
 #include "cppparsersettings.h"
 #include "cppparserconstants.h"
 
-#include "spellcheckerconstants.h"
+#include "../../spellcheckerconstants.h"
 
 using namespace SpellChecker::CppSpellChecker::Internal;
 using namespace SpellChecker::CppSpellChecker;
