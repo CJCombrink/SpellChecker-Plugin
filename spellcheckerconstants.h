@@ -55,8 +55,6 @@ const char MISTAKES_MODEL_COLUMN_NAMES[][20] = {
     QT_TRANSLATE_NOOP("SpellChecker::Internal::SpellingMistakesModel", "#"),
     QT_TRANSLATE_NOOP("SpellChecker::Internal::SpellingMistakesModel", "Word"),
     QT_TRANSLATE_NOOP("SpellChecker::Internal::SpellingMistakesModel", "Suggestions"),
-    QT_TRANSLATE_NOOP("SpellChecker::Internal::SpellingMistakesModel", "File"),
-    QT_TRANSLATE_NOOP("SpellChecker::Internal::SpellingMistakesModel", "File"), /* Relative file name. */
     QT_TRANSLATE_NOOP("SpellChecker::Internal::SpellingMistakesModel", "Line"),
     QT_TRANSLATE_NOOP("SpellChecker::Internal::SpellingMistakesModel", "Col")
 };
