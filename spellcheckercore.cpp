@@ -412,7 +412,7 @@ void SpellCheckerCore::removeWordUnderCursor(RemoveAction action)
     }
 
     if(wordRemoved == true) {
-        /* Remove all occurances of the removed word. This removes the need to
+        /* Remove all occurrences of the removed word. This removes the need to
          * reparse the whole project, it will be a lot faster doing this.  */
         d->spellingMistakesModel->removeAllOccurrences(word.text);
         /* Get the updated list associated with the file. */
