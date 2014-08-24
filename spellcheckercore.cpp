@@ -49,7 +49,6 @@ class SpellChecker::Internal::SpellCheckerCorePrivate {
 public:
 
     QList<QPointer<SpellChecker::IDocumentParser> > documentParsers;
-    QHash<QString /* fileName */, WordList> spellingMistakes;
     ProjectMistakesModel* spellingMistakesModel;
     SpellChecker::Internal::SpellingMistakesModel* mistakesModel;
     SpellChecker::Internal::OutputPane* outputPane;
@@ -164,10 +163,10 @@ void SpellCheckerCore::addMisspelledWords(const QString &fileName, const WordLis
     /* Remove the spelling mistakes for the given file name. This is done because
      * the new words should replace the old ones, and if there is no spelling mistakes
      * for the given file, the old ones get removed. */
-    d->spellingMistakes.remove(fileName);
-    if(words.count() != 0) {
-        d->spellingMistakes.insert(fileName, words);
-    }
+//    d->spellingMistakes.remove(fileName);
+//    if(words.count() != 0) {
+//        d->spellingMistakes.insert(fileName, words);
+//    }
 
     if(d->currentFilePath == fileName) {
         d->mistakesModel->setCurrentSpellingMistakes(words);
@@ -266,11 +265,11 @@ bool SpellCheckerCore::isWordUnderCursorMistake(Word& word)
     unsigned int column = d->currentEditor->currentColumn();
     unsigned int line = d->currentEditor->currentLine();
     QString currentFileName = d->currentEditor->document()->filePath();
-    if(d->spellingMistakes.contains(currentFileName) == false) {
+    WordList wl;
+    wl = d->spellingMistakesModel->mistakesForFile(currentFileName);
+    if(wl.isEmpty() == true) {
         return false;
     }
-    WordList wl;
-    wl = d->spellingMistakes.value(currentFileName);
     WordList::ConstIterator iter = wl.constBegin();
     while(iter != wl.constEnd()) {
         const Word& currentWord = iter.value();
@@ -293,10 +292,10 @@ bool SpellCheckerCore::getAllOccurrencesOfWord(const Word &word, WordList& words
     }
     WordList wl;
     QString currentFileName = d->currentEditor->document()->filePath();
-    if(d->spellingMistakes.contains(currentFileName) == false) {
+    wl = d->spellingMistakesModel->mistakesForFile(currentFileName);
+    if(wl.isEmpty() == true) {
         return false;
     }
-    wl = d->spellingMistakes.value(currentFileName);
     WordList::ConstIterator iter = wl.constBegin();
     while(iter != wl.constEnd()) {
         const Word& currentWord = iter.value();
@@ -392,7 +391,7 @@ void SpellCheckerCore::removeWordUnderCursor(RemoveAction action)
         return;
     }
     QString currentFileName = d->currentEditor->document()->filePath();
-    if(d->spellingMistakes.contains(currentFileName) == false) {
+    if(d->spellingMistakesModel->indexOfFile(currentFileName) == -1) {
         return;
     }
     Word word;
@@ -413,18 +412,15 @@ void SpellCheckerCore::removeWordUnderCursor(RemoveAction action)
     }
 
     if(wordRemoved == true) {
-        /* Iterate all files added and remove the words. This is done so that
-         * adding or ignoring the word will immediately remove the misspelled
-         * word from all files without the need to re-parse the whole project.
-         * Even if this takes a bit of time, it is magnitudes faster than parsing
-         * even one average file. */
-        /* Make a local copy to prevent access violations */
-        QHash<QString /* fileName */, WordList> mistakes = d->spellingMistakes;
-        QHash<QString /* fileName */, WordList>::Iterator iter;
-        for(iter = mistakes.begin(); iter != mistakes.end(); ++iter) {
-            iter.value().remove(word.text);
-            addMisspelledWords(iter.key(), iter.value());
-        }
+        /* Remove all occurances of the removed word. This removes the need to
+         * reparse the whole project, it will be a lot faster doing this.  */
+        d->spellingMistakesModel->removeAllOccurrences(word.text);
+        /* Get the updated list associated with the file. */
+        WordList newList = d->spellingMistakesModel->mistakesForFile(currentFileName);
+        /* Re-add the mistakes for the file. This is at the moment a doing the same
+         * thing twice, but until the 2 mistakes models are not combined this will be
+         * needed for the mistakes in the  output pane to update. */
+        addMisspelledWords(currentFileName, newList);
         /* Since the word is now removed from the list of spelling mistakes,
          * the word under the cursor is not a spelling mistake anymore. Notify
          * this. */
@@ -485,9 +481,7 @@ void SpellCheckerCore::currentEditorChanged(Core::IEditor *editor)
 
     WordList wl;
     if(d->currentFilePath.isEmpty() == false) {
-        if(d->spellingMistakes.contains(d->currentFilePath) == true) {
-            wl = d->spellingMistakes.value(d->currentFilePath);
-        }
+        wl = d->spellingMistakesModel->mistakesForFile(d->currentFilePath);
     }
     d->mistakesModel->setCurrentSpellingMistakes(wl);
 }

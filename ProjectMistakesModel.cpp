@@ -110,6 +110,29 @@ void ProjectMistakesModel::clearAllSpellingMistakes()
 }
 //--------------------------------------------------
 
+SpellChecker::WordList ProjectMistakesModel::mistakesForFile(const QString &fileName) const
+{
+    return d->spellingMistakes.value(fileName);
+}
+//--------------------------------------------------
+
+void ProjectMistakesModel::removeAllOccurrences(const QString &wordText)
+{
+    beginResetModel();
+    FileMistakes::Iterator iter = d->spellingMistakes.begin();
+    while(iter != d->spellingMistakes.end()) {
+        iter.value().remove(wordText);
+        /* If there are no more words for the file, remove the file from the list */
+        if(iter.value().isEmpty() == true) {
+            iter = d->spellingMistakes.erase(iter);
+        } else {
+            ++iter;
+        }
+    }
+    endResetModel();
+}
+//--------------------------------------------------
+
 void ProjectMistakesModel::fileSelected(const QModelIndex &index)
 {
     QString fileName = index.data(COLUMN_FILEPATH).toString();

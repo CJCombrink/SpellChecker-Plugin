@@ -67,6 +67,22 @@ public:
      * This would normally be done when the startup project gets changed.
      */
     void clearAllSpellingMistakes();
+    /*! \brief Get all mistakes for a file
+     *
+     * If the file does not have any mistakes associated with it, this function will
+     * return a list of empty words.
+     * \param[in] filename Name of the file.
+     * \return A list of misspelled words for the file.
+     */
+    WordList mistakesForFile(const QString& filename) const;
+    /*! \brief Remove all occurrences of the word.
+     *
+     * This function is used to remove all occurrances of the given word from
+     * the model. This will happen when a word is either ignored or added to
+     * improve the speed over re-parsing all files in the project.
+     * \param[in] wordText Word that must be removed.
+     */
+    void removeAllOccurrences(const QString& wordText);
 public slots:
     void fileSelected(const QModelIndex& index);
 private:
