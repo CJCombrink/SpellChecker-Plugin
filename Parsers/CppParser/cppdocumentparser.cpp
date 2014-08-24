@@ -128,6 +128,7 @@ void CppDocumentParser::setActiveProject(ProjectExplorer::Project *activeProject
     CppTools::CppModelManagerInterface::ProjectInfo startupProjectInfo = modelManager->projectInfo(d->activeProject);
     d->filesInStartupProject = startupProjectInfo.project().data()->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
     d->sourceFilesInStartupProject = startupProjectInfo.sourceFiles();
+    reparseProject();
 }
 //--------------------------------------------------
 

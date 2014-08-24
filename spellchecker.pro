@@ -12,7 +12,9 @@ SOURCES += \
         spellcheckercoreoptionspage.cpp \
         spellcheckercoresettings.cpp \
         spellcheckercoreoptionswidget.cpp \
-        suggestionsdialog.cpp
+        suggestionsdialog.cpp \
+        NavigationWidget.cpp \
+        ProjectMistakesModel.cpp
 
 HEADERS += spellcheckerplugin.h\
         spellchecker_global.h\
@@ -26,7 +28,9 @@ HEADERS += spellcheckerplugin.h\
         spellcheckercoreoptionspage.h \
         spellcheckercoresettings.h \
         spellcheckercoreoptionswidget.h \
-        suggestionsdialog.h
+        suggestionsdialog.h \
+        NavigationWidget.h \
+        ProjectMistakesModel.h
 
 FORMS += \
         spellcheckercoreoptionswidget.ui \

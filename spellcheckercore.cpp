@@ -27,6 +27,7 @@
 #include "spellcheckercoresettings.h"
 #include "spellcheckerconstants.h"
 #include "suggestionsdialog.h"
+#include "NavigationWidget.h"
 
 #include <coreplugin/icore.h>
 #include <projectexplorer/projectexplorer.h>
@@ -49,6 +50,7 @@ public:
 
     QList<QPointer<SpellChecker::IDocumentParser> > documentParsers;
     QHash<QString /* fileName */, WordList> spellingMistakes;
+    ProjectMistakesModel* spellingMistakesModel;
     SpellChecker::Internal::SpellingMistakesModel* mistakesModel;
     SpellChecker::Internal::OutputPane* outputPane;
     SpellChecker::Internal::SpellCheckerCoreSettings* settings;
@@ -84,6 +86,7 @@ SpellCheckerCore::SpellCheckerCore(QObject *parent) :
 
     d->settings = new SpellCheckerCoreSettings();
     d->settings->loadFromSettings(Core::ICore::settings());
+    d->spellingMistakesModel = new ProjectMistakesModel();
 
     d->mistakesModel = new SpellingMistakesModel(this);
     d->mistakesModel->setCurrentSpellingMistakes(WordList());
@@ -157,6 +160,7 @@ void SpellCheckerCore::removeDocumentParser(IDocumentParser *parser)
 
 void SpellCheckerCore::addMisspelledWords(const QString &fileName, const WordList &words)
 {
+    d->spellingMistakesModel->insertSpellingMistakes(fileName, words);
     /* Remove the spelling mistakes for the given file name. This is done because
      * the new words should replace the old ones, and if there is no spelling mistakes
      * for the given file, the old ones get removed. */
@@ -245,6 +249,11 @@ Core::IOptionsPage *SpellCheckerCore::optionsPage()
 SpellCheckerCoreSettings *SpellCheckerCore::settings() const
 {
     return d->settings;
+}
+
+ProjectMistakesModel *SpellCheckerCore::spellingMistakesModel() const
+{
+    return d->spellingMistakesModel;
 }
 //--------------------------------------------------
 
@@ -459,6 +468,7 @@ void SpellCheckerCore::replaceWordsInCurrentEditor(const WordList &wordsToReplac
 
 void SpellCheckerCore::startupProjectChanged(ProjectExplorer::Project *startupProject)
 {
+    d->spellingMistakesModel->clearAllSpellingMistakes();
     emit activeProjectChanged(startupProject);
 }
 //--------------------------------------------------

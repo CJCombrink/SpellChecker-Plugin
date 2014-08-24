@@ -36,6 +36,7 @@ namespace Internal {
 class SpellCheckerCorePrivate;
 class OutputPane;
 class SpellCheckerCoreSettings;
+class ProjectMistakesModel;
 }
 class IDocumentParser;
 class ISpellChecker;
@@ -81,6 +82,8 @@ public:
     Core::IOptionsPage* optionsPage();
     /*! \brief Get the Core Settings. */
     Internal::SpellCheckerCoreSettings* settings() const;
+    Internal::ProjectMistakesModel* spellingMistakesModel() const;
+
 
 private:
     enum RemoveAction {

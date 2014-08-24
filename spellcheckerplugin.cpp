@@ -22,6 +22,7 @@
 #include "spellcheckerconstants.h"
 #include "spellcheckercore.h"
 #include "outputpane.h"
+#include "NavigationWidget.h"
 
 /* SpellCheckers */
 #include "SpellCheckers/HunspellChecker/hunspellchecker.h"
@@ -152,6 +153,9 @@ bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *error
     contextMenu->addAction(cmdIgnore);
     contextMenu->addAction(cmdAdd);
     contextMenu->addAction(cmdLucky);
+
+    /* Create the navigation widget factory */
+    addAutoReleasedObject(new NavigationWidgetFactory(m_spellCheckerCore->spellingMistakesModel()));
 
     /* --- Create the default Spell Checker and Document Parser --- */
     /* Hunspell Spell Checker */
