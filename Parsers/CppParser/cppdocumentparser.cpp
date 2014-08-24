@@ -162,7 +162,7 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
      * word does work but it gets cleared immediately (the underline flashes in and
      * out). It does stay if changing editors and changing back. Since this is not
      * fully working this is for now removed using a preprocessor macro. */
-    /* NB: This code will not work anymore due to the changes made to the parsers, this
+    /* NB: This code will not work any more due to the changes made to the parsers, this
      * will probably be moved to the core when this gets looked at again. */
 //#define ATTEMPT_UNDERLINE_MISTAKES
 #ifdef ATTEMPT_UNDERLINE_MISTAKES

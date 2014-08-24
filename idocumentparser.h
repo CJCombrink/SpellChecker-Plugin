@@ -71,7 +71,7 @@ public slots:
      * \note Because of the Qt Signals and slots magic the implementation
      * of this slot does not have to be a slot for the function to get
      * called when the editor changes.
-     * When the active project changes, it might be neccesarry to reparse the files
+     * When the active project changes, it might be necessary to re-parse the files
      * int the current active project.
      * \param[in] activeProject Project pointer to the current Active
      *      project. */

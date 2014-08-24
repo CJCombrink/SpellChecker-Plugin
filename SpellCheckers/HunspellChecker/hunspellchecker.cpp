@@ -160,7 +160,7 @@ bool HunspellChecker::addWord(const QString &word)
         qDebug() << "Could not open user dictionary file: " << d->userDictionary;
         return false;
     }
-    /* Only add the word to the spellchecker if the previous checkes passed. */
+    /* Only add the word to the spellchecker if the previous checkers passed. */
     d->hunspell->add(word.toAscii());
 
     QTextStream stream(&dictionary);

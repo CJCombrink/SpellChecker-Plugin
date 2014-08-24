@@ -81,7 +81,7 @@ void ProjectMistakesModel::insertSpellingMistakes(const QString &fileName, const
         bool changed = (file.value().count() != words.count());
         /* Assign the words to the file */
         file.value() = words;
-        /* nofify of the change if there was one */
+        /* Notify of the change if there was one */
         if(changed == true) {
             int idx = indexOfFile(fileName);
             Q_ASSERT(idx != -1);

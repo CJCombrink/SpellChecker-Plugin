@@ -71,13 +71,13 @@ public:
      *
      * If the file does not have any mistakes associated with it, this function will
      * return a list of empty words.
-     * \param[in] filename Name of the file.
+     * \param[in] fileName Name of the file.
      * \return A list of misspelled words for the file.
      */
-    WordList mistakesForFile(const QString& filename) const;
+    WordList mistakesForFile(const QString& fileName) const;
     /*! \brief Remove all occurrences of the word.
      *
-     * This function is used to remove all occurrances of the given word from
+     * This function is used to remove all occurrences of the given word from
      * the model. This will happen when a word is either ignored or added to
      * improve the speed over re-parsing all files in the project.
      * \param[in] wordText Word that must be removed.

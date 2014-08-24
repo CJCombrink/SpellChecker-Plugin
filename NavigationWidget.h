@@ -65,7 +65,7 @@ private:
 /*! \brief The Navigation Widget Factory class.
  *
  * Factory to add the Spellchecker navigation widget to the list
- * of nvigation widgets in Qt Creator.
+ * of navigation widgets in Qt Creator.
  */
 class NavigationWidgetFactory : public Core::INavigationWidgetFactory
 {

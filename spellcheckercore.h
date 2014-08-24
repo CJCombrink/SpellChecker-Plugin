@@ -112,7 +112,7 @@ private:
     /*! \brief Replace Words In CurrentEditor.
      * Replace the given words in the current editor with the supplied replacement word.
      * \param[in] wordsToReplace List of words to replace
-     * \param[in] replacementWord Word to replace all occurances of the \a wordsToReplace
+     * \param[in] replacementWord Word to replace all occurrences of the \a wordsToReplace
      *              with.
      */
     void replaceWordsInCurrentEditor(const WordList& wordsToReplace, const QString& replacementWord);
@@ -139,7 +139,7 @@ signals:
      *
      * This signal gets emitted in response to the Qt Creator framework invoking the
      * startupProjectChanged() slot to notify parsers that the active project changed.
-     * \param startupProject Pointer to the startup porject. */
+     * \param startupProject Pointer to the startup project. */
     void activeProjectChanged(ProjectExplorer::Project *startupProject);
     /*! \brief Signal between the Core and the active spellchecker to spellcheck the
      *          list of given words.
@@ -183,7 +183,7 @@ private slots:
     void startupProjectChanged(ProjectExplorer::Project* startupProject);
     /*! \brief Slot called when the cursor position for the current editor changes.
      *
-     * If the curser is over a misspelled word, then the controls and actions for
+     * If the cursor is over a misspelled word, then the controls and actions for
      * spelling mistakes should become active so that the user can interact with the
      * misspelled words. */
     void cursorPositionChanged();
