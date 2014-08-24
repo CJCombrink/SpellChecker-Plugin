@@ -101,16 +101,6 @@ QVariant SpellingMistakesModel::data(const QModelIndex &index, int role) const
         return index.row() + 1;
     case Constants::MISTAKE_COLUMN_WORD:
         return currentWord.text;
-    case Constants::MISTAKE_COLUMN_FILE:
-        return currentWord.fileName;
-    case Constants::MISTAKE_COLUMN_FILE_RELATIVE: {
-        if((d->projectDir.exists() == true)
-                && (d->projectDir.path() != QLatin1String("."))) {
-            return d->projectDir.relativeFilePath(currentWord.fileName);
-        } else {
-            return currentWord.fileName;
-        }
-    }
     case Constants::MISTAKE_COLUMN_LINE:
         return currentWord.lineNumber;
     case Constants::MISTAKE_COLUMN_COLUMN:

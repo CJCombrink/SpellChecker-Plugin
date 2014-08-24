@@ -43,7 +43,6 @@ public:
     QToolButton* buttonAdd;
     QToolButton* buttonSuggest;
     QToolButton* buttonLucky;
-    QToolButton* buttonRelative;
 
     OutputPanePrivate()
     {}
@@ -74,9 +73,7 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
     QHeaderView *header = d->treeView->header();
     header->setResizeMode(Constants::MISTAKE_COLUMN_IDX, QHeaderView::ResizeToContents);
     header->setResizeMode(Constants::MISTAKE_COLUMN_WORD, QHeaderView::ResizeToContents);
-    header->setResizeMode(Constants::MISTAKE_COLUMN_SUGGESTIONS, QHeaderView::Interactive);
-    header->setResizeMode(Constants::MISTAKE_COLUMN_FILE, QHeaderView::Interactive);
-    header->setResizeMode(Constants::MISTAKE_COLUMN_FILE_RELATIVE, QHeaderView::Interactive);
+    header->setResizeMode(Constants::MISTAKE_COLUMN_SUGGESTIONS, QHeaderView::Stretch);
     header->setResizeMode(Constants::MISTAKE_COLUMN_LINE, QHeaderView::ResizeToContents);
     header->setResizeMode(Constants::MISTAKE_COLUMN_COLUMN, QHeaderView::ResizeToContents);
     header->setStretchLastSection(false);
@@ -109,55 +106,17 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
     d->toolbarWidgets.push_back(d->buttonLucky);
     connect(d->buttonLucky, SIGNAL(clicked()), SpellCheckerCore::instance(), SLOT(replaceWordUnderCursorFirstSuggestion()));
 
-    d->buttonRelative = new QToolButton();
-    d->buttonRelative->setText(tr("Relative Filenames"));
-    d->buttonRelative->setToolTip(tr("Show file names relative to the current active project"));
-    d->buttonRelative->setCheckable(true);
-    d->toolbarWidgets.push_back(d->buttonRelative);
-    connect(d->buttonRelative, SIGNAL(clicked(bool)), this, SLOT(setRelativeFileNameDisplay(bool)));
-
     SpellCheckerCore* core = SpellCheckerCore::instance();
     connect(core, SIGNAL(wordUnderCursorMistake(bool,SpellChecker::Word)), this, SLOT(wordUnderCursorMistake(bool,SpellChecker::Word)), Qt::DirectConnection);
 
     connect(d->model, SIGNAL(mistakesUpdated()), SIGNAL(navigateStateUpdate()));
     connect(d->model, SIGNAL(mistakesUpdated()), this, SLOT(updateMistakesCount()));
     connect(d->treeView, SIGNAL(clicked(QModelIndex)), this, SLOT(mistakeSelected(QModelIndex)));
-
-    /* Get the last values from the config file for the interactive columns */
-    QSettings* settings = Core::ICore::settings();
-    settings->beginGroup(QLatin1String(Constants::CORE_SETTINGS_GROUP));
-    settings->beginGroup(QLatin1String(Constants::CORE_OUTPUTPANE_GROUP));
-    header->resizeSection(Constants::MISTAKE_COLUMN_SUGGESTIONS, settings->value(QLatin1String(Constants::SETTING_SUGGESTION_COL_SIZE), header->sectionSize(Constants::MISTAKE_COLUMN_SUGGESTIONS)).toInt());
-    header->resizeSection(Constants::MISTAKE_COLUMN_FILE, settings->value(QLatin1String(Constants::SETTING_FILE_NAME_COL_SIZE), header->sectionSize(Constants::MISTAKE_COLUMN_FILE)).toInt());
-    header->resizeSection(Constants::MISTAKE_COLUMN_FILE_RELATIVE, settings->value(QLatin1String(Constants::SETTING_RELATIVE_FILE_COL_SIZE), header->sectionSize(Constants::MISTAKE_COLUMN_FILE_RELATIVE)).toInt());
-    d->buttonRelative->setChecked(settings->value(QLatin1String(Constants::SETTING_SHOW_RELATIVE_FILE_NAMES), true).toBool());
-    settings->endGroup();
-    settings->endGroup();
-    /* Initialise the default states */
-    setRelativeFileNameDisplay(d->buttonRelative->isChecked());
 }
 //--------------------------------------------------
 
 OutputPane::~OutputPane()
 {
-    /* Save the last values to the config file for the interactive columns */
-    QHeaderView *header = d->treeView->header();
-    QSettings* settings = Core::ICore::settings();
-    settings->beginGroup(QLatin1String(Constants::CORE_SETTINGS_GROUP));
-    settings->beginGroup(QLatin1String(Constants::CORE_OUTPUTPANE_GROUP));
-    settings->setValue(QLatin1String(Constants::SETTING_SUGGESTION_COL_SIZE), header->sectionSize(Constants::MISTAKE_COLUMN_SUGGESTIONS));
-    if(header->isSectionHidden(Constants::MISTAKE_COLUMN_FILE) == false) {
-        /* Only save the section size if the section was shown */
-        settings->setValue(QLatin1String(Constants::SETTING_FILE_NAME_COL_SIZE), header->sectionSize(Constants::MISTAKE_COLUMN_FILE));
-    }
-    if(header->isSectionHidden(Constants::MISTAKE_COLUMN_FILE_RELATIVE) == false) {
-        /* Only save the section size if the section was shown */
-        settings->setValue(QLatin1String(Constants::SETTING_RELATIVE_FILE_COL_SIZE), header->sectionSize(Constants::MISTAKE_COLUMN_FILE_RELATIVE));
-    }
-    settings->setValue(QLatin1String(Constants::SETTING_SHOW_RELATIVE_FILE_NAMES), d->buttonRelative->isChecked());
-    settings->endGroup();
-    settings->endGroup();
-
     delete d->treeView;
     foreach(QWidget* widget, d->toolbarWidgets) {
         delete widget;
@@ -283,15 +242,15 @@ void OutputPane::updateMistakesCount()
 void OutputPane::mistakeSelected(const QModelIndex &index)
 {
     int row = index.row();
-    QString word = index.sibling(row, Constants::MISTAKE_COLUMN_WORD).data().toString();
-    QString fileName = index.sibling(row, Constants::MISTAKE_COLUMN_FILE).data().toString();
     int line = index.sibling(row, Constants::MISTAKE_COLUMN_LINE).data().toInt();
     int column = index.sibling(row, Constants::MISTAKE_COLUMN_COLUMN).data().toInt();
-
-    if(QFileInfo(fileName).exists() == true) {
-        Core::IEditor *editor = Core::EditorManager::openEditor(fileName);
-        editor->gotoLine(line, column - 1);
+    Core::IEditor *editor = Core::EditorManager::currentEditor();
+    if(editor == NULL) {
+        Q_ASSERT(editor != NULL);
+        return;
     }
+    editor->gotoLine(line, column - 1);
+    Core::EditorManager::activateEditor(editor);
 }
 //--------------------------------------------------
 
@@ -302,20 +261,5 @@ void OutputPane::wordUnderCursorMistake(bool isMistake, const SpellChecker::Word
     d->buttonIgnore->setEnabled(isMistake);
     d->buttonAdd->setEnabled(isMistake);
     d->buttonLucky->setEnabled(isMistake);
-}
-//--------------------------------------------------
-
-void OutputPane::setRelativeFileNameDisplay(bool showRelative)
-{
-    Q_ASSERT(d->treeView->header() != NULL);
-    QHeaderView *header = d->treeView->header();
-    /* The one column wil be shown and the other one hidden. There is no reason to
-     * show both. Also, this is also the easiest solution to show the one or the
-     * other. An alternative implementation was done where there was only one
-     * column, and the text was updated for the column, but since the function
-     * mistakeSelected() requires the absolute file name that implementation was
-     * reverted to this way of doing it. */
-    header->hideSection((showRelative == true)? Constants::MISTAKE_COLUMN_FILE: Constants::MISTAKE_COLUMN_FILE_RELATIVE);
-    header->showSection((showRelative == false)? Constants::MISTAKE_COLUMN_FILE: Constants::MISTAKE_COLUMN_FILE_RELATIVE);
 }
 //--------------------------------------------------

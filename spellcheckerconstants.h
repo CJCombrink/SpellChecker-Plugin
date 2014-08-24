@@ -30,19 +30,13 @@ const char ACTION_SUGGEST_ID[] = "SpellChecker.ActionSuggest";
 const char ACTION_IGNORE_ID[]  = "SpellChecker.ActionIgnore";
 const char ACTION_ADD_ID[]     = "SpellChecker.ActionAdd";
 const char ACTION_LUCKY_ID[]   = "SpellChecker.ActionLucky";
-const char ACTION_PROJECT[]    = "SpellChecker.ActionProject";
 
 const char CORE_SETTINGS_GROUP[]      = "SpellCheckerPlugin";
 const char CORE_SPELLCHECKERS_GROUP[] = "SpellCheckers";
 const char CORE_PARSERS_GROUP[]       = "Parsers";
-const char CORE_OUTPUTPANE_GROUP[]    = "OutputPane";
 
 const char SETTING_ACTIVE_SPELLCHECKER[]      = "ActiveSpellChecker";
 const char SETTING_ONLY_PARSE_CURRENT[]       = "OnlyParseCurrentFile";
-const char SETTING_SUGGESTION_COL_SIZE[]      = "ColSuggestionsSize";
-const char SETTING_FILE_NAME_COL_SIZE[]       = "ColFileNameSize";
-const char SETTING_RELATIVE_FILE_COL_SIZE[]   = "ColRelativeFileNameSize";
-const char SETTING_SHOW_RELATIVE_FILE_NAMES[] = "ShowRelativeFileNames";
 
 const char OUTPUT_PANE_TITLE[] = QT_TRANSLATE_NOOP("SpellChecker::Internal::OutputPane", "Spelling Mistakes");
 
@@ -50,8 +44,6 @@ enum MistakesModelColumn {
     MISTAKE_COLUMN_IDX = 0,
     MISTAKE_COLUMN_WORD,
     MISTAKE_COLUMN_SUGGESTIONS,
-    MISTAKE_COLUMN_FILE,
-    MISTAKE_COLUMN_FILE_RELATIVE,
     MISTAKE_COLUMN_LINE,
     MISTAKE_COLUMN_COLUMN,
     MISTAKE_COLUMN_COUNT

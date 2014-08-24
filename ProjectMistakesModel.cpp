@@ -21,6 +21,7 @@
 #include "ProjectMistakesModel.h"
 
 #include <coreplugin/editormanager/editormanager.h>
+#include <coreplugin/editormanager/ieditor.h>
 
 #include <QFileInfo>
 
@@ -137,7 +138,12 @@ void ProjectMistakesModel::fileSelected(const QModelIndex &index)
 {
     QString fileName = index.data(COLUMN_FILEPATH).toString();
     if(QFileInfo(fileName).exists() == true) {
-        Core::EditorManager::openEditor(fileName);
+        Core::IEditor* editor = Core::EditorManager::openEditor(fileName);
+        Q_ASSERT(editor != NULL);
+        Q_ASSERT(d->spellingMistakes.value(fileName).isEmpty() == false);
+        /* Go to the first misspelled word in the editor. */
+        Word word = d->spellingMistakes.value(fileName).at(0);
+        editor->gotoLine(word.lineNumber, word.columnNumber - 1);
     }
 }
 //--------------------------------------------------

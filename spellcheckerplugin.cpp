@@ -132,18 +132,12 @@ bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *error
     connect(m_spellCheckerCore, SIGNAL(wordUnderCursorMistake(bool)), actionAdd, SLOT(setEnabled(bool)));
     connect(m_spellCheckerCore, SIGNAL(wordUnderCursorMistake(bool)), actionLucky, SLOT(setEnabled(bool)));
 
-    QAction *actionProject = new QAction(tr("Project..."), this);
-    Core::Command *cmdProject = Core::ActionManager::registerAction(actionProject, Constants::ACTION_PROJECT, globalContext);
-    cmdProject->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+Shift+s")));
-
     Core::ActionContainer *menu = Core::ActionManager::createMenu(Constants::MENU_ID);
     menu->menu()->setTitle(tr("Spell Check"));
     menu->addAction(cmdSuggest);
     menu->addAction(cmdIgnore);
     menu->addAction(cmdAdd);
     menu->addAction(cmdLucky);
-    menu->addSeparator(globalContext);
-    menu->addAction(cmdProject);
     Core::ActionManager::actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
 
     /* Action Container for the context menu */
