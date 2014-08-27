@@ -24,6 +24,7 @@
 #include <coreplugin/editormanager/ieditor.h>
 
 #include <QHeaderView>
+#include <QPainter>
 
 using namespace SpellChecker::Internal;
 
