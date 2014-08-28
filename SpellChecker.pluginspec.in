@@ -1,4 +1,4 @@
-<plugin name=\"SpellChecker\" version=\"0.1.0\" compatVersion=\"0.1.0\">
+<plugin name=\"SpellChecker\" version=\"0.1.1\" compatVersion=\"0.1.1\">
     <vendor>Carel Combrink</vendor>
     <copyright>(C) 2014 Carel Combrink</copyright>
     <license>GNU Lesser General Public License Usage</license>
