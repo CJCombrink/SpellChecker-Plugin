@@ -32,6 +32,9 @@ For MinGW the hunspell-mingw repository on github was used to build hunspell. Th
     - Open the hunspell.sln file in the folder src\win_api using Visual Studio
     - Build the debug\_dll and release\_dll of the libhunspell project
 
+<h4>2.1.3 GCC (Linux)</h4>
+On Linux, make sure that libhunspell-1.3.* and libhunspell-dev is installed. This should be all that is needed regarding Hunspell. 
+
 <h3>2.2 Building The Plugin</h3>
 The following steps can be used to build the plugin for a local build of Qt Creator. If the idea is to use the plugin with one of the release versions of Qt Creator, make sure that the compiler and Qt Creator sources match exactly with the setup for the release version of Qt Creator. If this is not possible, the plugin will not be usable with a Qt Creator release version. 
   1. Get the Sources
@@ -59,7 +62,7 @@ After opening Qt Creator and the plugin loaded successfully the following steps 
       Currently only the Hunspell Spell Checker will be available, but perhaps in future more might be added. 
     - Set the "*Dictionary*" and "*User Dictionary*" paths for the spell checker to use. <br>
       Dictionaries can be downloaded from http://archive.services.openoffice.org/pub/mirror/OpenOffice.org/contrib/dictionaries/ <br>
-      The *User Dictionary* is a custom file used to store words added to the dictionary of the spell checker. If such a file does not exist, the plugin will create the file for this purpose.
+      The *User Dictionary* is a custom file used to store words added to the dictionary of the spell checker. If such a file does not exist, the plugin will create the file for this purpose. The plugin will attempt to create this file in the User Resource path. On Windows this is in %APPDATA%\QtProject\ and on Linux this is in ~/.config/QtProject/. 
     - After setting the Spell Checker, restart Qt Creator.
   3. Set the Parser Options
     - For the different available parsers there will be tabs with the settings for the parser. 
@@ -74,8 +77,8 @@ After opening Qt Creator and the plugin loaded successfully the following steps 
     - Under "*Tools*" -> "*Spell Checker*" the above actions can also be performed.
 
 <h2>Pre-Build Plugins</h2>
-I have created a release for the Plugin. The release is listed at version 0.0.0 and can be obtained from the "Releases" page. Read the README.txt file associated with the release for information on how to install the plugin into a Release
-version of Qt Creator (Currently 3.1.x). 
+I have created a release for the Plugin. The release is listed at version 0.1.1 and can be obtained from the "Releases" page. Read the README.txt file associated with the release for information on how to install the plugin into a Release
+version of Qt Creator (Currently 3.2.0). 
 <h2>C++ Document Parser</h2>
 The C++ document parser that is supplied with the plugin by default has settings that affects how the following types of words will be handled:
 - Email Addresses
@@ -92,11 +95,11 @@ Apart from these settings, the plugin also attempts to remove Doxygen Tags in Do
 <h2>TODO</h2>
 The following list is a list with a hint into priority of some outstanding tasks I want to do. 
 - [x] Get correct Qt Versions to make deployment versions and upload somewhere (Under Releases). 
-- [ ] Get all spelling mistakes for a active project. The idea was to 1st finish this before releasing, this has changed to start to track the code and get it into a repository. 
+- [x] Get all spelling mistakes for a active project. The idea was to 1st finish this before releasing, this has changed to start to track the code and get it into a repository. 
 - [ ] Underline words that are spelling mistakes (red squiggly lines, did attempt once, but did not work).
 - [ ] Parse and ignore website URLs correctly.
-- [ ] Test in other OS's (Linux, etc.)
-  - [ ] Make releases for other OS's.
+- [x] Test in other OS's (Linux, etc.)
+  - [x] Make releases for other OS's.
 - [ ] Spell check string literals
 - [ ] Update to Hunspell 1.3.3
 
