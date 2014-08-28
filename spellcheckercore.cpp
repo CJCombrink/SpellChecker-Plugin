@@ -160,14 +160,6 @@ void SpellCheckerCore::removeDocumentParser(IDocumentParser *parser)
 void SpellCheckerCore::addMisspelledWords(const QString &fileName, const WordList &words)
 {
     d->spellingMistakesModel->insertSpellingMistakes(fileName, words);
-    /* Remove the spelling mistakes for the given file name. This is done because
-     * the new words should replace the old ones, and if there is no spelling mistakes
-     * for the given file, the old ones get removed. */
-//    d->spellingMistakes.remove(fileName);
-//    if(words.count() != 0) {
-//        d->spellingMistakes.insert(fileName, words);
-//    }
-
     if(d->currentFilePath == fileName) {
         d->mistakesModel->setCurrentSpellingMistakes(words);
     }
