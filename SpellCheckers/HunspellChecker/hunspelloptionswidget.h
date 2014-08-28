@@ -40,10 +40,12 @@ public:
     ~HunspellOptionsWidget();
 
 signals:
+    void optionsError(const QString& spellcheckerName, const QString& errorString);
     void dictionaryChanged(const QString& dictionary);
     void userDictionaryChanged(const QString& userDictionary);
 
 public slots:
+    void applySettings();
     void updateDictionary(const QString& dictionary);
     void updateUserDictionary(const QString& userDictionary);
 

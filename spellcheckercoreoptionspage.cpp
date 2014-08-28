@@ -60,6 +60,7 @@ QWidget *SpellCheckerCoreOptionsPage::widget()
 void SpellCheckerCoreOptionsPage::apply()
 {
     Q_ASSERT(m_widget != NULL);
+    m_widget->applySettings();
     *m_settings = m_widget->settings();
 }
 //--------------------------------------------------

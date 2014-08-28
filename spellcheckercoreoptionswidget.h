@@ -41,6 +41,18 @@ public:
     ~SpellCheckerCoreOptionsWidget();
 
     const SpellCheckerCoreSettings& settings();
+    /*! Function to apply the settings in widgets added to the Core Options Widget.
+     * This function will in turn cause the applyCurrentSetSettings() signal to be
+     * emitted. */
+    void applySettings();
+signals:
+    /*! Signal to notify other added options widgets that the specified settings can be applied. */
+    void applyCurrentSetSettings();
+public slots:
+    /*! \brief Slot called when there was a error on one of the options pages.
+     * \param optionsPage Name of the options page.
+     * \param error Error that occurred on the page. */
+    void optionsPageError(const QString& optionsPage, const QString& error);
 
 private slots:
     void on_comboBoxSpellChecker_currentIndexChanged(const QString &arg1);

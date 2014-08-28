@@ -31,7 +31,8 @@ SpellCheckerCoreOptionsWidget::SpellCheckerCoreOptionsWidget(const SpellChecker:
     ui(new Ui::SpellCheckerCoreOptionsWidget)
 {
     ui->setupUi(this);
-
+    /* Hide the error widget by default, since there should not be errors. */
+    ui->widgetErrorOutput->setVisible(false);
 
     ui->comboBoxSpellChecker->addItem(QLatin1String(""));
     QMap<QString, ISpellChecker*> availableSpellCheckers = SpellCheckerCore::instance()->addedSpellCheckers();
@@ -54,6 +55,22 @@ const SpellCheckerCoreSettings &SpellCheckerCoreOptionsWidget::settings()
     m_settings.activeSpellChecker   = ui->comboBoxSpellChecker->currentText();
     m_settings.onlyParseCurrentFile = ui->checkBoxOnlyCheckCurrent->isChecked();
     return m_settings;
+}
+//--------------------------------------------------
+
+void SpellCheckerCoreOptionsWidget::applySettings()
+{
+    ui->labelError->clear();
+    ui->widgetErrorOutput->setVisible(false);
+    emit applyCurrentSetSettings();
+}
+//--------------------------------------------------
+
+void SpellCheckerCoreOptionsWidget::optionsPageError(const QString &optionsPage, const QString &error)
+{
+    QString displayString = QString(QLatin1String("<b>%1</b>: %2")).arg(optionsPage, error);
+    ui->labelError->setText(displayString);
+    ui->widgetErrorOutput->setVisible(true);
 }
 //--------------------------------------------------
 
@@ -86,5 +103,7 @@ void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_comboBoxSpellChec
     }
     QWidget* widget = availableSpellCheckers[arg1]->optionsWidget();
     layout->addWidget(widget);
+    connect(this, SIGNAL(applyCurrentSetSettings()), widget, SLOT(applySettings()));
+    connect(widget, SIGNAL(optionsError(QString,QString)), this, SLOT(optionsPageError(QString,QString)));
 }
 //--------------------------------------------------
