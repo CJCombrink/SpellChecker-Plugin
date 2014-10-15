@@ -40,6 +40,7 @@
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
 #include <texteditor/basetexteditor.h>
+#include <cpptools/cppmodelmanagerinterface.h>
 
 #include <QPointer>
 #include <QMouseEvent>
@@ -162,6 +163,20 @@ void SpellCheckerCore::addMisspelledWords(const QString &fileName, const WordLis
     d->spellingMistakesModel->insertSpellingMistakes(fileName, words);
     if(d->currentFilePath == fileName) {
         d->mistakesModel->setCurrentSpellingMistakes(words);
+    }
+
+    /* Underlining the mistakes */
+    if (CppTools::CppModelManagerInterface *modelManager = CppTools::CppModelManagerInterface::instance()) {
+        QList<CPlusPlus::Document::DiagnosticMessage> diagnostics;
+        foreach (Word word, words.values()) {
+            diagnostics.append(CPlusPlus::Document::DiagnosticMessage(
+                                   CPlusPlus::Document::DiagnosticMessage::Warning,
+                                   fileName, word.lineNumber, word.columnNumber,
+                                   word.suggestions.isEmpty() ? QLatin1String("Incorrect spelling")
+                                                              : QString(QLatin1String("Incorrect spelling, did you mean '%1' ?")).arg(word.suggestions.first()),
+                                   word.length));
+        }
+        modelManager->setExtraDiagnostics(fileName, QLatin1String("spellcheck"), diagnostics);
     }
 }
 //--------------------------------------------------
