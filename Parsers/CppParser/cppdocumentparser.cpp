@@ -150,7 +150,8 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
             && (d->currentEditorFileName != fileName)) {
         return;
     }
-	if(d->currentEditorFileName != fileName && shouldParseDocument(fileName) == false) {
+    if((d->currentEditorFileName != fileName)
+            && (shouldParseDocument(fileName)) == false) {
         return;
     }
     WordList words = parseCppDocument(docPtr);
