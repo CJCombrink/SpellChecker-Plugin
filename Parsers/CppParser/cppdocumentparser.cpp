@@ -527,7 +527,7 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
 
         /* Doxygen comments */
         if((isDoxygenComment == true) && (removeCurrentWord == false)) {
-            if(comment.at((*iter).start - 1) == QLatin1Char('\\')) {
+            if(comment.at((*iter).start - 1) == QLatin1Char('\\') || comment.at((*iter).start - 1) == QLatin1Char('@')) {
                 int doxyClass = CppTools::classifyDoxygenTag(currentWord.unicode(), currentWord.size());
                 if(doxyClass != CppTools::T_DOXY_IDENTIFIER) {
                     removeCurrentWord = true;
