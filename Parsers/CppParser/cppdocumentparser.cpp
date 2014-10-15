@@ -158,58 +158,6 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
     /* Now that we have all of the words from the parser, emit the signal
      * so that they will get spell checked. */
     emit spellcheckWordsParsed(fileName, words);
-
-    /* Underlining the mistakes does not work as intended. Applying the format to the
-     * word does work but it gets cleared immediately (the underline flashes in and
-     * out). It does stay if changing editors and changing back. Since this is not
-     * fully working this is for now removed using a preprocessor macro. */
-    /* NB: This code will not work any more due to the changes made to the parsers, this
-     * will probably be moved to the core when this gets looked at again. */
-//#define ATTEMPT_UNDERLINE_MISTAKES
-#ifdef ATTEMPT_UNDERLINE_MISTAKES
-    /* Apply the formatting for spelling mistakes */
-    if(d->currentEditor == NULL) {
-        return;
-    }
-    TextEditor::BaseTextEditor* baseText = qobject_cast<TextEditor::BaseTextEditor*>(d->currentEditor);
-    if(baseText == NULL) {
-        return;
-    }
-    // Clear all additional formats since they may have changed
-    QTextBlock b = baseText->baseTextDocument()->document()->firstBlock();
-    WordList::ConstIterator wordIter;
-    unsigned int line = 0;
-    while (b.isValid()) {
-        line++;
-        wordIter = words.constBegin();
-        QList<QTextLayout::FormatRange> mistakeFormats;
-        while(wordIter != words.constEnd()) {
-            const Word& currentWord = wordIter.value();
-            if(currentWord.lineNumber == line) {
-                /* Set the formatting for the word in the block */
-                QTextLayout::FormatRange mistake;
-                mistake.start = currentWord.columnNumber - 1;
-                mistake.length = currentWord.length;
-                mistake.format.setFontUnderline(true);
-                mistake.format.setUnderlineStyle(QTextCharFormat::WaveUnderline);
-                mistake.format.setUnderlineColor(Qt::red);
-                mistakeFormats.append(mistake);
-            }
-            ++wordIter;
-        }
-
-        if(mistakeFormats.count() != 0) {
-            /* Get the current formats on the layout and then add the formats for
-             * the spelling mistakes to the list of formats before it is written
-             * back to the layout. This is done to prevent overwriting the formats
-             * added by other plugins. */
-            QList<QTextLayout::FormatRange> formats = b.layout()->additionalFormats();
-            formats << mistakeFormats;
-            b.layout()->setAdditionalFormats(formats);
-        }
-        b = b.next();
-    }
-#endif /* ATTEMPT_UNDERLINE_MISTAKES */
 }
 //--------------------------------------------------
 
