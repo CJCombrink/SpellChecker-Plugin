@@ -166,12 +166,19 @@ void SpellCheckerCore::addMisspelledWords(const QString &fileName, const WordLis
     }
 
     /* Underlining the mistakes */
-    if (CppTools::CppModelManagerInterface *modelManager = CppTools::CppModelManagerInterface::instance()) {
+    CppTools::CppModelManagerInterface *modelManager = CppTools::CppModelManagerInterface::instance();
+    if (modelManager != NULL) {
         QList<CPlusPlus::Document::DiagnosticMessage> diagnostics;
-        foreach (Word word, words.values()) {
+        foreach (const Word& word, words.values()) {
+            /* In general if a word does not have suggestions then it should
+             * not be a spelling mistake. Adding a Q_ASSERT here so that if it
+             * happens I can debug. */
+            Q_ASSERT(word.suggestions.isEmpty() == false);
             diagnostics.append(CPlusPlus::Document::DiagnosticMessage(
                                    CPlusPlus::Document::DiagnosticMessage::Warning,
-                                   fileName, word.lineNumber, word.columnNumber,
+                                   fileName,
+                                   word.lineNumber,
+                                   word.columnNumber,
                                    word.suggestions.isEmpty() ? QLatin1String("Incorrect spelling")
                                                               : QString(QLatin1String("Incorrect spelling, did you mean '%1' ?")).arg(word.suggestions.first()),
                                    word.length));
