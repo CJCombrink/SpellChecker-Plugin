@@ -346,6 +346,20 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
             if(websiteRe.match(currentWord).hasMatch() == true) {
                 removeCurrentWord = true;
             }
+            else if (currentWord.contains(QRegExp(QLatin1String("[/:\\?=#%-]")))) {
+                QStringList wordsSplitOnWebChars = currentWord.split(QRegExp(QLatin1String("[/:\\?=#%-]")), QString::SkipEmptyParts);
+                if (!wordsSplitOnWebChars.isEmpty()) {
+                    /* String is not a website, check each component now */
+                    removeCurrentWord = true;
+                    WordList wordsFromSplit;
+                    IDocumentParser::getWordsFromSplitString(wordsSplitOnWebChars, (*iter), wordsFromSplit);
+                    /* Apply the settings to the words that came from the split to filter out words that does
+                     * not belong due to settings. After they have passed the settings, add the words that survived
+                     * to the list of words that should be added in the end */
+                    applySettingsToWords(comment, wordsFromSplit, isDoxygenComment);
+                    wordsToAddInTheEnd.append(wordsFromSplit);
+                }
+            }
         }
 
         if((d->settings->checkAllCapsWords == false) && (removeCurrentWord == false)) {
