@@ -468,10 +468,12 @@ void SpellCheckerCore::replaceWordsInCurrentEditor(const WordList &wordsToReplac
         editorWidget->gotoLine(wordToReplace.lineNumber, wordToReplace.columnNumber + wordToReplace.length - 1);
         int wordEndPos = editorWidget->textCursor().position();
 
+        cursor.beginEditBlock();
         cursor.setPosition(wordStartPos);
         cursor.setPosition(wordEndPos, QTextCursor::KeepAnchor);
         cursor.removeSelectedText();
         cursor.insertText(replacementWord);
+        cursor.endEditBlock();
     }
 }
 //--------------------------------------------------
