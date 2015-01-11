@@ -126,10 +126,12 @@ bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *error
     connect(actionIgnore, SIGNAL(triggered()), m_spellCheckerCore, SLOT(ignoreWordUnderCursor()));
     connect(actionAdd, SIGNAL(triggered()), m_spellCheckerCore, SLOT(addWordUnderCursor()));
     connect(actionLucky, SIGNAL(triggered()), m_spellCheckerCore, SLOT(replaceWordUnderCursorFirstSuggestion()));
-    connect(m_spellCheckerCore, SIGNAL(wordUnderCursorMistake(bool)), actionSuggest, SLOT(setEnabled(bool)));
-    connect(m_spellCheckerCore, SIGNAL(wordUnderCursorMistake(bool)), actionIgnore, SLOT(setEnabled(bool)));
-    connect(m_spellCheckerCore, SIGNAL(wordUnderCursorMistake(bool)), actionAdd, SLOT(setEnabled(bool)));
-    connect(m_spellCheckerCore, SIGNAL(wordUnderCursorMistake(bool)), actionLucky, SLOT(setEnabled(bool)));
+    connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, actionSuggest, &QAction::setEnabled);
+    connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, actionIgnore, &QAction::setEnabled);
+    connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, actionAdd, &QAction::setEnabled);
+    connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, [=](bool isMistake, const SpellChecker::Word& word) {
+        actionLucky->setEnabled(isMistake && (word.suggestions.isEmpty() == false));
+    });
 
     Core::ActionContainer *menu = Core::ActionManager::createMenu(Constants::MENU_ID);
     menu->menu()->setTitle(tr("Spell Check"));
