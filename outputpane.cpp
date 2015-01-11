@@ -71,13 +71,13 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
     d->treeView->setAttribute(Qt::WA_MacShowFocusRect, false);
 
     QHeaderView *header = d->treeView->header();
-    header->setResizeMode(Constants::MISTAKE_COLUMN_IDX, QHeaderView::ResizeToContents);
-    header->setResizeMode(Constants::MISTAKE_COLUMN_WORD, QHeaderView::ResizeToContents);
-    header->setResizeMode(Constants::MISTAKE_COLUMN_SUGGESTIONS, QHeaderView::Stretch);
-    header->setResizeMode(Constants::MISTAKE_COLUMN_LINE, QHeaderView::ResizeToContents);
-    header->setResizeMode(Constants::MISTAKE_COLUMN_COLUMN, QHeaderView::ResizeToContents);
+    header->setSectionResizeMode(Constants::MISTAKE_COLUMN_IDX, QHeaderView::ResizeToContents);
+    header->setSectionResizeMode(Constants::MISTAKE_COLUMN_WORD, QHeaderView::ResizeToContents);
+    header->setSectionResizeMode(Constants::MISTAKE_COLUMN_SUGGESTIONS, QHeaderView::Stretch);
+    header->setSectionResizeMode(Constants::MISTAKE_COLUMN_LINE, QHeaderView::ResizeToContents);
+    header->setSectionResizeMode(Constants::MISTAKE_COLUMN_COLUMN, QHeaderView::ResizeToContents);
     header->setStretchLastSection(false);
-    header->setMovable(false);
+    header->setSectionsMovable(false);
 
     /* Create the toolbar buttons */
     d->buttonSuggest = new QToolButton();

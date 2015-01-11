@@ -73,9 +73,6 @@ class NavigationWidgetFactory : public Core::INavigationWidgetFactory
 public:
     NavigationWidgetFactory(ProjectMistakesModel* model);
 private:
-    QString displayName() const;
-    int priority() const;
-    Core::Id id() const;
     Core::NavigationView createWidget();
     ProjectMistakesModel* d_model;
 };

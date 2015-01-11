@@ -108,25 +108,9 @@ void NavigationWidget::updateCurrentItem(Core::IEditor *editor)
 NavigationWidgetFactory::NavigationWidgetFactory(ProjectMistakesModel *model) :
     d_model(model)
 {
-
-}
-//--------------------------------------------------
-
-QString NavigationWidgetFactory::displayName() const
-{
-    return NavigationWidget::tr("Spelling Mistakes");
-}
-//--------------------------------------------------
-
-int NavigationWidgetFactory::priority() const
-{
-    return 600;
-}
-//--------------------------------------------------
-
-Core::Id NavigationWidgetFactory::id() const
-{
-    return "SpellingMistakes";
+    setDisplayName(NavigationWidget::tr("Spelling Mistakes"));
+    setPriority(600);
+    setId("SpellingMistakes");
 }
 //--------------------------------------------------
 

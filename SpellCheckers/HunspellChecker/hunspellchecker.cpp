@@ -56,7 +56,7 @@ HunspellChecker::HunspellChecker() :
     loadSettings();
     /* Get the affix dictionary path */
     QString affPath = QString(d->dictionary).replace(QRegExp(QLatin1String("\\.dic$")), QLatin1String(".aff"));
-    d->hunspell = new ::Hunspell(affPath.toAscii(), d->dictionary.toAscii());
+    d->hunspell = new ::Hunspell(affPath.toLatin1(), d->dictionary.toLatin1());
     loadUserAddedWords();
 }
 //--------------------------------------------------
@@ -130,7 +130,7 @@ void HunspellChecker::saveSettings() const
 
 bool HunspellChecker::isSpellingMistake(const QString &word) const
 {
-    bool recognised = d->hunspell->spell(word.toAscii());
+    bool recognised = d->hunspell->spell(word.toLatin1());
     return (recognised == false);
 }
 //--------------------------------------------------
@@ -138,7 +138,7 @@ bool HunspellChecker::isSpellingMistake(const QString &word) const
 void HunspellChecker::getSuggestionsForWord(const QString &word, QStringList &suggestionsList) const
 {
     char ** suggestions;
-    int numSuggestions = d->hunspell->suggest(&suggestions, word.toAscii());
+    int numSuggestions = d->hunspell->suggest(&suggestions, word.toLatin1());
     for (int i = 0; i < numSuggestions; ++i) {
         suggestionsList << QLatin1String(suggestions[i]);
     }
@@ -161,7 +161,7 @@ bool HunspellChecker::addWord(const QString &word)
         return false;
     }
     /* Only add the word to the spellchecker if the previous checkers passed. */
-    d->hunspell->add(word.toAscii());
+    d->hunspell->add(word.toLatin1());
 
     QTextStream stream(&dictionary);
     stream << word << endl;
@@ -172,7 +172,7 @@ bool HunspellChecker::addWord(const QString &word)
 
 bool HunspellChecker::ignoreWord(const QString &word)
 {
-    d->hunspell->add(word.toAscii());
+    d->hunspell->add(word.toLatin1());
     return true;
 }
 //--------------------------------------------------

@@ -79,7 +79,7 @@ void SpellCheckerCoreOptionsWidget::updateWithSettings(const SpellCheckerCoreSet
     int index = ui->comboBoxSpellChecker->findText(settings->activeSpellChecker);
     if(index == -1) {
         qDebug() << "Spellchecker from settings not valid option: " << settings->activeSpellChecker;
-        Q_ASSERT_X(false, "updateWithSettings",  "Spellchecker from settings not valid option: " + settings->activeSpellChecker.toAscii());
+        Q_ASSERT_X(false, "updateWithSettings",  "Spellchecker from settings not valid option: " + settings->activeSpellChecker.toLatin1());
         return;
     }
     ui->comboBoxSpellChecker->setCurrentIndex(index);

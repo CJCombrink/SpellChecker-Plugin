@@ -180,6 +180,3 @@ ExtensionSystem::IPlugin::ShutdownFlag SpellCheckerPlugin::aboutToShutdown()
     // Hide UI (if you add UI that is not in the main window directly)
     return SynchronousShutdown;
 }
-
-Q_EXPORT_PLUGIN2(SpellChecker, SpellCheckerPlugin)
-

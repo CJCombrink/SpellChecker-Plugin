@@ -30,12 +30,12 @@
 #include <coreplugin/icore.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
-#include <cpptools/cppmodelmanagerinterface.h>
+#include <cpptools/cppmodelmanager.h>
 #include <cpptools/cpptoolsreuse.h>
 #include <cpptools/cppdoxygen.h>
 #include <cplusplus/Overview.h>
 #include <cppeditor/cppeditorconstants.h>
-#include <texteditor/basetexteditor.h>
+#include <texteditor/texteditor.h>
 #include <texteditor/syntaxhighlighter.h>
 #include <projectexplorer/project.h>
 #include <projectexplorer/session.h>
@@ -54,7 +54,7 @@ public:
     CppParserOptionsPage* optionsPage;
     CppParserSettings* settings;
     QStringList filesInStartupProject;
-    QStringList sourceFilesInStartupProject;
+    QSet<QString> sourceFilesInStartupProject;
 
     CppDocumentParserPrivate() :
         activeProject(NULL),
@@ -79,10 +79,10 @@ CppDocumentParser::CppDocumentParser(QObject *parent) :
     /* Crete the options page for the parser */
     d->optionsPage = new CppParserOptionsPage(d->settings, this);
 
-    CppTools::CppModelManagerInterface *modelManager = CppTools::CppModelManagerInterface::instance();
+    CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
     connect(modelManager, SIGNAL(documentUpdated(CPlusPlus::Document::Ptr)), this, SLOT(parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr)), Qt::DirectConnection);
 
-    Core::Context context(CppEditor::Constants::C_CPPEDITOR);
+    Core::Context context(CppEditor::Constants::CPPEDITOR_ID);
     Core::ActionContainer *cppEditorContextMenu= Core::ActionManager::createMenu(CppEditor::Constants::M_CONTEXT);
     Core::ActionContainer *contextMenu = Core::ActionManager::createMenu(Constants::CONTEXT_MENU_ID);
     cppEditorContextMenu->addSeparator(context);
@@ -119,13 +119,13 @@ void CppDocumentParser::setActiveProject(ProjectExplorer::Project *activeProject
         return;
     }
     /* Get all the files in the startup project */
-    CppTools::CppModelManagerInterface *modelManager = CppTools::CppModelManagerInterface::instance();
+    CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
     if(modelManager == NULL) {
         /* Not sure if this is possible. But check just to make sure. */
         Q_ASSERT(modelManager != NULL);
         return;
     }
-    CppTools::CppModelManagerInterface::ProjectInfo startupProjectInfo = modelManager->projectInfo(d->activeProject);
+    CppTools::ProjectInfo startupProjectInfo = modelManager->projectInfo(d->activeProject);
     d->filesInStartupProject = startupProjectInfo.project().data()->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
     d->sourceFilesInStartupProject = startupProjectInfo.sourceFiles();
     reparseProject();
@@ -173,15 +173,15 @@ void CppDocumentParser::reparseProject()
         return;
     }
 
-    CppTools::CppModelManagerInterface *modelManager = CppTools::CppModelManagerInterface::instance();
+    CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
     if(modelManager == NULL) {
         /* Again not sure if this will ever be possible, but just make sure. */
         Q_ASSERT(modelManager != NULL);
         return;
     }
-    CppTools::CppModelManagerInterface::ProjectInfo startupProjectInfo = modelManager->projectInfo(d->activeProject);
+    CppTools::ProjectInfo startupProjectInfo = modelManager->projectInfo(d->activeProject);
     QStringList filesInProject = startupProjectInfo.project().data()->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
-    modelManager->updateSourceFiles(filesInProject);
+    modelManager->updateSourceFiles(filesInProject.toSet());
 }
 //--------------------------------------------------
 
