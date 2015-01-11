@@ -109,7 +109,6 @@ bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *error
     addAutoReleasedObject(m_spellCheckerCore->optionsPage());
 
     Core::Context textContext(TextEditor::Constants::C_TEXTEDITOR);
-    Core::Context globalContext(Core::Constants::C_GLOBAL);
     /* Create the menu */
     QAction *actionSuggest = new QAction(tr("Give Suggestions"), this);
     QAction *actionIgnore  = new QAction(tr("Ignore Word"), this);

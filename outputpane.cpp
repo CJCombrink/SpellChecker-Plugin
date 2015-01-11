@@ -256,10 +256,10 @@ void OutputPane::mistakeSelected(const QModelIndex &index)
 
 void OutputPane::wordUnderCursorMistake(bool isMistake, const SpellChecker::Word &word)
 {
-    Q_UNUSED(word);
     d->buttonSuggest->setEnabled(isMistake);
     d->buttonIgnore->setEnabled(isMistake);
     d->buttonAdd->setEnabled(isMistake);
-    d->buttonLucky->setEnabled(isMistake);
+    /* Do not set the button for Lucky enabled if there is no suggestions for the word. */
+    d->buttonLucky->setEnabled(isMistake && (word.suggestions.isEmpty() == false));
 }
 //--------------------------------------------------

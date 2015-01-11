@@ -29,6 +29,7 @@ namespace SpellChecker {
 class SpellCheckerCore;
 
 namespace CppSpellChecker {
+class Word;
 namespace Internal {
 class CppParserSettings;
 } /* Internal */
@@ -49,7 +50,6 @@ public:
     bool initialize(const QStringList &arguments, QString *errorString);
     void extensionsInitialized();
     ShutdownFlag aboutToShutdown();
-
 private:
     SpellCheckerCore* m_spellCheckerCore;
     CppSpellChecker::Internal::CppParserSettings* m_cppParserSettings;

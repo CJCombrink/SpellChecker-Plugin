@@ -387,6 +387,10 @@ void SpellCheckerCore::replaceWordUnderCursorFirstSuggestion() {
         Q_ASSERT(wordMistake);
         return;
     }
+    if(word.suggestions.isEmpty() == true) {
+        /* Word does not have any suggestions */
+        return;
+    }
     WordList words;
     words.append(word);
     replaceWordsInCurrentEditor(words, word.suggestions.first());
