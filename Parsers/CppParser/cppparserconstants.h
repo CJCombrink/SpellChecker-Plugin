@@ -30,6 +30,8 @@ namespace Constants {
 const char EMAIL_ADDRESS_REGEXP_PATTERN[]   = "[\\w-\\.]+@((?:[\\w]+\\.)+)[a-zA-Z]{2,4}";
 /* Custom pattern used for website addresses. Probably not optimal nor a good option. */
 const char WEBSITE_ADDRESS_REGEXP_PATTERN[] = "((http(s)?):\\/\\/)?(\\w+\\.){1,10}[0-9A-z./?=#%\\-]+";
+/* Pattern for characters that can be part of a website URL. */
+const char WEBSITE_CHARS_REGEXP_PATTERN[]   = "[/:\\?=#%-]";
 
 const char CPP_PARSER_GROUP[]       = "CppParser";
 const char CHECK_QT_KEYWORDS[]      = "CheckQtKeywords";
