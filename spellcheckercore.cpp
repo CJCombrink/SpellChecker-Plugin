@@ -60,11 +60,13 @@ public:
     QPointer<Core::IEditor> currentEditor;
     Core::ActionContainer *contextMenu;
     QString currentFilePath;
+    ProjectExplorer::Project* startupProject;
 
     SpellCheckerCorePrivate() :
         spellChecker(NULL),
         currentEditor(NULL),
-        currentFilePath()
+        currentFilePath(),
+        startupProject(NULL)
     {}
     ~SpellCheckerCorePrivate() {}
 };
@@ -103,6 +105,7 @@ SpellCheckerCore::SpellCheckerCore(QObject *parent) :
     connect(editorManager, SIGNAL(editorAboutToClose(Core::IEditor*)), this, SLOT(editorAboutToClose(Core::IEditor*)));
 
     connect(ProjectExplorer::SessionManager::instance(), SIGNAL(startupProjectChanged(ProjectExplorer::Project*)), this, SLOT(startupProjectChanged(ProjectExplorer::Project*)));
+    connect(ProjectExplorer::ProjectExplorerPlugin::instance(), SIGNAL(fileListChanged()), this, SLOT(projectsFilesChanged()));
 
     d->contextMenu = Core::ActionManager::createMenu(Constants::CONTEXT_MENU_ID);
     Q_ASSERT(d->contextMenu != NULL);
@@ -264,11 +267,13 @@ Core::IOptionsPage *SpellCheckerCore::optionsPage()
 {
     return d->optionsPage;
 }
+//--------------------------------------------------
 
 SpellCheckerCoreSettings *SpellCheckerCore::settings() const
 {
     return d->settings;
 }
+//--------------------------------------------------
 
 ProjectMistakesModel *SpellCheckerCore::spellingMistakesModel() const
 {
@@ -491,7 +496,15 @@ void SpellCheckerCore::replaceWordsInCurrentEditor(const WordList &wordsToReplac
 void SpellCheckerCore::startupProjectChanged(ProjectExplorer::Project *startupProject)
 {
     d->spellingMistakesModel->clearAllSpellingMistakes();
+    d->startupProject = startupProject;
     emit activeProjectChanged(startupProject);
+}
+//--------------------------------------------------
+
+void SpellCheckerCore::projectsFilesChanged()
+{
+    d->spellingMistakesModel->clearAllSpellingMistakes();
+    emit activeProjectChanged(d->startupProject);
 }
 //--------------------------------------------------
 

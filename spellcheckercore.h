@@ -181,6 +181,8 @@ private slots:
     void spellcheckWordsFromParser(const QString &fileName, const SpellChecker::WordList& words);
     /*! \brief Slot called when the Qt Creator Startup or active project changes. */
     void startupProjectChanged(ProjectExplorer::Project* startupProject);
+    /*! \brief Slot called when the files in the project changes. */
+    void projectsFilesChanged();
     /*! \brief Slot called when the cursor position for the current editor changes.
      *
      * If the cursor is over a misspelled word, then the controls and actions for

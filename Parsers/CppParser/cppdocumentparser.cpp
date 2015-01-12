@@ -54,13 +54,11 @@ public:
     CppParserOptionsPage* optionsPage;
     CppParserSettings* settings;
     QStringList filesInStartupProject;
-    QSet<QString> sourceFilesInStartupProject;
 
     CppDocumentParserPrivate() :
         activeProject(NULL),
         currentEditorFileName(),
-        filesInStartupProject(),
-        sourceFilesInStartupProject()
+        filesInStartupProject()
     {}
 };
 //--------------------------------------------------
@@ -114,7 +112,6 @@ void CppDocumentParser::setActiveProject(ProjectExplorer::Project *activeProject
 {
     d->activeProject = activeProject;
     d->filesInStartupProject.clear();
-    d->sourceFilesInStartupProject.clear();
     if(d->activeProject == NULL) {
         return;
     }
@@ -125,9 +122,9 @@ void CppDocumentParser::setActiveProject(ProjectExplorer::Project *activeProject
         Q_ASSERT(modelManager != NULL);
         return;
     }
+
     CppTools::ProjectInfo startupProjectInfo = modelManager->projectInfo(d->activeProject);
     d->filesInStartupProject = startupProjectInfo.project().data()->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
-    d->sourceFilesInStartupProject = startupProjectInfo.sourceFiles();
     reparseProject();
 }
 //--------------------------------------------------
@@ -143,9 +140,7 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
     if(docPtr.isNull() == true) {
         return;
     }
-
     QString fileName = docPtr->fileName();
-
     if((SpellCheckerCore::instance()->settings()->onlyParseCurrentFile == true)
             && (d->currentEditorFileName != fileName)) {
         return;
@@ -187,8 +182,7 @@ void CppDocumentParser::reparseProject()
 
 bool CppDocumentParser::shouldParseDocument(const QString& fileName)
 {
-    return (d->sourceFilesInStartupProject.contains(fileName)
-            && (d->filesInStartupProject.contains(fileName)));
+    return d->filesInStartupProject.contains(fileName);
 }
 //--------------------------------------------------
 
