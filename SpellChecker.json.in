@@ -1,7 +1,7 @@
 {
     \"Name\" : \"SpellChecker\",
-    \"Version\" : \"0.1.3\",
-    \"CompatVersion\" : \"0.1.3\",
+    \"Version\" : \"0.2.0\",
+    \"CompatVersion\" : \"0.2.0\",
     \"Experimental\" : true,
     \"Vendor\" : \"Carel Combrink\",
     \"Copyright\" : \"(C) 2014 Carel Combrink\",
@@ -9,11 +9,8 @@
                   \"\",
                   \"This plugin may be used under the terms of the GNU Lesser General Public License version 2.1 or version 3 as published by the Free Software Foundation.  Please review the following information to ensure the GNU Lesser General Public License requirements will be met: https://www.gnu.org/licenses/lgpl.html and http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.\"
     ],
-    \"Description\" : [ \"Adds pane that lists all TODO, FIXME, etc. entries in comments.\",
-                      \"\",
-                      \"The plugin creates an output pane that shows misspelled words in the current open editor along with controls to interact with the words.\",
-                      \"\",
-                      \"Menu controls as well as a Right Click context menu is also created in Qt Creator for interaction with the misspelled words.\"
+    \"Description\" : [ \"Spellcheck comments in source files.\",
+                      \"An Output Pane, Right Click context menu and a Navigation Widget is added to QtCreator to interact with the results from this plugin.\"
     ],
     \"Url\" : \"https://github.com/CJCombrink\",
     $$dependencyList
