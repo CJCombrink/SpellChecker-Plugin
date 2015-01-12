@@ -61,7 +61,7 @@ protected:
     bool shouldParseDocument(const QString& fileName);
     WordList parseCppDocument(CPlusPlus::Document::Ptr docPtr);
     void tokenizeWords(const QString &fileName, const QString& comment, unsigned int commentStart, const CPlusPlus::TranslationUnit *const translationUnit, WordList& words);
-    void applySettingsToWords(const QString& comment, WordList& words, bool isDoxygenComment);
+    void applySettingsToWords(const QString& comment, WordList& words, bool isDoxygenComment, const QStringList &wordsInSource = QStringList());
     void getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr, QStringList& wordsInSource);
     void getListOfWordsFromSourceRecursive(QStringList &words, const CPlusPlus::Symbol* symbol, const CPlusPlus::Overview& overview);
     QStringList getPossibleNamesFromString(const QString &string);

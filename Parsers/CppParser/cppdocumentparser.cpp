@@ -212,19 +212,14 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
         /* Tokenize the comment to extract words that should be checked from the comment */
         tokenizeWords(docPtr->fileName(), commentString, token.bytesBegin(), docPtr->translationUnit(), words);
         /* Filter out words based on settings */
-        applySettingsToWords(commentString, words, isDoxygenComment);
+        applySettingsToWords(commentString, words, isDoxygenComment, wordsInSource);
         /* If there are no words to check at this stage it probably means all potential words were removed
          * due to settings. If this is the case we can continue to the next comment without doing anything
          * else for the current comment. */
         if(words.count() == 0) {
             continue;
         }
-        /* Filter out words that appears in the source. They are checked against the list
-         * of words parsed from the file before the for loop. */
-        if(d->settings->removeWordsThatAppearInSource == true) {
-            removeWordsThatAppearInSource(wordsInSource, words);
-        }
-         parsedWords.append(words);
+        parsedWords.append(words);
     }
     return parsedWords;
 }
@@ -267,9 +262,16 @@ void CppDocumentParser::tokenizeWords(const QString& fileName, const QString &co
 }
 //--------------------------------------------------
 
-void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &words, bool isDoxygenComment)
+void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &words, bool isDoxygenComment, const QStringList &wordsInSource)
 {
     using namespace SpellChecker::Parsers::CppParser;
+
+    /* Filter out words that appears in the source. They are checked against the list
+     * of words parsed from the file before the for loop. */
+    if(d->settings->removeWordsThatAppearInSource == true) {
+        removeWordsThatAppearInSource(wordsInSource, words);
+    }
+
     /* Regular Expressions that might be used, defined here so that it does not get cleared in the loop */
     QRegularExpression doubleRe(QLatin1String("\\A\\d+(\\.\\d+)?\\z"));
     QRegularExpression hexRe(QLatin1String("\\A0x[0-9A-Fa-f]+\\z"));
@@ -340,6 +342,20 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
             if(websiteRe.match(currentWord).hasMatch() == true) {
                 removeCurrentWord = true;
             }
+            else if (currentWord.contains(QRegExp(QLatin1String("[/:\\?=#%-]")))) {
+                QStringList wordsSplitOnWebChars = currentWord.split(QRegExp(QLatin1String("[/:\\?=#%-]")), QString::SkipEmptyParts);
+                if (!wordsSplitOnWebChars.isEmpty()) {
+                    /* String is not a website, check each component now */
+                    removeCurrentWord = true;
+                    WordList wordsFromSplit;
+                    IDocumentParser::getWordsFromSplitString(wordsSplitOnWebChars, (*iter), wordsFromSplit);
+                    /* Apply the settings to the words that came from the split to filter out words that does
+                     * not belong due to settings. After they have passed the settings, add the words that survived
+                     * to the list of words that should be added in the end */
+                    applySettingsToWords(comment, wordsFromSplit, isDoxygenComment, wordsInSource);
+                    wordsToAddInTheEnd.append(wordsFromSplit);
+                }
+            }
         }
 
         if((d->settings->checkAllCapsWords == false) && (removeCurrentWord == false)) {
@@ -364,7 +380,7 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(comment, wordsFromSplit, isDoxygenComment);
+                    applySettingsToWords(comment, wordsFromSplit, isDoxygenComment, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
                     Q_ASSERT(false);
@@ -385,7 +401,7 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(comment, wordsFromSplit, isDoxygenComment);
+                    applySettingsToWords(comment, wordsFromSplit, isDoxygenComment, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
                     Q_ASSERT(false);
@@ -438,7 +454,7 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(comment, wordsFromSplit, isDoxygenComment);
+                    applySettingsToWords(comment, wordsFromSplit, isDoxygenComment, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
                     Q_ASSERT(false);
@@ -460,7 +476,7 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(comment, wordsFromSplit, isDoxygenComment);
+                    applySettingsToWords(comment, wordsFromSplit, isDoxygenComment, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
                     Q_ASSERT(false);
