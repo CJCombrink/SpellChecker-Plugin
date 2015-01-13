@@ -16,26 +16,26 @@ As is, the plugin requires the Qt Creator source files as well as the Hunspell s
 It is assumed that the Qt Creator source files are already downloaded to the system. <br>
 For now all steps are done on Windows using MinGW, but as time and testing continues the steps and tests will include other compilers and operating systems. <br>
 Qt 5.4.0 was used along with Qt Creator 3.3
-<h3>2.1 Setting up Hunspell 1.3.2</h3>
+<h3>2.1. Setting up Hunspell 1.3.2</h3>
 [Hunspell](http://hunspell.sourceforge.net/) is an Open Source spell checker used in many Open Source applications. <br>
-<h4>2.1.1 MinGW</h4>
+<h4>2.1.1. MinGW</h4>
 For MinGW the hunspell-mingw repository on github was used to build hunspell. This was the easiest solution to get the lib ready for MinGW. <br>
   1. Get the sources
     - Download the sources using the zip archive or git from https://github.com/zdenop/hunspell-mingw
   2. Build the sources using the steps given on the above page
     - In a command window, navigate to the folder where the sources are located and run qmake and then run mingw32-make
 
-<h4>2.1.2 MSVC</h4>
+<h4>2.1.2. MSVC</h4>
   1. Get the sources
     - Download the sources for 1.3.2 from http://sourceforge.net/projects/hunspell/files/Hunspell/1.3.2/
 	2. Build the sources
     - Open the hunspell.sln file in the folder src\win_api using Visual Studio
     - Build the debug\_dll and release\_dll of the libhunspell project
 
-<h4>2.1.3 GCC (Linux)</h4>
+<h4>2.1.3. GCC (Linux)</h4>
 On Linux, make sure that libhunspell-1.3.* and libhunspell-dev is installed. This should be all that is needed regarding Hunspell. 
 
-<h3>2.2 Building The Plugin</h3>
+<h3>2.2. Building The Plugin</h3>
 The following steps can be used to build the plugin for a local build of Qt Creator. If the idea is to use the plugin with one of the release versions of Qt Creator, make sure that the compiler and Qt Creator sources match exactly with the setup for the release version of Qt Creator. If this is not possible, the plugin will not be usable with a Qt Creator release version. 
   1. Get the Sources
     - Download the sources from the github project page
@@ -51,7 +51,7 @@ The following steps can be used to build the plugin for a local build of Qt Crea
   5. Verify the plugin has loaded
     - In the running Qt Creator, go to "*Help*" -> "*About Plugins...*". Under Utilities "*SpellChecker*" should be listed and enabled (enable it if it was not enabled).
 
-<h2>Using The Plugin</h2>
+<h2>3. Using The Plugin</h2>
 After opening Qt Creator and the plugin loaded successfully the following steps must be performed before starting to use the SpellChecker plugin:
   1. Make sure the plugin is enabled
     - Go to "*Help*" -> "*About Plugins...*" and make sure the SpellChecker plugin under Utilities is enabled. 
@@ -77,23 +77,23 @@ After opening Qt Creator and the plugin loaded successfully the following steps 
     - Right clicking on a misspelled word will also allow the user to perform the above actions using the popup menu.
     - Under "*Tools*" -> "*Spell Checker*" the above actions can also be performed.
 
-<h2>Useful Widgets</h2>
+<h2>4. Useful Widgets</h2>
 The following useful widgets are added to the QtCreator user interface to allows the user to interact with the plugin:
 - **Output Pane** at the bottom of the IDE that shows the number of mistakes in the current editor, the misspelled words as well as suggestions for the words. From the pane there are controls to handle the mistakes.
 - **Navigation Widget** that can be added that shows all documents that have mistakes along with the number of mistakes on that page. Note that this widget will only show parsed files based on the "Only check current editor" setting of the plugin.
 - **Give Suggestions Widget** will give the user the option to replace all occurrences of a mistake in the current file with the specified word. 
 
-<h2>Pre-Build Plugins</h2>
+<h2>5. Pre-Build Plugins</h2>
 I have created a release for the Plugin. The release is listed at version 0.2.0 and can be obtained from the "Releases" page. Read the README.txt file associated with the release for information on how to install the plugin into a Release
 version of Qt Creator (Currently 3.3.0). 
 
-<h2>Settings</h2>
+<h2>6. Settings</h2>
 The following settings are available to the plugin
-<h3>Parse current file vs current project</h3>
+<h3>6.1. Parse current file vs current project</h3>
 On the "SpellChecker" tab of the Spell Checker Options page is a setting "Only check current editor". If this setting is set the plugin will only parse the current open editor, reparsing it when changes are made. The results of parsed files will be remembered and still get listed in the Navigation Widget when a new file is opened. 
 
 When this setting is not set the plugin will parse all files in the project when a new project is switched to. For large projects this might take a bit of time to parse all files in the project. This has been successfully tested with the QtCreator sources. 
-<h3>C++ Document Parser</h3>
+<h3>6.2. C++ Document Parser</h3>
 The C++ document parser that is supplied with the plugin by default has settings that affects how the following types of words will be handled:
 - Email Addresses
 - Qt Keywords
