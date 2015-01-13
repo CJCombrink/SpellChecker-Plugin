@@ -15,7 +15,7 @@ I did look a lot at the code in the TODO plugin as a basis for my own implementa
 As is, the plugin requires the Qt Creator source files as well as the Hunspell spell checker library. The next section describes how to get and compile Hunspell. <br>
 It is assumed that the Qt Creator source files are already downloaded to the system. <br>
 For now all steps are done on Windows using MinGW, but as time and testing continues the steps and tests will include other compilers and operating systems. <br>
-Qt 5.3.0 was used along with Qt Creator 3.1
+Qt 5.4.0 was used along with Qt Creator 3.3
 <h3>2.1 Setting up Hunspell 1.3.2</h3>
 [Hunspell](http://hunspell.sourceforge.net/) is an Open Source spell checker used in many Open Source applications. <br>
 <h4>2.1.1 MinGW</h4>
@@ -70,16 +70,30 @@ After opening Qt Creator and the plugin loaded successfully the following steps 
       regarding this parser, refer to section 5. 
   4. Get commenting
     - While typing comments or opening a C++ text editor, the plugin will parse the comments and check words. If a spelling mistake is made the spell checker will add it to the output pane at the bottom of the page. There a user can perform the following actions on a misspelled word:
-        * **Give Suggestions**: The spell checker will suggest alternative spellings for the misspelled word. The user can then replace the misspelled word with a suggested word.
+        * **Give Suggestions**: The spell checker will suggest alternative spellings for the misspelled word. The user can then replace the misspelled word with a suggested word. 
         * **Ignore Word**: The word will be ignored for the current Qt Creator instance. Closing and opening Qt Creator will once again flag the word as a spelling mistake
         * **Add Word**: The word will be added to the user dictionary and will be not again be marked as a spelling mistake until the word is manually removed from the user dictionary. 
+        * **Feeling Lucky**: The word will be replaced with the first suggestion for the word. This option will only be available if there are at least one suggestion for the word.
     - Right clicking on a misspelled word will also allow the user to perform the above actions using the popup menu.
     - Under "*Tools*" -> "*Spell Checker*" the above actions can also be performed.
 
+<h2>Useful Widgets</h2>
+The following useful widgets are added to the QtCreator user interface to allows the user to interact with the plugin:
+- **Output Pane** at the bottom of the IDE that shows the number of mistakes in the current editor, the misspelled words as well as suggestions for the words. From the pane there are controls to handle the mistakes.
+- **Navigation Widget** that can be added that shows all documents that have mistakes along with the number of mistakes on that page. Note that this widget will only show parsed files based on the "Only check current editor" setting of the plugin.
+- **Give Suggestions Widget** will give the user the option to replace all occurrences of a mistake in the current file with the specified word. 
+
 <h2>Pre-Build Plugins</h2>
-I have created a release for the Plugin. The release is listed at version 0.1.1 and can be obtained from the "Releases" page. Read the README.txt file associated with the release for information on how to install the plugin into a Release
-version of Qt Creator (Currently 3.2.0). 
-<h2>C++ Document Parser</h2>
+I have created a release for the Plugin. The release is listed at version 0.2.0 and can be obtained from the "Releases" page. Read the README.txt file associated with the release for information on how to install the plugin into a Release
+version of Qt Creator (Currently 3.3.0). 
+
+<h2>Settings</h2>
+The following settings are available to the plugin
+<h3>Parse current file vs current project</h3>
+On the "SpellChecker" tab of the Spell Checker Options page is a setting "Only check current editor". If this setting is set the plugin will only parse the current open editor, reparsing it when changes are made. The results of parsed files will be remembered and still get listed in the Navigation Widget when a new file is opened. 
+
+When this setting is not set the plugin will parse all files in the project when a new project is switched to. For large projects this might take a bit of time to parse all files in the project. This has been successfully tested with the QtCreator sources. 
+<h3>C++ Document Parser</h3>
 The C++ document parser that is supplied with the plugin by default has settings that affects how the following types of words will be handled:
 - Email Addresses
 - Qt Keywords
@@ -89,6 +103,7 @@ The C++ document parser that is supplied with the plugin by default has settings
 - CamelCase words
 - Words that appear in source
 - Words.with.dots
+- Website Addresses
 
 Apart from these settings, the plugin also attempts to remove Doxygen Tags in Doxygen comments, in an effort to reduce the number of false positives. 
 
@@ -96,8 +111,8 @@ Apart from these settings, the plugin also attempts to remove Doxygen Tags in Do
 The following list is a list with a hint into priority of some outstanding tasks I want to do. 
 - [x] Get correct Qt Versions to make deployment versions and upload somewhere (Under Releases). 
 - [x] Get all spelling mistakes for a active project. The idea was to 1st finish this before releasing, this has changed to start to track the code and get it into a repository. 
-- [ ] Underline words that are spelling mistakes (red squiggly lines, did attempt once, but did not work).
-- [ ] Parse and ignore website URLs correctly.
+- [x] Underline words that are spelling mistakes (red squiggly lines, did attempt once, but did not work).
+- [ ] Parse and ignore website URLs correctly. (Some work done on this but needs more testing/tweaks)
 - [x] Test in other OS's (Linux, etc.)
   - [x] Make releases for other OS's.
 - [ ] Spell check string literals
