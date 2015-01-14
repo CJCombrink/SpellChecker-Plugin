@@ -41,6 +41,7 @@ public:
         COLUMN_FILE = Qt::UserRole,
         COLUMN_MISTAKES_TOTAL,
         COLUMN_FILEPATH,
+        COLUMN_FILE_IN_STARTUP,
         COLUMN_COUNT
     };
 
@@ -60,8 +61,8 @@ public:
      * from the model.
      * \param[in] fileName Name of the file that the words belong to.
      * \param[in] words Misspelled words for the file.
-     */
-    void insertSpellingMistakes(const QString &fileName, const WordList &words);
+     * \param[in] inStartupProject If the file is part of the startup project, or external. */
+    void insertSpellingMistakes(const QString &fileName, const WordList &words, bool inStartupProject);
     /*! \brief Clears all Spelling Mistakes added to the model.
      *
      * This would normally be done when the startup project gets changed.

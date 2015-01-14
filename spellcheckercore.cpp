@@ -61,12 +61,14 @@ public:
     Core::ActionContainer *contextMenu;
     QString currentFilePath;
     ProjectExplorer::Project* startupProject;
+    QStringList filesInStartupProject;
 
     SpellCheckerCorePrivate() :
         spellChecker(NULL),
         currentEditor(NULL),
         currentFilePath(),
-        startupProject(NULL)
+        startupProject(NULL),
+        filesInStartupProject()
     {}
     ~SpellCheckerCorePrivate() {}
 };
@@ -162,11 +164,9 @@ void SpellCheckerCore::removeDocumentParser(IDocumentParser *parser)
 }
 //--------------------------------------------------
 
-#include <texteditor/texteditor.h>
-
 void SpellCheckerCore::addMisspelledWords(const QString &fileName, const WordList &words)
 {
-    d->spellingMistakesModel->insertSpellingMistakes(fileName, words);
+    d->spellingMistakesModel->insertSpellingMistakes(fileName, words, d->filesInStartupProject.contains(fileName));
     if(d->currentFilePath == fileName) {
         d->mistakesModel->setCurrentSpellingMistakes(words);
     }
@@ -517,15 +517,18 @@ void SpellCheckerCore::replaceWordsInCurrentEditor(const WordList &wordsToReplac
 void SpellCheckerCore::startupProjectChanged(ProjectExplorer::Project *startupProject)
 {
     d->spellingMistakesModel->clearAllSpellingMistakes();
+    d->filesInStartupProject.clear();
     d->startupProject = startupProject;
+    if(startupProject != NULL) {
+        d->filesInStartupProject = startupProject->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
+    }
     emit activeProjectChanged(startupProject);
 }
 //--------------------------------------------------
 
 void SpellCheckerCore::projectsFilesChanged()
 {
-    d->spellingMistakesModel->clearAllSpellingMistakes();
-    emit activeProjectChanged(d->startupProject);
+    startupProjectChanged(d->startupProject);
 }
 //--------------------------------------------------
 

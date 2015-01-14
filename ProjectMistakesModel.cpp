@@ -27,7 +27,7 @@
 
 using namespace SpellChecker::Internal;
 
-typedef QMap<QString,SpellChecker::WordList> FileMistakes;
+typedef QMap<QString, QPair<SpellChecker::WordList,bool> > FileMistakes;
 
 class SpellChecker::Internal::ProjectMistakesModelPrivate {
 public:
@@ -51,7 +51,7 @@ ProjectMistakesModel::~ProjectMistakesModel()
 }
 //--------------------------------------------------
 
-void ProjectMistakesModel::insertSpellingMistakes(const QString &fileName, const SpellChecker::WordList &words)
+void ProjectMistakesModel::insertSpellingMistakes(const QString &fileName, const SpellChecker::WordList &words, bool inStartupProject)
 {
     /* Check if the model already contains the file */
     FileMistakes::iterator file = d->spellingMistakes.find(fileName);
@@ -78,9 +78,9 @@ void ProjectMistakesModel::insertSpellingMistakes(const QString &fileName, const
     if(file != d->spellingMistakes.end()) {
         /* The file was added with mistakes before, check if there are a change in the
          * total number of items. */
-        bool changed = (file.value().count() != words.count());
+        bool changed = (file.value().first.count() != words.count());
         /* Assign the words to the file */
-        file.value() = words;
+        file.value().first = words;
         /* Notify of the change if there was one */
         if(changed == true) {
             int idx = indexOfFile(fileName);
@@ -94,10 +94,10 @@ void ProjectMistakesModel::insertSpellingMistakes(const QString &fileName, const
          * model where the insert will occur. Then add the mistakes to the
          * real file. */
         FileMistakes tmpFiles = d->spellingMistakes;
-        tmpFiles.insert(fileName, WordList());
+        tmpFiles.insert(fileName, qMakePair(WordList(), false));
         int idx = tmpFiles.keys().indexOf(fileName);
         beginInsertRows(QModelIndex(), idx, idx);
-        d->spellingMistakes.insert(fileName, words);
+        d->spellingMistakes.insert(fileName, qMakePair(words, inStartupProject));
         endInsertRows();
     }
 }
@@ -113,7 +113,7 @@ void ProjectMistakesModel::clearAllSpellingMistakes()
 
 SpellChecker::WordList ProjectMistakesModel::mistakesForFile(const QString &fileName) const
 {
-    return d->spellingMistakes.value(fileName);
+    return d->spellingMistakes.value(fileName).first;
 }
 //--------------------------------------------------
 
@@ -122,9 +122,9 @@ void ProjectMistakesModel::removeAllOccurrences(const QString &wordText)
     beginResetModel();
     FileMistakes::Iterator iter = d->spellingMistakes.begin();
     while(iter != d->spellingMistakes.end()) {
-        iter.value().remove(wordText);
+        iter.value().first.remove(wordText);
         /* If there are no more words for the file, remove the file from the list */
-        if(iter.value().isEmpty() == true) {
+        if(iter.value().first.isEmpty() == true) {
             iter = d->spellingMistakes.erase(iter);
         } else {
             ++iter;
@@ -143,7 +143,7 @@ void ProjectMistakesModel::fileSelected(const QModelIndex &index)
         Q_ASSERT(editor != NULL);
         Q_ASSERT(d->spellingMistakes.value(fileName).isEmpty() == false);
         /* Go to the first misspelled word in the editor. */
-        Word word = d->spellingMistakes.value(fileName).at(0);
+        Word word = d->spellingMistakes.value(fileName).first.at(0);
         editor->gotoLine(word.lineNumber, word.columnNumber - 1);
     }
 }
@@ -204,9 +204,11 @@ QVariant ProjectMistakesModel::data(const QModelIndex &index, int role) const
     case COLUMN_FILE:
         return QFileInfo(iter.key()).fileName();
     case COLUMN_MISTAKES_TOTAL:
-        return (iter.value().count());
+        return (iter.value().first.count());
     case COLUMN_FILEPATH:
         return iter.key();
+    case COLUMN_FILE_IN_STARTUP:
+        return (iter.value().second);
     default:
         return QVariant();
     }

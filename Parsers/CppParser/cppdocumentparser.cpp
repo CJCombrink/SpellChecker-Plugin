@@ -115,6 +115,7 @@ void CppDocumentParser::setActiveProject(ProjectExplorer::Project *activeProject
     if(d->activeProject == NULL) {
         return;
     }
+    /* TODO: Is all of this needed, can't we just use activeProject->files(ProjectExplorer::Project::ExcludeGeneratedFiles); */
     /* Get all the files in the startup project */
     CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
     if(modelManager == NULL) {
