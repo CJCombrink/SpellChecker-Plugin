@@ -95,6 +95,7 @@ SpellCheckerCore::SpellCheckerCore(QObject *parent) :
     connect(this, SIGNAL(activeProjectChanged(ProjectExplorer::Project*)), d->mistakesModel, SLOT(setActiveProject(ProjectExplorer::Project*)));
 
     d->outputPane = new OutputPane(d->mistakesModel, this);
+    connect(d->spellingMistakesModel, &ProjectMistakesModel::editorOpened, [=]() { d->outputPane->popup(Core::IOutputPane::NoModeSwitch); });
 
     d->optionsPage = new SpellCheckerCoreOptionsPage(d->settings);
 

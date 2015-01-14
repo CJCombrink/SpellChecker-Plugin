@@ -84,7 +84,11 @@ public:
      */
     void removeAllOccurrences(const QString& wordText);
 public slots:
+    /*! \brief Slot that gets called  from the navigation when a file is selected */
     void fileSelected(const QModelIndex& index);
+signals:
+    /*! \brief Signal that will be emitted if the fileSelected() slot opens a editor. */
+    void editorOpened();
 private:
     ProjectMistakesModelPrivate* const d;
 };
