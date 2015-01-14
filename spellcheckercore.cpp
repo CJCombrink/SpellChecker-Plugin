@@ -161,6 +161,8 @@ void SpellCheckerCore::removeDocumentParser(IDocumentParser *parser)
 }
 //--------------------------------------------------
 
+#include <texteditor/texteditor.h>
+
 void SpellCheckerCore::addMisspelledWords(const QString &fileName, const WordList &words)
 {
     d->spellingMistakesModel->insertSpellingMistakes(fileName, words);
@@ -168,32 +170,50 @@ void SpellCheckerCore::addMisspelledWords(const QString &fileName, const WordLis
         d->mistakesModel->setCurrentSpellingMistakes(words);
     }
 
-    /* Underlining the mistakes */
-    CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
-    if (modelManager == NULL) {
+    /* Only apply the underlines to the current file. This is done so that if the
+     * whole project is scanned, it does not add selections to pages that might
+     * potentially never be opened. This can especially be a problem in large
+     * projects.
+     */
+    if(d->currentFilePath != fileName) {
         return;
     }
-
-    CPlusPlus::Document::Ptr document = modelManager->document(fileName);
-    if(document.isNull() == true) {
+    TextEditor::BaseTextEditor* baseEditor = qobject_cast<TextEditor::BaseTextEditor*>(d->currentEditor);
+    if(baseEditor == NULL) {
         return;
     }
-
+    TextEditor::TextEditorWidget* editorWidget = baseEditor->editorWidget();
+    if(editorWidget == NULL) {
+        return;
+    }
+    QList<QTextEdit::ExtraSelection> selections;
     foreach (const Word& word, words.values()) {
-        /* In general if a word does not have suggestions then it should
-         * not be a spelling mistake. Adding a Q_ASSERT here so that if it
-         * happens I can debug. */
-        Q_ASSERT(word.suggestions.isEmpty() == false);
-        CPlusPlus::Document::DiagnosticMessage message(
-                               CPlusPlus::Document::DiagnosticMessage::Error,
-                               fileName,
-                               word.lineNumber,
-                               word.columnNumber,
-                               word.suggestions.isEmpty() ? QLatin1String("Incorrect spelling")
-                                                          : QString(QLatin1String("Incorrect spelling, did you mean '%1' ?")).arg(word.suggestions.first()),
-                               word.length);
-        document->addDiagnosticMessage(message);
+        QTextCursor cursor(editorWidget->document());
+        /* Walk to the correct position using the line and column number since the
+         * absolute position is not available and I do not know of a way to get/
+         * calculate the absolute position from that information.
+         *
+         * One would think that the position from the CppDocumentParser::tokenizeWords()
+         * function can be used if stored in the Word, but it is not the correct position. */
+        cursor.setPosition(0);
+        cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, word.lineNumber - 1);
+        cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, word.columnNumber - 1);
+        cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, word.length);
+
+        /* Get the current format from the cursor, this is to make sure that the text font
+         * and color stays the same, we just want to underline the mistake. */
+        QTextCharFormat format = cursor.charFormat();
+        format.setFontUnderline(true);
+        format.setUnderlineColor(QColor(Qt::red));
+        format.setUnderlineStyle(QTextCharFormat::WaveUnderline);
+        format.setToolTip(word.suggestions.isEmpty() ? QLatin1String("Incorrect spelling")
+                                                     : QString(QLatin1String("Incorrect spelling, did you mean '%1' ?")).arg(word.suggestions.first()));
+        QTextEdit::ExtraSelection selection;
+        selection.cursor = cursor;
+        selection.format = format;
+        selections.append(selection);
     }
+    editorWidget->setExtraSelections(Core::Id(SpellChecker::Constants::SPELLCHECK_MISTAKE_ID), selections);
 }
 //--------------------------------------------------
 

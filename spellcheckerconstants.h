@@ -24,6 +24,8 @@
 namespace SpellChecker {
 namespace Constants {
 
+const char SPELLCHECK_MISTAKE_ID[]   = "SpellChecker.Spelling.Mistake";
+
 const char MENU_ID[]           = "SpellChecker.Menu";
 const char CONTEXT_MENU_ID[]   = "SpellChecker.ContextMenu";
 const char ACTION_SUGGEST_ID[] = "SpellChecker.ActionSuggest";
