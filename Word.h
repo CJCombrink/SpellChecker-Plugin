@@ -49,6 +49,7 @@ public:
     QString text;
     QString fileName;
     QChar charAfter; /*!< Next character after the end of the word in the comment. */
+    bool inComment; /*!< If the word comes from a comment or a String Literal. */
     QStringList suggestions;
 };
 

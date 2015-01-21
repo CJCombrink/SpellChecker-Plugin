@@ -48,6 +48,7 @@ void IDocumentParser::getWordsFromSplitString(const QStringList &stringList, con
         newWord.length = newWord.text.length();
         newWord.start = word.start + currentPos;
         newWord.end = newWord.start + newWord.length;
+        newWord.inComment = word.inComment;
         currentPos = currentPos + newWord.length;
         /* Add the word to the end of the word list so that it can be checked against the settings later on */
         wordList.append(newWord);

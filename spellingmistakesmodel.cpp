@@ -91,6 +91,16 @@ int SpellingMistakesModel::columnCount(const QModelIndex &parent) const
 
 QVariant SpellingMistakesModel::data(const QModelIndex &index, int role) const
 {
+    if((role == Qt::DecorationRole)
+        && (index.column() == Constants::MISTAKE_COLUMN_LITERAL)) {
+        /* Display the icon if the word is a string literal. */
+        Word currentWord = d->wordList.at(index.row());
+        if(currentWord.inComment == false) {
+            return QIcon(QLatin1String(":/extensionsystem/images/ok.png"));
+        } else {
+            return QVariant();
+        }
+    }
     if((index.isValid() == false)
             || (role != Qt::DisplayRole))
         return QVariant();
@@ -101,12 +111,15 @@ QVariant SpellingMistakesModel::data(const QModelIndex &index, int role) const
         return index.row() + 1;
     case Constants::MISTAKE_COLUMN_WORD:
         return currentWord.text;
+    case Constants::MISTAKE_COLUMN_SUGGESTIONS:
+        return currentWord.suggestions.join(QLatin1String(", "));
+    case Constants::MISTAKE_COLUMN_LITERAL:
+        /* No text, only the image above. */
+        return QVariant();
     case Constants::MISTAKE_COLUMN_LINE:
         return currentWord.lineNumber;
     case Constants::MISTAKE_COLUMN_COLUMN:
         return currentWord.columnNumber;
-    case Constants::MISTAKE_COLUMN_SUGGESTIONS:
-        return currentWord.suggestions.join(QLatin1String(", "));
     default:
         return QVariant();
     }

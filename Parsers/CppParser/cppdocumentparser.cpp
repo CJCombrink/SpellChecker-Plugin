@@ -115,17 +115,7 @@ void CppDocumentParser::setActiveProject(ProjectExplorer::Project *activeProject
     if(d->activeProject == NULL) {
         return;
     }
-    /* TODO: Is all of this needed, can't we just use activeProject->files(ProjectExplorer::Project::ExcludeGeneratedFiles); */
-    /* Get all the files in the startup project */
-    CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
-    if(modelManager == NULL) {
-        /* Not sure if this is possible. But check just to make sure. */
-        Q_ASSERT(modelManager != NULL);
-        return;
-    }
-
-    CppTools::ProjectInfo startupProjectInfo = modelManager->projectInfo(d->activeProject);
-    d->filesInStartupProject = startupProjectInfo.project().data()->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
+    d->filesInStartupProject = activeProject->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
     reparseProject();
 }
 //--------------------------------------------------
@@ -142,6 +132,13 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
         return;
     }
     QString fileName = docPtr->fileName();
+    /* Never parse a .ui file. Not sure why there are .ui files that come through the
+     * CppModelManager. This could also probably be removed from the list of
+     * files in the active project. */
+    if(fileName.endsWith(QLatin1Literal(".ui")) == true) {
+        return;
+    }
+    /* Check if the current file is the document that updated */
     if((SpellCheckerCore::instance()->settings()->onlyParseCurrentFile == true)
             && (d->currentEditorFileName != fileName)) {
         return;
@@ -168,15 +165,11 @@ void CppDocumentParser::reparseProject()
     if(d->activeProject == NULL) {
         return;
     }
-
     CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
     if(modelManager == NULL) {
-        /* Again not sure if this will ever be possible, but just make sure. */
-        Q_ASSERT(modelManager != NULL);
         return;
     }
-    CppTools::ProjectInfo startupProjectInfo = modelManager->projectInfo(d->activeProject);
-    QStringList filesInProject = startupProjectInfo.project().data()->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
+    QStringList filesInProject = d->activeProject->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
     modelManager->updateSourceFiles(filesInProject.toSet());
 }
 //--------------------------------------------------
@@ -189,7 +182,15 @@ bool CppDocumentParser::shouldParseDocument(const QString& fileName)
 
 WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 {
+
     if(docPtr.isNull() == true) {
+        return WordList();
+    }
+    /* Get the translation unit for the document. From this we can
+     * iterate the tokens to get the string literals as well as the
+     * comments. */
+    CPlusPlus::TranslationUnit *trUnit = docPtr->translationUnit();
+    if(trUnit == NULL) {
         return WordList();
     }
 
@@ -204,14 +205,46 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
         getWordsThatAppearInSource(docPtr, wordsInSource);
     }
 
-    for(unsigned int comment = 0; comment < docPtr->translationUnit()->commentCount(); ++comment) {
+    /* Parse string literals */
+    unsigned int tokenCount = trUnit->tokenCount();
+    for(unsigned int idx = 0; idx < tokenCount; ++idx) {
         WordList words;
-        CPlusPlus::Token token = docPtr->translationUnit()->commentAt(comment);
+        const CPlusPlus::Token& token = trUnit->tokenAt(idx);
+        CPlusPlus::Kind kind = token.kind();
+        if((kind >= CPlusPlus::T_FIRST_STRING_LITERAL)
+                &&(kind <= CPlusPlus::T_LAST_STRING_LITERAL)) {
+            const CPlusPlus::StringLiteral *lit = trUnit->stringLiteral(idx);
+            if(lit == NULL) {
+                /* This should not be possible, but just make sure */
+                continue;
+            }
+            if(token.expanded() == true) {
+                /* Do not parse expanded literals since they come from
+                 * macros. */
+                continue;
+            }
+            QString literalString = QString::fromUtf8(docPtr->utf8Source().mid(token.bytesBegin(), token.bytes()).trimmed());
+            /* Tokenize the string literal to extract words that should be checked. */
+            tokenizeWords(docPtr->fileName(), literalString, token.bytesBegin(), trUnit, words, false);
+            /* Apply the user settings to the words. */
+            applySettingsToWords(literalString, words, false, wordsInSource);
+            /* Check to see if there are words that should now be spellchecked. */
+            if(words.count() != 0) {
+                parsedWords.append(words);
+            }
+        }
+    }
+
+    /* Parse comments */
+    unsigned int commentCount = trUnit->commentCount();
+    for(unsigned int comment = 0; comment < commentCount; ++comment) {
+        WordList words;
+        const CPlusPlus::Token& token = trUnit->commentAt(comment);
         bool isDoxygenComment = ((token.kind() == CPlusPlus::T_DOXY_COMMENT)
                                  || (token.kind() == CPlusPlus::T_CPP_DOXY_COMMENT));
         QString commentString = QString::fromUtf8(docPtr->utf8Source().mid(token.bytesBegin(), token.bytes()).trimmed());
         /* Tokenize the comment to extract words that should be checked from the comment */
-        tokenizeWords(docPtr->fileName(), commentString, token.bytesBegin(), docPtr->translationUnit(), words);
+        tokenizeWords(docPtr->fileName(), commentString, token.bytesBegin(), trUnit, words, true);
         /* Filter out words based on settings */
         applySettingsToWords(commentString, words, isDoxygenComment, wordsInSource);
         /* If there are no words to check at this stage it probably means all potential words were removed
@@ -226,9 +259,9 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 }
 //--------------------------------------------------
 
-void CppDocumentParser::tokenizeWords(const QString& fileName, const QString &comment, unsigned int commentStart, const CPlusPlus::TranslationUnit * const translationUnit, WordList &words)
+void CppDocumentParser::tokenizeWords(const QString& fileName, const QString &string, unsigned int stringStart, const CPlusPlus::TranslationUnit * const translationUnit, WordList &words, bool inComment)
 {
-    int strLength = comment.length();
+    int strLength = string.length();
     bool busyWithWord = false;
     int wordStartPos = 0;
     bool endOfWord = false;
@@ -239,7 +272,7 @@ void CppDocumentParser::tokenizeWords(const QString& fileName, const QString &co
      * comment so that a word in progress is stopped and extracted when the comment ends */
     for(int currentPos = 0; currentPos <= strLength; ++currentPos) {
         /* Check if the current character is the end of a word character. */
-        endOfWord = isEndOfCurrentWord(comment, currentPos);
+        endOfWord = isEndOfCurrentWord(string, currentPos);
         if((endOfWord == false) && (busyWithWord == false)){
             wordStartPos = currentPos;
             busyWithWord = true;
@@ -248,12 +281,13 @@ void CppDocumentParser::tokenizeWords(const QString& fileName, const QString &co
         if((busyWithWord == true) && (endOfWord == true)) {
             Word word;
             word.fileName = fileName;
-            word.text = comment.mid(wordStartPos, currentPos - wordStartPos);
+            word.text = string.mid(wordStartPos, currentPos - wordStartPos);
             word.start = wordStartPos;
             word.end = currentPos;
             word.length = currentPos - wordStartPos;
-            word.charAfter = (currentPos < strLength)? comment.at(currentPos): QChar(QLatin1Char(' '));
-            translationUnit->getPosition(commentStart + wordStartPos, &word.lineNumber, &word.columnNumber);
+            word.charAfter = (currentPos < strLength)? string.at(currentPos): QLatin1Char(' ');
+            word.inComment = inComment;
+            translationUnit->getPosition(stringStart + wordStartPos, &word.lineNumber, &word.columnNumber);
             words.append(word);
             busyWithWord = false;
             wordStartPos = 0;
@@ -263,7 +297,7 @@ void CppDocumentParser::tokenizeWords(const QString& fileName, const QString &co
 }
 //--------------------------------------------------
 
-void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &words, bool isDoxygenComment, const QStringList &wordsInSource)
+void CppDocumentParser::applySettingsToWords(const QString &string, WordList &words, bool isDoxygenComment, const QStringList &wordsInSource)
 {
     using namespace SpellChecker::Parsers::CppParser;
 
@@ -355,7 +389,7 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(comment, wordsFromSplit, isDoxygenComment, wordsInSource);
+                    applySettingsToWords(string, wordsFromSplit, isDoxygenComment, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 }
             }
@@ -383,7 +417,7 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(comment, wordsFromSplit, isDoxygenComment, wordsInSource);
+                    applySettingsToWords(string, wordsFromSplit, isDoxygenComment, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
                     Q_ASSERT(false);
@@ -404,7 +438,7 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(comment, wordsFromSplit, isDoxygenComment, wordsInSource);
+                    applySettingsToWords(string, wordsFromSplit, isDoxygenComment, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
                     Q_ASSERT(false);
@@ -457,7 +491,7 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(comment, wordsFromSplit, isDoxygenComment, wordsInSource);
+                    applySettingsToWords(string, wordsFromSplit, isDoxygenComment, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
                     Q_ASSERT(false);
@@ -479,7 +513,7 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(comment, wordsFromSplit, isDoxygenComment, wordsInSource);
+                    applySettingsToWords(string, wordsFromSplit, isDoxygenComment, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
                     Q_ASSERT(false);
@@ -489,7 +523,8 @@ void CppDocumentParser::applySettingsToWords(const QString &comment, WordList &w
 
         /* Doxygen comments */
         if((isDoxygenComment == true) && (removeCurrentWord == false)) {
-            if(comment.at((*iter).start - 1) == QLatin1Char('\\') || comment.at((*iter).start - 1) == QLatin1Char('@')) {
+            if((string.at((*iter).start - 1) == QLatin1Char('\\'))
+                    || (string.at((*iter).start - 1) == QLatin1Char('@'))) {
                 int doxyClass = CppTools::classifyDoxygenTag(currentWord.unicode(), currentWord.size());
                 if(doxyClass != CppTools::T_DOXY_IDENTIFIER) {
                     removeCurrentWord = true;

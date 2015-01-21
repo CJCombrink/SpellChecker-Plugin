@@ -42,6 +42,7 @@ public:
         COLUMN_MISTAKES_TOTAL,
         COLUMN_FILEPATH,
         COLUMN_FILE_IN_STARTUP,
+        COLUMN_LITERAL_COUNT,
         COLUMN_COUNT
     };
 

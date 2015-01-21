@@ -33,6 +33,7 @@
 #include <QApplication>
 #include <QFileInfo>
 #include <QCheckBox>
+#include <QSpacerItem>
 
 class SpellChecker::Internal::OutputPanePrivate {
 public:
@@ -43,6 +44,7 @@ public:
     QToolButton* buttonAdd;
     QToolButton* buttonSuggest;
     QToolButton* buttonLucky;
+    QToolButton* buttonLiterals;
 
     OutputPanePrivate()
     {}
@@ -74,6 +76,7 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
     header->setSectionResizeMode(Constants::MISTAKE_COLUMN_IDX, QHeaderView::ResizeToContents);
     header->setSectionResizeMode(Constants::MISTAKE_COLUMN_WORD, QHeaderView::ResizeToContents);
     header->setSectionResizeMode(Constants::MISTAKE_COLUMN_SUGGESTIONS, QHeaderView::Stretch);
+    header->setSectionResizeMode(Constants::MISTAKE_COLUMN_LITERAL, QHeaderView::ResizeToContents);
     header->setSectionResizeMode(Constants::MISTAKE_COLUMN_LINE, QHeaderView::ResizeToContents);
     header->setSectionResizeMode(Constants::MISTAKE_COLUMN_COLUMN, QHeaderView::ResizeToContents);
     header->setStretchLastSection(false);

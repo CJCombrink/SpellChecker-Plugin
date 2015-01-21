@@ -46,13 +46,19 @@ void SpellingMistakeDelegate::paint(QPainter *painter, const QStyleOptionViewIte
     QString fileName   = index.data(ProjectMistakesModel::COLUMN_FILE).toString();
     QString nrMistakes = index.data(ProjectMistakesModel::COLUMN_MISTAKES_TOTAL).toString();
     bool inStartupProject = index.data(ProjectMistakesModel::COLUMN_FILE_IN_STARTUP).toBool();
+    QString nrLiterals = index.data(ProjectMistakesModel::COLUMN_LITERAL_COUNT).toString();
+    nrLiterals.append(QLatin1String("\""));
+    nrLiterals.prepend(QLatin1String("\""));
     if(inStartupProject == false) {
         painter->setPen(Qt::lightGray);
     }
     /* Write the File Name */
     painter->drawText(6, 2 + opt.rect.top() + fm.ascent(), fileName);
     /* Write the number of mistakes */
-    painter->drawText(opt.rect.right() - fm.width(nrMistakes) - 6 , 2 + opt.rect.top() + fm.ascent(), nrMistakes);
+    painter->drawText(opt.rect.right() - fm.width(nrMistakes) - 50 , 2 + opt.rect.top() + fm.ascent(), nrMistakes);
+    /* Draw the number of String Literal Mistakes. */
+    painter->setPen(Qt::darkGreen);
+    painter->drawText(opt.rect.right() - fm.width(nrLiterals) - 6 , 2 + opt.rect.top() + fm.ascent(), nrLiterals);
     painter->restore();
 }
 //--------------------------------------------------

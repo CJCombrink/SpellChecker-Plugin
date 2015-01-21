@@ -27,7 +27,7 @@
 
 using namespace SpellChecker::Internal;
 
-typedef QMap<QString, QPair<SpellChecker::WordList,bool> > FileMistakes;
+typedef QMap<QString, QPair<SpellChecker::WordList,bool /* In Startup Project */> > FileMistakes;
 
 class SpellChecker::Internal::ProjectMistakesModelPrivate {
 public:
@@ -209,6 +209,13 @@ QVariant ProjectMistakesModel::data(const QModelIndex &index, int role) const
         return iter.key();
     case COLUMN_FILE_IN_STARTUP:
         return (iter.value().second);
+    case COLUMN_LITERAL_COUNT: {
+        /* Count how many of the words for the given file are in String Literals. */
+        int count = std::count_if(iter.value().first.begin(),
+                                  iter.value().first.end(),
+                                  [](const Word& word) {return (word.inComment == false);});
+        return count;
+    }
     default:
         return QVariant();
     }

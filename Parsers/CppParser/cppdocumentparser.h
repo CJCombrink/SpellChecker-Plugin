@@ -60,8 +60,27 @@ protected:
     void reparseProject();
     bool shouldParseDocument(const QString& fileName);
     WordList parseCppDocument(CPlusPlus::Document::Ptr docPtr);
-    void tokenizeWords(const QString &fileName, const QString& comment, unsigned int commentStart, const CPlusPlus::TranslationUnit *const translationUnit, WordList& words);
-    void applySettingsToWords(const QString& comment, WordList& words, bool isDoxygenComment, const QStringList &wordsInSource = QStringList());
+    /*! \brief Tokenize Words from a string.
+     *
+     * This function takes a string, either a comment or a string literal and
+     * breaks the string into words or tokens that should later be checked
+     * for spelling mistakes.
+     * \param[in] fileName Name of the file that the string belongs to.
+     * \param[in] string String that must be broken up.
+     * \param[in] stringStart Start of the string.
+     * \param[in] translationUnit Translation unit belonging to the current document.
+     * \param[out] words Words that were extracted from the string.
+     * \param[in] inComment If the string is a comment or a String Literal. */
+    void tokenizeWords(const QString &fileName, const QString& string, unsigned int stringStart, const CPlusPlus::TranslationUnit *const translationUnit, WordList& words, bool inComment);
+    /*! \brief Apply the user Settings to the Words.
+     * \param[in] string String that these words belong to.
+     * \param[inout] words words that should be parsed. Words will be removed from this list
+     *                  based on the user settings.
+     * \param[in] isDoxygenComment If the word is part of a doxygen comment.
+     * \param[in] wordsInSource List of words that appear in the source. Based on the user
+     *                  setting words that appear in this list will be removed from the
+     *                  final list of \a words. */
+    void applySettingsToWords(const QString& string, WordList& words, bool isDoxygenComment, const QStringList &wordsInSource = QStringList());
     void getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr, QStringList& wordsInSource);
     void getListOfWordsFromSourceRecursive(QStringList &words, const CPlusPlus::Symbol* symbol, const CPlusPlus::Overview& overview);
     QStringList getPossibleNamesFromString(const QString &string);

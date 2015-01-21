@@ -46,6 +46,7 @@ enum MistakesModelColumn {
     MISTAKE_COLUMN_IDX = 0,
     MISTAKE_COLUMN_WORD,
     MISTAKE_COLUMN_SUGGESTIONS,
+    MISTAKE_COLUMN_LITERAL,
     MISTAKE_COLUMN_LINE,
     MISTAKE_COLUMN_COLUMN,
     MISTAKE_COLUMN_COUNT
@@ -57,6 +58,7 @@ const char MISTAKES_MODEL_COLUMN_NAMES[][20] = {
     QT_TRANSLATE_NOOP("SpellChecker::Internal::SpellingMistakesModel", "#"),
     QT_TRANSLATE_NOOP("SpellChecker::Internal::SpellingMistakesModel", "Word"),
     QT_TRANSLATE_NOOP("SpellChecker::Internal::SpellingMistakesModel", "Suggestions"),
+    QT_TRANSLATE_NOOP("SpellChecker::Internal::SpellingMistakesModel", "Literal"),
     QT_TRANSLATE_NOOP("SpellChecker::Internal::SpellingMistakesModel", "Line"),
     QT_TRANSLATE_NOOP("SpellChecker::Internal::SpellingMistakesModel", "Col")
 };
