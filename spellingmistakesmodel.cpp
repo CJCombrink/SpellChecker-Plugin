@@ -158,7 +158,9 @@ public:
     inline bool lessThan(const Word &word1, const Word &word2)
     {
         switch (m_columnIndex) {
-            /* can only sort to column and word */
+            /* Can only sort to line, word and literal columns. */
+            case Constants::MISTAKE_COLUMN_LITERAL:
+                return word1.inComment;
             case Constants::MISTAKE_COLUMN_WORD:
                 return word1.text < word2.text;
             case Constants::MISTAKE_COLUMN_LINE:
@@ -177,7 +179,9 @@ void SpellingMistakesModel::sort(int column, Qt::SortOrder order)
 {
     bool shouldSort = false;
     switch (Constants::MistakesModelColumn(column)) {
-        /* can only sort to column and word */
+        /* Can only sort to line, word and literal columns. */
+        case Constants::MISTAKE_COLUMN_LITERAL:
+            /* Fall through */
         case Constants::MISTAKE_COLUMN_WORD:
             /* Fall through */
         case Constants::MISTAKE_COLUMN_LINE:
@@ -185,6 +189,7 @@ void SpellingMistakesModel::sort(int column, Qt::SortOrder order)
             break;
         default:
             shouldSort = false;
+            break;
     }
 
     if(shouldSort == false) {
