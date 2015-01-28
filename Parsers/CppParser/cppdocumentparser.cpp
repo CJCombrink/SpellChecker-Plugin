@@ -225,7 +225,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
             }
             QString literalString = QString::fromUtf8(docPtr->utf8Source().mid(token.bytesBegin(), token.bytes()).trimmed());
             /* Tokenize the string literal to extract words that should be checked. */
-            tokenizeWords(docPtr->fileName(), literalString, token.bytesBegin(), trUnit, words, false);
+            tokenizeWords(docPtr->fileName(), literalString, token.utf16charsBegin(), trUnit, words, false);
             /* Apply the user settings to the words. */
             applySettingsToWords(literalString, words, false, wordsInSource);
             /* Check to see if there are words that should now be spellchecked. */
@@ -244,7 +244,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
                                  || (token.kind() == CPlusPlus::T_CPP_DOXY_COMMENT));
         QString commentString = QString::fromUtf8(docPtr->utf8Source().mid(token.bytesBegin(), token.bytes()).trimmed());
         /* Tokenize the comment to extract words that should be checked from the comment */
-        tokenizeWords(docPtr->fileName(), commentString, token.bytesBegin(), trUnit, words, true);
+        tokenizeWords(docPtr->fileName(), commentString, token.utf16charsBegin(), trUnit, words, true);
         /* Filter out words based on settings */
         applySettingsToWords(commentString, words, isDoxygenComment, wordsInSource);
         /* If there are no words to check at this stage it probably means all potential words were removed
