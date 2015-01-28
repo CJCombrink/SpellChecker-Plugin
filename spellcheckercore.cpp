@@ -520,11 +520,12 @@ void SpellCheckerCore::startupProjectChanged(ProjectExplorer::Project *startupPr
     d->filesInStartupProject.clear();
     d->startupProject = startupProject;
     if(startupProject != NULL) {
+        /* Check if the current project is not set to be ignored by the settings. */
         if(d->settings->projectsToIgnore.contains(startupProject->displayName()) == false) {
             d->filesInStartupProject = startupProject->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
         } else {
+            /* The Project should be ignored and not be spell checked. */
             d->startupProject = NULL;
-            qDebug() << "Ignoring project due to Core Setting";
         }
     }
     emit activeProjectChanged(startupProject);
