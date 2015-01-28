@@ -46,6 +46,7 @@ public:
     QString displayName();
     Core::IOptionsPage* optionsPage();
 
+    void parseToken(QStringList wordsInSource, CPlusPlus::TranslationUnit *trUnit, WordList words, CPlusPlus::Document::Ptr docPtr, WordList parsedWords, const CPlusPlus::Token& token);
 signals:
     
 protected:
@@ -60,6 +61,22 @@ protected:
     void reparseProject();
     bool shouldParseDocument(const QString& fileName);
     WordList parseCppDocument(CPlusPlus::Document::Ptr docPtr);
+    /*! \brief Parse a Token retrieved from the Translation Unit of the document.
+     *
+     * Since both Comments and String Literals are tokens, the common code to extract the
+     * words was added to a function to only work on a token.
+     * \param[in] docPtr Document pointer to the current document.
+     * \param[in] token Translation Unit Token that should be split up into words that
+     *              should be checked.
+     * \param[in] trUnit Translation unit of the Document.
+     * \param[in] wordsInSource Words that appear in the source of the project.
+     * \param[in] isComment If the token is a Comment or a String Literal.
+     * \param[in] isDoxygenComment If the token is a Comment, if it is a normal or
+     *              doxygen comment.
+     * \param[out] extractedWords Words that were extracted from the token that must now
+     *              be spellchecked. The extracted words will only get added to the list
+     *              and previous items added will stay in the list. */
+    void parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, const QStringList& wordsInSource, bool isComment, bool isDoxygenComment, WordList& extractedWords);
     /*! \brief Tokenize Words from a string.
      *
      * This function takes a string, either a comment or a string literal and
