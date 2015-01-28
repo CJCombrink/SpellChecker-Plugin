@@ -25,6 +25,10 @@
 
 #include <QWidget>
 
+QT_BEGIN_NAMESPACE
+class QListWidgetItem;
+QT_END_NAMESPACE
+
 namespace SpellChecker {
 namespace Internal {
 
@@ -56,11 +60,15 @@ public slots:
 
 private slots:
     void on_comboBoxSpellChecker_currentIndexChanged(const QString &arg1);
+    void on_toolButtonAddProject_clicked();
+    void on_toolButtonRemoveProject_clicked();
+    void listWidgetItemChanged(QListWidgetItem *item);
 
 private:
     void updateWithSettings(const SpellCheckerCoreSettings* const settings);
     Ui::SpellCheckerCoreOptionsWidget *ui;
     SpellCheckerCoreSettings m_settings;
+    QStringList m_projectsToIgnore;
 };
 
 } // Internal

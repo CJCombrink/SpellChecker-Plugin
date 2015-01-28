@@ -39,6 +39,7 @@ const char CORE_PARSERS_GROUP[]       = "Parsers";
 
 const char SETTING_ACTIVE_SPELLCHECKER[]      = "ActiveSpellChecker";
 const char SETTING_ONLY_PARSE_CURRENT[]       = "OnlyParseCurrentFile";
+const char PROJECTS_TO_IGNORE[]               = "projectsToIgnore";
 
 const char OUTPUT_PANE_TITLE[] = QT_TRANSLATE_NOOP("SpellChecker::Internal::OutputPane", "Spelling Mistakes");
 

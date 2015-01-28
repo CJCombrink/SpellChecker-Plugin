@@ -520,7 +520,12 @@ void SpellCheckerCore::startupProjectChanged(ProjectExplorer::Project *startupPr
     d->filesInStartupProject.clear();
     d->startupProject = startupProject;
     if(startupProject != NULL) {
-        d->filesInStartupProject = startupProject->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
+        if(d->settings->projectsToIgnore.contains(startupProject->displayName()) == false) {
+            d->filesInStartupProject = startupProject->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
+        } else {
+            d->startupProject = NULL;
+            qDebug() << "Ignoring project due to Core Setting";
+        }
     }
     emit activeProjectChanged(startupProject);
 }

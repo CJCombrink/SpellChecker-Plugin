@@ -26,7 +26,8 @@ using namespace SpellChecker::Internal;
 SpellCheckerCoreSettings::SpellCheckerCoreSettings() :
     QObject(NULL),
     activeSpellChecker(),
-    onlyParseCurrentFile(true)
+    onlyParseCurrentFile(true),
+    projectsToIgnore()
 {
 }
 //--------------------------------------------------
@@ -34,7 +35,8 @@ SpellCheckerCoreSettings::SpellCheckerCoreSettings() :
 SpellCheckerCoreSettings::SpellCheckerCoreSettings(const SpellCheckerCoreSettings &settings) :
     QObject(settings.parent()),
     activeSpellChecker(settings.activeSpellChecker),
-    onlyParseCurrentFile(settings.onlyParseCurrentFile)
+    onlyParseCurrentFile(settings.onlyParseCurrentFile),
+    projectsToIgnore(settings.projectsToIgnore)
 {
 }
 //--------------------------------------------------
@@ -49,6 +51,7 @@ void SpellCheckerCoreSettings::saveToSettings(QSettings *settings) const
     settings->beginGroup(QLatin1String(Constants::CORE_SETTINGS_GROUP));
     settings->setValue(QLatin1String(Constants::SETTING_ACTIVE_SPELLCHECKER), activeSpellChecker);
     settings->setValue(QLatin1String(Constants::SETTING_ONLY_PARSE_CURRENT), onlyParseCurrentFile);
+    settings->setValue(QLatin1String(Constants::PROJECTS_TO_IGNORE), projectsToIgnore);
     settings->endGroup(); /* CORE_SETTINGS_GROUP */
     settings->sync();
 }
@@ -59,6 +62,7 @@ void SpellCheckerCoreSettings::loadFromSettings(QSettings *settings)
     settings->beginGroup(QLatin1String(Constants::CORE_SETTINGS_GROUP));
     activeSpellChecker   = settings->value(QLatin1String(Constants::SETTING_ACTIVE_SPELLCHECKER), activeSpellChecker).toString();
     onlyParseCurrentFile = settings->value(QLatin1String(Constants::SETTING_ONLY_PARSE_CURRENT), onlyParseCurrentFile).toBool();
+    projectsToIgnore     = settings->value(QLatin1String(Constants::PROJECTS_TO_IGNORE), projectsToIgnore).toStringList();
     settings->endGroup(); /* CORE_SETTINGS_GROUP */
 }
 //--------------------------------------------------
@@ -69,6 +73,7 @@ SpellCheckerCoreSettings &SpellCheckerCoreSettings::operator =(const SpellChecke
     if(settingsSame == false) {
         this->activeSpellChecker   = other.activeSpellChecker;
         this->onlyParseCurrentFile = other.onlyParseCurrentFile;
+        this->projectsToIgnore     = other.projectsToIgnore;
         emit settingsChanged();
     }
     return *this;
@@ -80,6 +85,7 @@ bool SpellCheckerCoreSettings::operator ==(const SpellCheckerCoreSettings &other
     bool different = false;
     different = different | (activeSpellChecker   != other.activeSpellChecker);
     different = different | (onlyParseCurrentFile != other.onlyParseCurrentFile);
+    different = different | (projectsToIgnore     != other.projectsToIgnore);
     return (different == false);
 }
 //--------------------------------------------------

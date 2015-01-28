@@ -33,6 +33,8 @@ SpellCheckerCoreOptionsWidget::SpellCheckerCoreOptionsWidget(const SpellChecker:
     ui->setupUi(this);
     /* Hide the error widget by default, since there should not be errors. */
     ui->widgetErrorOutput->setVisible(false);
+    ui->toolButtonAddProject->setIcon(QIcon(QStringLiteral(":/core/images/plus.png")));
+    ui->toolButtonRemoveProject->setIcon(QIcon(QStringLiteral(":/core/images/minus.png")));
 
     ui->comboBoxSpellChecker->addItem(QLatin1String(""));
     QMap<QString, ISpellChecker*> availableSpellCheckers = SpellCheckerCore::instance()->addedSpellCheckers();
@@ -54,6 +56,7 @@ const SpellCheckerCoreSettings &SpellCheckerCoreOptionsWidget::settings()
 {
     m_settings.activeSpellChecker   = ui->comboBoxSpellChecker->currentText();
     m_settings.onlyParseCurrentFile = ui->checkBoxOnlyCheckCurrent->isChecked();
+    m_settings.projectsToIgnore     = m_projectsToIgnore;
     return m_settings;
 }
 //--------------------------------------------------
@@ -84,6 +87,10 @@ void SpellCheckerCoreOptionsWidget::updateWithSettings(const SpellCheckerCoreSet
     }
     ui->comboBoxSpellChecker->setCurrentIndex(index);
     ui->checkBoxOnlyCheckCurrent->setChecked(settings->onlyParseCurrentFile);
+    m_projectsToIgnore = settings->projectsToIgnore;
+    m_projectsToIgnore.removeDuplicates();
+    ui->listWidget->clear();
+    ui->listWidget->addItems(m_projectsToIgnore);
 }
 //--------------------------------------------------
 
@@ -105,5 +112,57 @@ void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_comboBoxSpellChec
     layout->addWidget(widget);
     connect(this, SIGNAL(applyCurrentSetSettings()), widget, SLOT(applySettings()));
     connect(widget, SIGNAL(optionsError(QString,QString)), this, SLOT(optionsPageError(QString,QString)));
+}
+//--------------------------------------------------
+
+void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_toolButtonAddProject_clicked()
+{
+    int row = ui->listWidget->currentRow() + 1;
+
+    QListWidgetItem *item = new QListWidgetItem();
+    item->setData(Qt::DisplayPropertyRole, QString());
+    item->setFlags(item->flags() | Qt::ItemIsEditable);
+    ui->listWidget->addItem(item);
+
+    ui->listWidget->setCurrentItem(item);
+    ui->listWidget->editItem(item);
+
+    connect(ui->listWidget, &QListWidget::itemChanged, this, &SpellCheckerCoreOptionsWidget::listWidgetItemChanged);
+}
+//--------------------------------------------------
+
+void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_toolButtonRemoveProject_clicked()
+{
+    int row = ui->listWidget->currentRow();
+    if(row == -1) {
+        return;
+    }
+    QListWidgetItem* item = ui->listWidget->takeItem(row);
+    QString projectName = item->data(Qt::DisplayRole).toString();
+    m_projectsToIgnore.removeAll(projectName);
+    delete item;
+}
+//--------------------------------------------------
+
+void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::listWidgetItemChanged(QListWidgetItem *item)
+{
+    disconnect(ui->listWidget, &QListWidget::itemChanged, this, &SpellCheckerCoreOptionsWidget::listWidgetItemChanged);
+    if(item == NULL) {
+        return;
+    }
+    QString newProjectName = item->data(Qt::EditRole).toString();
+    item->setFlags(item->flags() & (~Qt::ItemIsEditable));
+    if((newProjectName.isEmpty() == true)
+            || (m_projectsToIgnore.contains(newProjectName) == true)) {
+        /* Remove it */
+        on_toolButtonRemoveProject_clicked();
+        optionsPageError(QStringLiteral("SpellChecker")
+                         , (newProjectName.isEmpty() == true)?
+                                QStringLiteral("Project name can not be empty") :
+                                QStringLiteral("Project already exists in the list of projects to ignore"));
+    } else {
+        /* Add it */
+        m_projectsToIgnore << newProjectName;
+    }
 }
 //--------------------------------------------------
