@@ -34,6 +34,7 @@ const char WEBSITE_ADDRESS_REGEXP_PATTERN[] = "((http(s)?):\\/\\/)?(\\w+\\.){1,1
 const char WEBSITE_CHARS_REGEXP_PATTERN[]   = "[/:\\?=#%-]";
 
 const char CPP_PARSER_GROUP[]       = "CppParser";
+const char WHAT_TO_CHECK[]          = "WhatToCheck";
 const char CHECK_QT_KEYWORDS[]      = "CheckQtKeywords";
 const char CHECK_CAPS[]             = "checkAllCapsWords";
 const char CHECK_NUMBERS[]          = "wordsWithNumberOption";

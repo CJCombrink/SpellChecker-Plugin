@@ -205,34 +205,38 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
         getWordsThatAppearInSource(docPtr, wordsInSource);
     }
 
-    /* Parse string literals */
-    unsigned int tokenCount = trUnit->tokenCount();
-    for(unsigned int idx = 0; idx < tokenCount; ++idx) {
-        const CPlusPlus::Token& token = trUnit->tokenAt(idx);
-        CPlusPlus::Kind kind = token.kind();
-        if((kind >= CPlusPlus::T_FIRST_STRING_LITERAL)
-                &&(kind <= CPlusPlus::T_LAST_STRING_LITERAL)) {
-            const CPlusPlus::StringLiteral *lit = trUnit->stringLiteral(idx);
-            if(lit == NULL) {
-                /* This should not be possible, but just make sure */
-                continue;
+    if(d->settings->whatToCheck.testFlag(CppParserSettings::CheckStringLiterals) == true) {
+        /* Parse string literals */
+        unsigned int tokenCount = trUnit->tokenCount();
+        for(unsigned int idx = 0; idx < tokenCount; ++idx) {
+            const CPlusPlus::Token& token = trUnit->tokenAt(idx);
+            CPlusPlus::Kind kind = token.kind();
+            if((kind >= CPlusPlus::T_FIRST_STRING_LITERAL)
+                    &&(kind <= CPlusPlus::T_LAST_STRING_LITERAL)) {
+                const CPlusPlus::StringLiteral *lit = trUnit->stringLiteral(idx);
+                if(lit == NULL) {
+                    /* This should not be possible, but just make sure */
+                    continue;
+                }
+                if(token.expanded() == true) {
+                    /* Do not parse expanded literals since they come from
+                     * macros. */
+                    continue;
+                }
+                parseToken(docPtr, token, trUnit, wordsInSource, /* Comment */ false, /* Doxygen */ false, parsedWords);
             }
-            if(token.expanded() == true) {
-                /* Do not parse expanded literals since they come from
-                 * macros. */
-                continue;
-            }
-            parseToken(docPtr, token, trUnit, wordsInSource, /* Comment */ false, /* Doxygen */ false, parsedWords);
         }
     }
 
-    /* Parse comments */
-    unsigned int commentCount = trUnit->commentCount();
-    for(unsigned int comment = 0; comment < commentCount; ++comment) {
-        const CPlusPlus::Token& token = trUnit->commentAt(comment);
-        bool isDoxygenComment = ((token.kind() == CPlusPlus::T_DOXY_COMMENT)
-                                 || (token.kind() == CPlusPlus::T_CPP_DOXY_COMMENT));
-        parseToken(docPtr, token, trUnit, wordsInSource, /* Comment */ true, isDoxygenComment, parsedWords);
+    if(d->settings->whatToCheck.testFlag(CppParserSettings::CheckComments) == true) {
+        /* Parse comments */
+        unsigned int commentCount = trUnit->commentCount();
+        for(unsigned int comment = 0; comment < commentCount; ++comment) {
+            const CPlusPlus::Token& token = trUnit->commentAt(comment);
+            bool isDoxygenComment = ((token.kind() == CPlusPlus::T_DOXY_COMMENT)
+                                     || (token.kind() == CPlusPlus::T_CPP_DOXY_COMMENT));
+            parseToken(docPtr, token, trUnit, wordsInSource, /* Comment */ true, isDoxygenComment, parsedWords);
+        }
     }
     return parsedWords;
 }

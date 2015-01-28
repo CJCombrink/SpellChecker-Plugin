@@ -31,11 +31,20 @@ namespace Internal {
 class CppParserSettings : public QObject
 {
     Q_OBJECT
-    Q_ENUMS(WordsWithNumbersOption WordsWithUnderscoresOption CamelCaseWordOption)
+    Q_ENUMS(WhatToCheck WordsWithNumbersOption WordsWithUnderscoresOption CamelCaseWordOption WordsWithDotsOption)
+    Q_FLAGS(WhatToCheckOptions)
 public:
     CppParserSettings();
     CppParserSettings(const CppParserSettings& settings);
     ~CppParserSettings();
+
+    enum WhatToCheck {
+        Tokens_NONE         = 0,      /*! Invalid option but needed for QFLAGS. */
+        CheckComments       = 1 << 0, /*! Check Comments. */
+        CheckStringLiterals = 1 << 1, /*! Check String Literals */
+        CheckBoth           = CheckComments | CheckStringLiterals
+    };
+    Q_DECLARE_FLAGS(WhatToCheckOptions, WhatToCheck)
 
     enum WordsWithNumbersOption {
         RemoveWordsWithNumbers = 0, /*!< Words containing numbers will not be checked and will be removed from words that should be checked, most spell checkers discard words with numbers in. */
@@ -60,6 +69,9 @@ public:
         LeaveWordsWithDots  = 2  /*!< Leave words that contain dots. */
     };
 
+    /*! Flag for the setting about what to check in the document. This includes Comments,
+     * String Literals or both. */
+    WhatToCheckOptions whatToCheck;
     /*! Qt keywords are words in the form where the first letter is a caps 'Q' followed
      * by a capital letter. Keywords can also start with 'Q_' or words like 'emit',
      * 'slot', etc. If this is false, such words will be removed from the words to be checked. */
@@ -100,5 +112,7 @@ protected:
 } // namespace Internal
 } // namespace CppSpellChecker
 } // namespace SpellChecker
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(SpellChecker::CppSpellChecker::Internal::CppParserSettings::WhatToCheckOptions)
 
 #endif // SPELLCHECKER_CPPSPELLCHECKER_INTERNAL_CPPPARSERSETTINGS_H

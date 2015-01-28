@@ -36,34 +36,41 @@ CppParserOptionsWidget::CppParserOptionsWidget(const CppParserSettings* const se
     ui->setupUi(this);
     ui->labelDescriptionEmail->setText(ui->labelDescriptionEmail->text().arg(QLatin1String(SpellChecker::Parsers::CppParser::Constants::EMAIL_ADDRESS_REGEXP_PATTERN)));
     ui->labelDescriptionWebsites->setText(ui->labelDescriptionWebsites->text().arg(QLatin1String(SpellChecker::Parsers::CppParser::Constants::WEBSITE_ADDRESS_REGEXP_PATTERN)));
+    /* Set up the options for What to Check */
+    ui->radioButtonWhatComments->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::CheckComments);
+    ui->radioButtonWhatLiterals->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::CheckStringLiterals);
+    ui->radioButtonWhatBoth->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::CheckBoth);
+    connect(ui->radioButtonWhatComments, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonWhatToggled);
+    connect(ui->radioButtonWhatLiterals, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonWhatToggled);
+    connect(ui->radioButtonWhatBoth, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonWhatToggled);
     /* Set up the options for words with numbers. */
     ui->radioButtonNumbersRemove->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::RemoveWordsWithNumbers);
     ui->radioButtonNumbersSplit->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::SplitWordsOnNumbers);
     ui->radioButtonNumbersLeave->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::LeaveWordsWithNumbers);
-    connect(ui->radioButtonNumbersRemove, SIGNAL(toggled(bool)), this, SLOT(radioButtonNumbersToggled()));
-    connect(ui->radioButtonNumbersSplit, SIGNAL(toggled(bool)), this, SLOT(radioButtonNumbersToggled()));
-    connect(ui->radioButtonNumbersLeave, SIGNAL(toggled(bool)), this, SLOT(radioButtonNumbersToggled()));
+    connect(ui->radioButtonNumbersRemove, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonNumbersToggled);
+    connect(ui->radioButtonNumbersSplit, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonNumbersToggled);
+    connect(ui->radioButtonNumbersLeave, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonNumbersToggled);
     /* Set up the options for word with underscores. */
     ui->radioButtonUnderscoresRemove->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::RemoveWordsWithUnderscores);
     ui->radioButtonUnderscoresSplit->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::SplitWordsOnUnderscores);
     ui->radioButtonUnderscoresLeave->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::LeaveWordsWithNumbers);
-    connect(ui->radioButtonUnderscoresRemove, SIGNAL(toggled(bool)), this, SLOT(radioButtonUnderscoresToggled()));
-    connect(ui->radioButtonUnderscoresSplit, SIGNAL(toggled(bool)), this, SLOT(radioButtonUnderscoresToggled()));
-    connect(ui->radioButtonUnderscoresLeave, SIGNAL(toggled(bool)), this, SLOT(radioButtonUnderscoresToggled()));
+    connect(ui->radioButtonUnderscoresRemove, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonUnderscoresToggled);
+    connect(ui->radioButtonUnderscoresSplit, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonUnderscoresToggled);
+    connect(ui->radioButtonUnderscoresLeave, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonUnderscoresToggled);
     /* Set up the options for words in camelCase. */
     ui->radioButtonCamelRemove->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::RemoveWordsInCamelCase);
     ui->radioButtonCamelSplit->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::SplitWordsOnCamelCase);
     ui->radioButtonCamelLeave->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::LeaveWordsInCamelCase);
-    connect(ui->radioButtonCamelRemove, SIGNAL(toggled(bool)), this, SLOT(radioButtonCamelCaseToggled()));
-    connect(ui->radioButtonCamelSplit, SIGNAL(toggled(bool)), this, SLOT(radioButtonCamelCaseToggled()));
-    connect(ui->radioButtonCamelLeave, SIGNAL(toggled(bool)), this, SLOT(radioButtonCamelCaseToggled()));
+    connect(ui->radioButtonCamelRemove, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonCamelCaseToggled);
+    connect(ui->radioButtonCamelSplit, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonCamelCaseToggled);
+    connect(ui->radioButtonCamelLeave, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonCamelCaseToggled);
     /* Set up the options for words with dots. */
     ui->radioButtonDotsRemove->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::RemoveWordsWithDots);
     ui->radioButtonDotsSplit->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::SplitWordsOnDots);
     ui->radioButtonDotsLeave->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::LeaveWordsWithDots);
-    connect(ui->radioButtonDotsRemove, SIGNAL(toggled(bool)), this, SLOT(radioButtonDotsToggled()));
-    connect(ui->radioButtonDotsSplit, SIGNAL(toggled(bool)), this, SLOT(radioButtonDotsToggled()));
-    connect(ui->radioButtonDotsLeave, SIGNAL(toggled(bool)), this, SLOT(radioButtonDotsToggled()));
+    connect(ui->radioButtonDotsRemove, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonDotsToggled);
+    connect(ui->radioButtonDotsSplit, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonDotsToggled);
+    connect(ui->radioButtonDotsLeave, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonDotsToggled);
 
     updateWithSettings(settings);
 }
@@ -83,6 +90,14 @@ const CppParserSettings &CppParserOptionsWidget::settings()
     m_settings.removeWordsThatAppearInSource = ui->checkBoxWordsInSource->isChecked();
     m_settings.removeWebsites = ui->checkBoxWebsiteAddresses->isChecked();
     return m_settings;
+}
+//--------------------------------------------------
+
+void CppParserOptionsWidget::radioButtonWhatToggled()
+{
+    if(static_cast<QRadioButton*>(sender())->isChecked() == true) {
+        m_settings.whatToCheck = static_cast<CppParserSettings::WhatToCheckOptions>(sender()->property(ENUM_VAL_PROPERTY).toInt());
+    }
 }
 //--------------------------------------------------
 
@@ -123,6 +138,8 @@ void CppParserOptionsWidget::updateWithSettings(const CppParserSettings *const s
     ui->checkBoxRemoveEmailAddresses->setChecked(settings->removeEmailAddresses);
     ui->checkBoxIgnoreKeywords->setChecked(!settings->checkQtKeywords);
     ui->checkBoxIgnoreCaps->setChecked(!settings->checkAllCapsWords);
+    QRadioButton* whatButtons[] = {NULL, ui->radioButtonWhatComments, ui->radioButtonWhatLiterals, ui->radioButtonWhatBoth};
+    whatButtons[settings->whatToCheck]->setChecked(true);
     QRadioButton* numberButtons[] = {ui->radioButtonNumbersRemove, ui->radioButtonNumbersSplit, ui->radioButtonNumbersLeave};
     numberButtons[settings->wordsWithNumberOption]->setChecked(true);
     QRadioButton* underscoreButtons[] = {ui->radioButtonUnderscoresRemove, ui->radioButtonUnderscoresSplit, ui->radioButtonUnderscoresLeave};

@@ -20,8 +20,8 @@
    <string>Form</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QScrollArea {background-color: rgb(255, 255, 255); }
-QLabel { background-color: rgb(170, 255, 0); }</string>
+   <string notr="true">
+</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <property name="leftMargin">
@@ -46,7 +46,7 @@ QLabel { background-color: rgb(170, 255, 0); }</string>
    <item>
     <widget class="QScrollArea" name="scrollArea">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -65,8 +65,8 @@ QLabel { background-color: rgb(170, 255, 0); }</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>821</width>
-        <height>1172</height>
+        <width>800</width>
+        <height>1279</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -91,6 +91,159 @@ QLabel { background-color: rgb(170, 255, 0); }</string>
        <property name="bottomMargin">
         <number>0</number>
        </property>
+       <item>
+        <widget class="QGroupBox" name="groupBox_7">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>What to Check</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_10">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+          </property>
+          <property name="verticalSpacing">
+           <number>0</number>
+          </property>
+          <item row="0" column="0" colspan="2">
+           <widget class="QRadioButton" name="radioButtonWhatComments">
+            <property name="text">
+             <string>Comments only</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <spacer name="horizontalSpacer_19">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>16</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="label_11">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <italic>true</italic>
+             </font>
+            </property>
+            <property name="text">
+             <string>Only Comments will be checked for spelling mistakes. This includes normal and doxygen comments. Eg: /* Comment to Check */</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QRadioButton" name="radioButtonWhatLiterals">
+            <property name="text">
+             <string>String Literals only</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <spacer name="horizontalSpacer_20">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>16</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="label_14">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <italic>true</italic>
+             </font>
+            </property>
+            <property name="text">
+             <string>Only String Literals will be checked for spelling mistakes. A String Literal is a string inside inverted commas. Eg: &quot;String to Check&quot;.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0" colspan="2">
+           <widget class="QRadioButton" name="radioButtonWhatBoth">
+            <property name="text">
+             <string>Comments and String Literals</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <spacer name="horizontalSpacer_21">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>16</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLabel" name="label_21">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <italic>true</italic>
+             </font>
+            </property>
+            <property name="text">
+             <string>Comments and String Literals will be checked. </string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item>
         <widget class="QGroupBox" name="groupBox_8">
          <property name="sizePolicy">
@@ -1054,6 +1207,30 @@ The match pattern used is: %1</string>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>checkBoxDescriptions</tabstop>
+  <tabstop>radioButtonWhatComments</tabstop>
+  <tabstop>radioButtonWhatLiterals</tabstop>
+  <tabstop>radioButtonWhatBoth</tabstop>
+  <tabstop>scrollArea</tabstop>
+  <tabstop>checkBoxRemoveEmailAddresses</tabstop>
+  <tabstop>checkBoxIgnoreKeywords</tabstop>
+  <tabstop>checkBoxIgnoreCaps</tabstop>
+  <tabstop>radioButtonNumbersRemove</tabstop>
+  <tabstop>radioButtonNumbersSplit</tabstop>
+  <tabstop>radioButtonNumbersLeave</tabstop>
+  <tabstop>radioButtonUnderscoresRemove</tabstop>
+  <tabstop>radioButtonUnderscoresSplit</tabstop>
+  <tabstop>radioButtonUnderscoresLeave</tabstop>
+  <tabstop>radioButtonCamelRemove</tabstop>
+  <tabstop>radioButtonCamelSplit</tabstop>
+  <tabstop>radioButtonCamelLeave</tabstop>
+  <tabstop>checkBoxWordsInSource</tabstop>
+  <tabstop>radioButtonDotsRemove</tabstop>
+  <tabstop>radioButtonDotsSplit</tabstop>
+  <tabstop>radioButtonDotsLeave</tabstop>
+  <tabstop>checkBoxWebsiteAddresses</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
@@ -1067,8 +1244,8 @@ The match pattern used is: %1</string>
      <y>25</y>
     </hint>
     <hint type="destinationlabel">
-     <x>467</x>
-     <y>226</y>
+     <x>512</x>
+     <y>371</y>
     </hint>
    </hints>
   </connection>
@@ -1083,8 +1260,8 @@ The match pattern used is: %1</string>
      <y>18</y>
     </hint>
     <hint type="destinationlabel">
-     <x>389</x>
-     <y>339</y>
+     <x>434</x>
+     <y>470</y>
     </hint>
    </hints>
   </connection>
@@ -1099,8 +1276,8 @@ The match pattern used is: %1</string>
      <y>19</y>
     </hint>
     <hint type="destinationlabel">
-     <x>392</x>
-     <y>434</y>
+     <x>437</x>
+     <y>553</y>
     </hint>
    </hints>
   </connection>
@@ -1115,8 +1292,8 @@ The match pattern used is: %1</string>
      <y>25</y>
     </hint>
     <hint type="destinationlabel">
-     <x>410</x>
-     <y>470</y>
+     <x>455</x>
+     <y>589</y>
     </hint>
    </hints>
   </connection>
@@ -1131,8 +1308,8 @@ The match pattern used is: %1</string>
      <y>17</y>
     </hint>
     <hint type="destinationlabel">
-     <x>447</x>
-     <y>506</y>
+     <x>492</x>
+     <y>625</y>
     </hint>
    </hints>
   </connection>
@@ -1147,8 +1324,8 @@ The match pattern used is: %1</string>
      <y>21</y>
     </hint>
     <hint type="destinationlabel">
-     <x>496</x>
-     <y>589</y>
+     <x>541</x>
+     <y>708</y>
     </hint>
    </hints>
   </connection>
@@ -1163,8 +1340,8 @@ The match pattern used is: %1</string>
      <y>28</y>
     </hint>
     <hint type="destinationlabel">
-     <x>538</x>
-     <y>625</y>
+     <x>583</x>
+     <y>744</y>
     </hint>
    </hints>
   </connection>
@@ -1179,8 +1356,8 @@ The match pattern used is: %1</string>
      <y>23</y>
     </hint>
     <hint type="destinationlabel">
-     <x>597</x>
-     <y>661</y>
+     <x>642</x>
+     <y>780</y>
     </hint>
    </hints>
   </connection>
@@ -1195,8 +1372,8 @@ The match pattern used is: %1</string>
      <y>27</y>
     </hint>
     <hint type="destinationlabel">
-     <x>448</x>
-     <y>729</y>
+     <x>493</x>
+     <y>863</y>
     </hint>
    </hints>
   </connection>
@@ -1211,8 +1388,8 @@ The match pattern used is: %1</string>
      <y>25</y>
     </hint>
     <hint type="destinationlabel">
-     <x>375</x>
-     <y>765</y>
+     <x>420</x>
+     <y>899</y>
     </hint>
    </hints>
   </connection>
@@ -1227,8 +1404,8 @@ The match pattern used is: %1</string>
      <y>21</y>
     </hint>
     <hint type="destinationlabel">
-     <x>348</x>
-     <y>808</y>
+     <x>393</x>
+     <y>935</y>
     </hint>
    </hints>
   </connection>
@@ -1243,8 +1420,8 @@ The match pattern used is: %1</string>
      <y>19</y>
     </hint>
     <hint type="destinationlabel">
-     <x>444</x>
-     <y>884</y>
+     <x>489</x>
+     <y>1034</y>
     </hint>
    </hints>
   </connection>
@@ -1259,8 +1436,8 @@ The match pattern used is: %1</string>
      <y>25</y>
     </hint>
     <hint type="destinationlabel">
-     <x>634</x>
-     <y>995</y>
+     <x>679</x>
+     <y>1102</y>
     </hint>
    </hints>
   </connection>
@@ -1275,8 +1452,8 @@ The match pattern used is: %1</string>
      <y>25</y>
     </hint>
     <hint type="destinationlabel">
-     <x>704</x>
-     <y>1031</y>
+     <x>749</x>
+     <y>1153</y>
     </hint>
    </hints>
   </connection>
@@ -1291,24 +1468,8 @@ The match pattern used is: %1</string>
      <y>24</y>
     </hint>
     <hint type="destinationlabel">
-     <x>271</x>
-     <y>1067</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>checkBoxDescriptions</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>labelDescriptionEmail</receiver>
-   <slot>setHidden(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>134</x>
-     <y>22</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>141</x>
-     <y>97</y>
+     <x>316</x>
+     <y>1189</y>
     </hint>
    </hints>
   </connection>
@@ -1323,8 +1484,72 @@ The match pattern used is: %1</string>
      <y>20</y>
     </hint>
     <hint type="destinationlabel">
-     <x>432</x>
-     <y>1173</y>
+     <x>477</x>
+     <y>1265</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBoxDescriptions</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>labelDescriptionEmail</receiver>
+   <slot>setHidden(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>134</x>
+     <y>22</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>186</x>
+     <y>272</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBoxDescriptions</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>label_11</receiver>
+   <slot>setHidden(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>202</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>208</x>
+     <y>97</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBoxDescriptions</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>label_14</receiver>
+   <slot>setHidden(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>240</x>
+     <y>24</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>252</x>
+     <y>136</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBoxDescriptions</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>label_21</receiver>
+   <slot>setHidden(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>281</x>
+     <y>24</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>283</x>
+     <y>170</y>
     </hint>
    </hints>
   </connection>
