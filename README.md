@@ -3,7 +3,7 @@
 
 <h2>1. Introduction</h2>
 The SpellChecker Plugin is a spellchecker plugin for the Qt Creator IDE. 
-This plugin spell checks comments in source files for spelling mistakes and suggestt the correct spelling for misspelled words, if possible. <br>
+This plugin spell checks Comments and String Literals in source files for spelling mistakes and suggestt the correct spelling for misspelled words, if possible. <br>
 Currently the plugin only checks C++ files and uses the Hunspell Spell Checker to check words for spelling mistakes. 
 The plugin provides an options page in Qt Creator that can be used to configure the parsers as well as the spell checkers available. <br><br>
 To build the plugin self, see section 2. <br>
@@ -84,8 +84,10 @@ The following useful widgets are added to the QtCreator user interface to allows
 - **Give Suggestions Widget** will give the user the option to replace all occurrences of a mistake in the current file with the specified word. 
 
 <h2>5. Pre-Build Plugins</h2>
-I have created a release for the Plugin. The release is listed at version 0.2.0 and can be obtained from the "Releases" page. Read the README.txt file associated with the release for information on how to install the plugin into a Release
-version of Qt Creator (Currently 3.3.0). 
+I have created a release for the Plugin. The latest release can be obtained from the "Releases" page. Read the README.txt file associated with the release for information on how to install the plugin into the relevant Release
+version of Qt Creator.
+
+Although I try to create binaries for the latest version of QtCreator, there is a bit of a delay from when a new version of QtCreator is released and a new version of the plugin is released.  
 
 <h2>6. Settings</h2>
 The following settings are available to the plugin
@@ -93,8 +95,11 @@ The following settings are available to the plugin
 On the "SpellChecker" tab of the Spell Checker Options page is a setting "Only check current editor". If this setting is set the plugin will only parse the current open editor, reparsing it when changes are made. The results of parsed files will be remembered and still get listed in the Navigation Widget when a new file is opened. 
 
 When this setting is not set the plugin will parse all files in the project when a new project is switched to. For large projects this might take a bit of time to parse all files in the project. This has been successfully tested with the QtCreator sources. 
-<h3>6.2. C++ Document Parser</h3>
-The C++ document parser that is supplied with the plugin by default has settings that affects how the following types of words will be handled:
+<h3>6.2. Projects to ignore</h3>
+A list of projects that will not be checked for spelling mistakes if opened, even of the setting is enabled to scan complete projetcs. 
+<h3>6.3. C++ Document Parser</h3>
+The C++ parser can be configured to parse only Comments, only String Literals or both. <br>
+The parser also has settings that affects how the following types of words will be handled:
 - Email Addresses
 - Qt Keywords
 - Words in CAPS
@@ -115,6 +120,6 @@ The following list is a list with a hint into priority of some outstanding tasks
 - [ ] Parse and ignore website URLs correctly. (Some work done on this but needs more testing/tweaks)
 - [x] Test in other OS's (Linux, etc.)
   - [x] Make releases for other OS's.
-- [ ] Spell check string literals
+- [x] Spell check string literals
 - [ ] Update to Hunspell 1.3.3
 
