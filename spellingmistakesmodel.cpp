@@ -24,6 +24,62 @@
 
 #include <QDir>
 
+using namespace SpellChecker;
+using namespace SpellChecker::Internal;
+
+class SpellingMistakesPredicate {
+public:
+    explicit SpellingMistakesPredicate(Constants::MistakesModelColumn columnIndex, Qt::SortOrder order) :
+        m_columnIndex(columnIndex),
+        m_order(order) {}
+
+    inline bool operator()(const Word &word1, const Word &word2)
+    {
+        if (m_order == Qt::AscendingOrder)
+            return lessThan(word1, word2);
+        else
+            return lessThan(word2, word1);
+    }
+
+    inline bool lessThan(const Word &word1, const Word &word2)
+    {
+        switch (m_columnIndex) {
+        /* Can only sort to line, word and literal columns. */
+        case Constants::MISTAKE_COLUMN_LITERAL:
+            /* If both words are not in comments, the one in a comment
+             * is always the greatest one. If both are either in a comment
+             * or string literal then sort according to the line number. */
+            if(word1.inComment != word2.inComment) {
+                return word1.inComment;
+            } else {
+                /* Use this same predicate to sort but this time on the line number. */
+                SpellingMistakesPredicate predicate(Constants::MISTAKE_COLUMN_LINE, m_order);
+                return predicate(word1, word2);
+            }
+        case Constants::MISTAKE_COLUMN_WORD:
+            return word1.text < word2.text;
+        case Constants::MISTAKE_COLUMN_LINE:
+            /* If the line numbers are not the same, return the one with the
+             * highest line number. Otherwise if the line numbers are the same,
+             * compare the column numbers to get the correct one. */
+            if(word1.lineNumber != word2.lineNumber) {
+                return word1.lineNumber < word2.lineNumber;
+            } else {
+                return word1.columnNumber < word2.columnNumber;
+            }
+        default:
+            return false;
+        }
+    }
+
+private:
+    Constants::MistakesModelColumn m_columnIndex;
+    Qt::SortOrder m_order;
+};
+//--------------------------------------------------
+//--------------------------------------------------
+//--------------------------------------------------
+
 class SpellChecker::Internal::SpellingMistakesModelPrivate {
 public:
     QList<SpellChecker::Word> wordList;
@@ -42,8 +98,6 @@ public:
 //--------------------------------------------------
 //--------------------------------------------------
 
-using namespace SpellChecker;
-using namespace SpellChecker::Internal;
 
 SpellingMistakesModel::SpellingMistakesModel(QObject *parent) :
     QAbstractTableModel(parent),
@@ -138,43 +192,6 @@ QVariant SpellingMistakesModel::headerData(int section, Qt::Orientation orientat
 }
 //--------------------------------------------------
 
-
-class SpellingMistakesPredicate
-{
-public:
-    explicit SpellingMistakesPredicate(Constants::MistakesModelColumn columnIndex, Qt::SortOrder order) :
-        m_columnIndex(columnIndex),
-        m_order(order)
-    {}
-
-    inline bool operator()(const Word &word1, const Word &word2)
-    {
-        if (m_order == Qt::AscendingOrder)
-            return lessThan(word1, word2);
-        else
-            return lessThan(word2, word1);
-    }
-
-    inline bool lessThan(const Word &word1, const Word &word2)
-    {
-        switch (m_columnIndex) {
-            /* Can only sort to line, word and literal columns. */
-            case Constants::MISTAKE_COLUMN_LITERAL:
-                return word1.inComment;
-            case Constants::MISTAKE_COLUMN_WORD:
-                return word1.text < word2.text;
-            case Constants::MISTAKE_COLUMN_LINE:
-                return word1.lineNumber < word2.lineNumber;
-            default:
-                return false;
-        }
-    }
-
-private:
-    Constants::MistakesModelColumn m_columnIndex;
-    Qt::SortOrder m_order;
-};
-
 void SpellingMistakesModel::sort(int column, Qt::SortOrder order)
 {
     bool shouldSort = false;
@@ -195,11 +212,12 @@ void SpellingMistakesModel::sort(int column, Qt::SortOrder order)
     if(shouldSort == false) {
         return;
     }
+    beginResetModel();
     d->sortColumn = Constants::MistakesModelColumn(column);
     d->sortOrder = order;
-
     SpellingMistakesPredicate predicate(d->sortColumn, d->sortOrder);
     qSort(d->wordList.begin(), d->wordList.end(), predicate);
+    endResetModel();
     emit layoutChanged();
     emit mistakesUpdated();
 }
@@ -217,4 +235,6 @@ void SpellingMistakesModel::setActiveProject(ProjectExplorer::Project *activePro
     d->projectDir.setPath(activeProject->projectDirectory().toString());
     Q_ASSERT(d->projectDir.exists() == true);
 }
+//--------------------------------------------------
+//--------------------------------------------------
 //--------------------------------------------------
