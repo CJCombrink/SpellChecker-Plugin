@@ -43,7 +43,13 @@ void SpellingMistakeDelegate::paint(QPainter *painter, const QStyleOptionViewIte
     QFontMetrics fm(opt.font);
     painter->save();
 
+    int colLit = opt.rect.right() - 4;
+    int colMist = colLit - 4 - fm.width(QStringLiteral("\"000\""));
+    int textArea = colMist - 4 - fm.width(QStringLiteral("000"));
+
     QString fileName   = index.data(ProjectMistakesModel::COLUMN_FILE).toString();
+    /* Elide the text to make it fit into the available space. */
+    fileName = fm.elidedText(fileName, Qt::ElideMiddle, textArea);
     QString nrMistakes = index.data(ProjectMistakesModel::COLUMN_MISTAKES_TOTAL).toString();
     bool inStartupProject = index.data(ProjectMistakesModel::COLUMN_FILE_IN_STARTUP).toBool();
     QString nrLiterals = index.data(ProjectMistakesModel::COLUMN_LITERAL_COUNT).toString();
@@ -52,13 +58,15 @@ void SpellingMistakeDelegate::paint(QPainter *painter, const QStyleOptionViewIte
     if(inStartupProject == false) {
         painter->setPen(Qt::lightGray);
     }
+
+
     /* Write the File Name */
     painter->drawText(6, 2 + opt.rect.top() + fm.ascent(), fileName);
     /* Write the number of mistakes */
-    painter->drawText(opt.rect.right() - fm.width(nrMistakes) - 50 , 2 + opt.rect.top() + fm.ascent(), nrMistakes);
+    painter->drawText(colMist - fm.width(nrMistakes), 2 + opt.rect.top() + fm.ascent(), nrMistakes);
     /* Draw the number of String Literal Mistakes. */
     painter->setPen(Qt::darkGreen);
-    painter->drawText(opt.rect.right() - fm.width(nrLiterals) - 6 , 2 + opt.rect.top() + fm.ascent(), nrLiterals);
+    painter->drawText(colLit - fm.width(nrLiterals), 2 + opt.rect.top() + fm.ascent(), nrLiterals);
     painter->restore();
 }
 //--------------------------------------------------
