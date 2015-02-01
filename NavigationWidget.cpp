@@ -25,8 +25,22 @@
 
 #include <QHeaderView>
 #include <QPainter>
+#include <QToolButton>
+#include <QActionGroup>
 
 using namespace SpellChecker::Internal;
+
+#define ENUM_VAL_PROPERTY "enum.Value"
+
+enum SortBy {
+    SortByFileName = 0,
+    SortByMistakes,
+    SortByLiterals,
+    SortByFileType
+};
+//--------------------------------------------------
+//--------------------------------------------------
+//--------------------------------------------------
 
 SpellingMistakeDelegate::SpellingMistakeDelegate(QObject *parent)
     : QStyledItemDelegate(parent)
@@ -58,7 +72,6 @@ void SpellingMistakeDelegate::paint(QPainter *painter, const QStyleOptionViewIte
     if(inStartupProject == false) {
         painter->setPen(Qt::lightGray);
     }
-
 
     /* Write the File Name */
     painter->drawText(6, 2 + opt.rect.top() + fm.ascent(), fileName);
@@ -125,21 +138,104 @@ void NavigationWidget::updateCurrentItem(Core::IEditor *editor)
 //--------------------------------------------------
 //--------------------------------------------------
 
+class SpellChecker::Internal::NavigationWidgetFactoryPrivate {
+public:
+    NavigationWidgetFactoryPrivate() {}
+    ProjectMistakesModel* model;
+    QAction *sortActionFileName;
+    QAction *sortActionFileType;
+    QAction *sortActionMistakes;
+    QAction *sortActionLiterals;
+};
+//--------------------------------------------------
+//--------------------------------------------------
+
 NavigationWidgetFactory::NavigationWidgetFactory(ProjectMistakesModel *model) :
-    d_model(model)
+    d(new NavigationWidgetFactoryPrivate())
 {
     setDisplayName(NavigationWidget::tr("Spelling Mistakes"));
     setPriority(600);
     setId("SpellingMistakes");
+    d->model = model;
+
+    d->sortActionFileName = new QAction(tr("Sort by File Name"), this);
+    d->sortActionFileName->setCheckable(true);
+    d->sortActionFileName->setChecked(false);
+    d->sortActionFileName->setProperty(ENUM_VAL_PROPERTY, SortByFileName);
+
+    d->sortActionMistakes = new QAction(tr("Sort by Total Mistakes"), this);
+    d->sortActionMistakes->setCheckable(true);
+    d->sortActionMistakes->setChecked(false);
+    d->sortActionMistakes->setProperty(ENUM_VAL_PROPERTY, SortByMistakes);
+
+    d->sortActionLiterals = new QAction(tr("Sort by String Literal Mistakes"), this);
+    d->sortActionLiterals->setCheckable(true);
+    d->sortActionLiterals->setChecked(false);
+    d->sortActionLiterals->setProperty(ENUM_VAL_PROPERTY, SortByLiterals);
+
+    d->sortActionFileType = new QAction(tr("Sort by File Type"), this);
+    d->sortActionFileType->setCheckable(true);
+    d->sortActionFileType->setChecked(false);
+    d->sortActionFileType->setProperty(ENUM_VAL_PROPERTY, SortByFileType);
+
+    QActionGroup *actionGroup = new QActionGroup(this);
+    actionGroup->setExclusive(true);
+    actionGroup->addAction(d->sortActionFileName);
+    actionGroup->addAction(d->sortActionMistakes);
+    actionGroup->addAction(d->sortActionLiterals);
+    actionGroup->addAction(d->sortActionFileType);
+    connect(actionGroup, &QActionGroup::triggered, this, &NavigationWidgetFactory::sortingActionActivated);
+    d->sortActionFileName->activate(QAction::Trigger);
+}
+//--------------------------------------------------
+
+NavigationWidgetFactory::~NavigationWidgetFactory()
+{
+    delete d;
+}
+//--------------------------------------------------
+
+void NavigationWidgetFactory::sortingActionActivated(QAction *action)
+{
+    SortBy sortOption = static_cast<SortBy>(action->property(ENUM_VAL_PROPERTY).toInt());
+    /* Sort always the most logic way, the user does not have control over the order. */
+    switch(sortOption) {
+    case SortByFileName:
+        d->model->sort(ProjectMistakesModel::COLUMN_FILE, Qt::AscendingOrder);
+        break;
+    case SortByMistakes:
+        d->model->sort(ProjectMistakesModel::COLUMN_MISTAKES_TOTAL, Qt::DescendingOrder);
+        break;
+    case SortByLiterals:
+        d->model->sort(ProjectMistakesModel::COLUMN_LITERAL_COUNT, Qt::DescendingOrder);
+        break;
+    case SortByFileType:
+        d->model->sort(ProjectMistakesModel::COLUMN_FILE_TYPE, Qt::AscendingOrder);
+        break;
+    }
 }
 //--------------------------------------------------
 
 Core::NavigationView NavigationWidgetFactory::createWidget()
 {
-    NavigationWidget *widget = new NavigationWidget(d_model);
-    connect(widget, SIGNAL(clicked(QModelIndex)), d_model, SLOT(fileSelected(QModelIndex)));
+    NavigationWidget *widget = new NavigationWidget(d->model);
+    connect(widget, &QAbstractItemView::clicked, d->model, &ProjectMistakesModel::fileSelected);
     Core::NavigationView view;
     view.widget = widget;
+
+    QToolButton* sortButton = new QToolButton(widget);
+    sortButton->setIcon(QIcon(QLatin1String(":/core/images/arrowdown.png")));
+    sortButton->setToolTip(tr("Sort"));
+    sortButton->setPopupMode(QToolButton::InstantPopup);
+
+    QMenu *sortMenu = new QMenu(sortButton);
+    sortMenu->addAction(d->sortActionFileName);
+    sortMenu->addAction(d->sortActionMistakes);
+    sortMenu->addAction(d->sortActionLiterals);
+    sortMenu->addAction(d->sortActionFileType);
+    sortButton->setMenu(sortMenu);
+
+    view.dockToolBarWidgets << sortButton;
     return view;
 }
 //--------------------------------------------------

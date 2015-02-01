@@ -32,8 +32,19 @@ typedef QMap<QString, QPair<SpellChecker::WordList,bool /* In Startup Project */
 class SpellChecker::Internal::ProjectMistakesModelPrivate {
 public:
     FileMistakes spellingMistakes;
+    QList<QString> sortedKeys; /*!< This list contains the keys of the
+                                * spellingMistakes map but sorted according
+                                * to the selected \a column and \a order.
+                                * This list is then used as the key for
+                                * retrieving the data from the map to make sure
+                                * that the views connected to the model gets the
+                                * items in a sorted manner. */
+    ProjectMistakesModel::Columns sortedColumn;
+    Qt::SortOrder sortOrder;
 
-    ProjectMistakesModelPrivate() {}
+    ProjectMistakesModelPrivate()
+        : sortedColumn(ProjectMistakesModel::COLUMN_FILE)
+        , sortOrder(Qt::AscendingOrder){}
 };
 //--------------------------------------------------
 //--------------------------------------------------
@@ -70,6 +81,7 @@ void ProjectMistakesModel::insertSpellingMistakes(const QString &fileName, const
         Q_ASSERT(idx != -1);
         beginRemoveRows(QModelIndex(), idx, idx);
         d->spellingMistakes.remove(fileName);
+        d->sortedKeys.removeAll(fileName);
         endRemoveRows();
         return;
     }
@@ -88,17 +100,12 @@ void ProjectMistakesModel::insertSpellingMistakes(const QString &fileName, const
             emit dataChanged(index(idx, 0, QModelIndex()), index(idx, columnCount(QModelIndex()), QModelIndex()));
         }
     } else {
-        /* File was never added... Make a copy of the mistakes and add the
-         * new file into the copy to get the index of where the file will
-         * get added into the real list. This is then used to notify the
-         * model where the insert will occur. Then add the mistakes to the
-         * real file. */
-        FileMistakes tmpFiles = d->spellingMistakes;
-        tmpFiles.insert(fileName, qMakePair(WordList(), false));
-        int idx = tmpFiles.keys().indexOf(fileName);
-        beginInsertRows(QModelIndex(), idx, idx);
+        /* Insert the mistakes for the file. The model is not notified of the
+         * change here since the sort() function will in any case invalidate
+         * all of the views and they will get refreshed after that. */
         d->spellingMistakes.insert(fileName, qMakePair(words, inStartupProject));
-        endInsertRows();
+        d->sortedKeys.append(fileName);
+        sort(static_cast<int>(d->sortedColumn), d->sortOrder);
     }
 }
 //--------------------------------------------------
@@ -107,6 +114,7 @@ void ProjectMistakesModel::clearAllSpellingMistakes()
 {
     beginResetModel();
     d->spellingMistakes.clear();
+    d->sortedKeys.clear();
     endResetModel();
 }
 //--------------------------------------------------
@@ -125,12 +133,23 @@ void ProjectMistakesModel::removeAllOccurrences(const QString &wordText)
         iter.value().first.remove(wordText);
         /* If there are no more words for the file, remove the file from the list */
         if(iter.value().first.isEmpty() == true) {
+            d->sortedKeys.removeAll(iter.key());
             iter = d->spellingMistakes.erase(iter);
         } else {
             ++iter;
         }
     }
     endResetModel();
+}
+//--------------------------------------------------
+
+int ProjectMistakesModel::countStringLiterals(const SpellChecker::WordList &words) const
+{
+    /* Count how many of the words for the given file are in String Literals. */
+    int count = std::count_if(words.constBegin(),
+                              words.constEnd(),
+                              [](const Word& word) {return (word.inComment == false);});
+    return count;
 }
 //--------------------------------------------------
 
@@ -195,7 +214,8 @@ QVariant ProjectMistakesModel::data(const QModelIndex &index, int role) const
         return QVariant();
     }
 
-    FileMistakes::ConstIterator iter = d->spellingMistakes.constBegin() + index.row();
+    QString file = d->sortedKeys.at(index.row());
+    FileMistakes::ConstIterator iter = d->spellingMistakes.find(file);
     if(iter == d->spellingMistakes.constEnd()) {
         return QVariant();
     }
@@ -209,13 +229,10 @@ QVariant ProjectMistakesModel::data(const QModelIndex &index, int role) const
         return iter.key();
     case COLUMN_FILE_IN_STARTUP:
         return (iter.value().second);
-    case COLUMN_LITERAL_COUNT: {
-        /* Count how many of the words for the given file are in String Literals. */
-        int count = std::count_if(iter.value().first.begin(),
-                                  iter.value().first.end(),
-                                  [](const Word& word) {return (word.inComment == false);});
-        return count;
-    }
+    case COLUMN_LITERAL_COUNT:
+        return countStringLiterals(iter.value().first);
+    case COLUMN_FILE_TYPE:
+        return QFileInfo(iter.key()).suffix();
     default:
         return QVariant();
     }
@@ -224,7 +241,73 @@ QVariant ProjectMistakesModel::data(const QModelIndex &index, int role) const
 
 int ProjectMistakesModel::indexOfFile(const QString &fileName) const
 {
-    return d->spellingMistakes.keys().indexOf(fileName);
+    return d->sortedKeys.indexOf(fileName);
+}
+//--------------------------------------------------
+
+void ProjectMistakesModel::sort(int column, Qt::SortOrder order)
+{
+    beginResetModel();
+    d->sortedColumn = static_cast<Columns>(column);
+    d->sortOrder = order;
+    std::sort(d->sortedKeys.begin(), d->sortedKeys.end(), [=](const QString& stringLhs, const QString& strinRhs) -> bool{
+        FileMistakes::ConstIterator iterLhs = d->spellingMistakes.find(stringLhs);
+        FileMistakes::ConstIterator iterRhs = d->spellingMistakes.find(strinRhs);
+        if((iterLhs == d->spellingMistakes.constEnd())
+                || (iterRhs == d->spellingMistakes.constEnd())) {
+            /* This should not be possible */
+            Q_ASSERT(false);
+            return false;
+        }
+
+        /* Check to see if both files are internal or external to the current project.
+         * If the LHS is internal and RHS not, the internal one is always greater than
+         * the external one. If they are both either internal or external, then sort
+         * them on the requested column.
+         * This ensures that the files are grouped together based on internal or external
+         * and then sorted according to name. The external files will always be listed last. */
+        if(iterLhs.value().second != iterRhs.value().second) {
+            return iterLhs.value().second;
+        }
+        bool greaterThan = false;
+
+        switch(d->sortedColumn) {
+        case SpellChecker::Internal::ProjectMistakesModel::COLUMN_COUNT:
+            break;
+        case COLUMN_FILE:
+            greaterThan = (QFileInfo(iterLhs.key()).fileName().toUpper() < QFileInfo(iterRhs.key()).fileName().toUpper());
+            break;
+        case COLUMN_MISTAKES_TOTAL:
+            greaterThan = (iterLhs.value().first.count() < iterRhs.value().first.count());
+            break;
+        case COLUMN_FILEPATH:
+            greaterThan = (iterLhs.key().toUpper() < iterRhs.key().toUpper());
+            break;
+        case COLUMN_FILE_IN_STARTUP:
+            greaterThan = iterLhs.value().second;
+            break;
+        case COLUMN_LITERAL_COUNT: {
+            int countLhs = countStringLiterals(iterLhs.value().first);
+            int countRhs = countStringLiterals(iterRhs.value().first);
+            greaterThan = (countLhs < countRhs);
+        }
+            break;
+        case COLUMN_FILE_TYPE: {
+            QFileInfo infoRhs(iterRhs.key());
+            QFileInfo infoLhs(iterLhs.key());
+            if(infoRhs.suffix().toUpper() == infoLhs.suffix().toUpper()) {
+                greaterThan = (QFileInfo(iterLhs.key()).fileName().toUpper() < QFileInfo(iterRhs.key()).fileName().toUpper());
+            } else {
+                greaterThan = (infoLhs.suffix().toUpper() < infoRhs.suffix().toUpper());
+            }
+        }
+            break;
+        default:
+            break;
+        }
+        return (order == Qt::AscendingOrder)? greaterThan : !greaterThan;
+    });
+    endResetModel();
 }
 //--------------------------------------------------
 //--------------------------------------------------

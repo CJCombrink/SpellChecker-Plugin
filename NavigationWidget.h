@@ -35,6 +35,7 @@ namespace SpellChecker {
 namespace Internal {
 
 class NavigationWidgetPrivate;
+class NavigationWidgetFactoryPrivate;
 /*! \brief The Navigation Widget class.
  *
  * The navigation widget shows all files in the project that has spelling
@@ -52,13 +53,10 @@ class NavigationWidget : public Utils::ListView
 public:
     explicit NavigationWidget(ProjectMistakesModel* model);
     ~NavigationWidget();
-signals:
-
 public slots:
     void updateCurrentItem(Core::IEditor* editor);
 private:
     NavigationWidgetPrivate* const d;
-
 };
 //--------------------------------------------------
 
@@ -66,15 +64,21 @@ private:
  *
  * Factory to add the Spellchecker navigation widget to the list
  * of navigation widgets in Qt Creator.
+ *
+ * The factory also manages the actions to sort the files
+ * in the navigation widgets created.
  */
 class NavigationWidgetFactory : public Core::INavigationWidgetFactory
 {
     Q_OBJECT
 public:
     NavigationWidgetFactory(ProjectMistakesModel* model);
+    ~NavigationWidgetFactory();
+private slots:
+    void sortingActionActivated(QAction* action);
 private:
     Core::NavigationView createWidget();
-    ProjectMistakesModel* d_model;
+    NavigationWidgetFactoryPrivate* const d;
 };
 //--------------------------------------------------
 

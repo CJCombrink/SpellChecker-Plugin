@@ -43,6 +43,7 @@ public:
         COLUMN_FILEPATH,
         COLUMN_FILE_IN_STARTUP,
         COLUMN_LITERAL_COUNT,
+        COLUMN_FILE_TYPE,
         COLUMN_COUNT
     };
 
@@ -54,8 +55,12 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-    int indexOfFile(const QString& fileName) const;
+    void sort(int column, Qt::SortOrder order);
 
+    /*! \brief Get the Index Of the File for the current sort setup.
+     * \param[in] fileName Name of the file to search for.
+     * \return Index of the file in the sorted model. */
+    int indexOfFile(const QString& fileName) const;
     /*! \brief Insert Spelling Mistakes for the given file.
      *
      * If there are no misspelled words for the file, the file will get removed
@@ -85,6 +90,10 @@ public:
      * \param[in] wordText Word that must be removed.
      */
     void removeAllOccurrences(const QString& wordText);
+    /*! \brief Count the number of String Literals in the list of words.
+     * \param[in] words List of words that should be counted.
+     * \return The number of words in the list that are in String Literals. */
+    int countStringLiterals(const WordList& words) const;
 public slots:
     /*! \brief Slot that gets called  from the navigation when a file is selected */
     void fileSelected(const QModelIndex& index);
