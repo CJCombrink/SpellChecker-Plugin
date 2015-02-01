@@ -32,6 +32,8 @@ const char EMAIL_ADDRESS_REGEXP_PATTERN[]   = "[\\w-\\.]+@((?:[\\w]+\\.)+)[a-zA-
 const char WEBSITE_ADDRESS_REGEXP_PATTERN[] = "((http(s)?):\\/\\/)?(\\w+\\.){1,10}[0-9A-z./?=#%\\-]+";
 /* Pattern for characters that can be part of a website URL. */
 const char WEBSITE_CHARS_REGEXP_PATTERN[]   = "[/:\\?=#%-]";
+/* Pattern for CPP files. */
+const char CPP_SOURCE_FILES_REGEXP_PATTERN[]= ".*\\.(cpp)|(h)$";
 
 const char CPP_PARSER_GROUP[]       = "CppParser";
 const char WHAT_TO_CHECK[]          = "WhatToCheck";

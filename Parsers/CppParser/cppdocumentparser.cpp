@@ -115,7 +115,6 @@ void CppDocumentParser::setActiveProject(ProjectExplorer::Project *activeProject
     if(d->activeProject == NULL) {
         return;
     }
-    d->filesInStartupProject = activeProject->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
     reparseProject();
 }
 //--------------------------------------------------
@@ -162,15 +161,15 @@ void CppDocumentParser::settingsChanged()
 
 void CppDocumentParser::reparseProject()
 {
+    d->filesInStartupProject.clear();
     if(d->activeProject == NULL) {
         return;
     }
     CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
-    if(modelManager == NULL) {
-        return;
-    }
-    QStringList filesInProject = d->activeProject->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
-    modelManager->updateSourceFiles(filesInProject.toSet());
+    QStringList list = d->activeProject->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
+    static QRegularExpression cppRegExp(QLatin1String("") + QLatin1String(SpellChecker::Parsers::CppParser::Constants::CPP_SOURCE_FILES_REGEXP_PATTERN));
+    d->filesInStartupProject = list.filter(cppRegExp);
+    modelManager->updateSourceFiles(d->filesInStartupProject.toSet());
 }
 //--------------------------------------------------
 
