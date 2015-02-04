@@ -56,6 +56,7 @@ const SpellCheckerCoreSettings &SpellCheckerCoreOptionsWidget::settings()
 {
     m_settings.activeSpellChecker   = ui->comboBoxSpellChecker->currentText();
     m_settings.onlyParseCurrentFile = ui->checkBoxOnlyCheckCurrent->isChecked();
+    m_settings.checkExternalFiles   = ui->checkBoxCheckExternal->isChecked();
     m_settings.projectsToIgnore     = m_projectsToIgnore;
     return m_settings;
 }
@@ -87,6 +88,7 @@ void SpellCheckerCoreOptionsWidget::updateWithSettings(const SpellCheckerCoreSet
     }
     ui->comboBoxSpellChecker->setCurrentIndex(index);
     ui->checkBoxOnlyCheckCurrent->setChecked(settings->onlyParseCurrentFile);
+    ui->checkBoxCheckExternal->setChecked(settings->checkExternalFiles);
     m_projectsToIgnore = settings->projectsToIgnore;
     m_projectsToIgnore.removeDuplicates();
     ui->listWidget->clear();
@@ -117,8 +119,6 @@ void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_comboBoxSpellChec
 
 void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_toolButtonAddProject_clicked()
 {
-    int row = ui->listWidget->currentRow() + 1;
-
     QListWidgetItem *item = new QListWidgetItem();
     item->setData(Qt::DisplayPropertyRole, QString());
     item->setFlags(item->flags() | Qt::ItemIsEditable);

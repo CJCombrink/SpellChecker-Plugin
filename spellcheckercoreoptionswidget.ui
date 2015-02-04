@@ -30,7 +30,7 @@
       <string>Project Options</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="1" column="0">
+      <item row="2" column="0">
        <widget class="QGroupBox" name="groupBox_2">
         <property name="title">
          <string>Projects to ignore</string>
@@ -94,6 +94,16 @@
         </property>
         <property name="text">
          <string>Only check current editor</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QCheckBox" name="checkBoxCheckExternal">
+        <property name="toolTip">
+         <string>Enable or disable if the SpellChecker should attempt to parse files external to the current active project as they are opened/edited.</string>
+        </property>
+        <property name="text">
+         <string>Check external files</string>
         </property>
        </widget>
       </item>

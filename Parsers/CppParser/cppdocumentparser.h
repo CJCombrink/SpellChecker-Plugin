@@ -59,7 +59,20 @@ protected slots:
 
 protected:
     void reparseProject();
+    /*! \brief Query if the given file should be parsed.
+     *
+     * This function takes the global/core settings, local C++ Parser settings
+     * as well as other plugin specific factors into account to determine if the
+     * document should be parsed.
+     * \param[in] fileName Name of the file that should be checked.
+     * \return  true if the document should be parsed, otherwise false. */
     bool shouldParseDocument(const QString& fileName);
+    /*! \brief Parse the Cpp Document.
+     *
+     * Work through the document and parse the file to extract words that should
+     * be checked for spelling mistakes.
+     * \param[in] docPtr Pointer to the document that will get parsed.
+     * \return A list of words extracted that should be checked for spelling mistakes. */
     WordList parseCppDocument(CPlusPlus::Document::Ptr docPtr);
     /*! \brief Parse a Token retrieved from the Translation Unit of the document.
      *

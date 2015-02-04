@@ -43,6 +43,7 @@ public:
 
     QString activeSpellChecker;
     bool onlyParseCurrentFile;
+    bool checkExternalFiles;
     QStringList projectsToIgnore;
     
 signals:

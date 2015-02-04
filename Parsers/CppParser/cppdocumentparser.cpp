@@ -54,11 +54,13 @@ public:
     CppParserOptionsPage* optionsPage;
     CppParserSettings* settings;
     QStringList filesInStartupProject;
+    const QRegularExpression cppRegExp;
 
     CppDocumentParserPrivate() :
         activeProject(NULL),
         currentEditorFileName(),
-        filesInStartupProject()
+        filesInStartupProject(),
+        cppRegExp(QLatin1String("") + QLatin1String(SpellChecker::Parsers::CppParser::Constants::CPP_SOURCE_FILES_REGEXP_PATTERN), QRegularExpression::CaseInsensitiveOption)
     {}
 };
 //--------------------------------------------------
@@ -131,19 +133,7 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
         return;
     }
     QString fileName = docPtr->fileName();
-    /* Never parse a .ui file. Not sure why there are .ui files that come through the
-     * CppModelManager. This could also probably be removed from the list of
-     * files in the active project. */
-    if(fileName.endsWith(QLatin1Literal(".ui")) == true) {
-        return;
-    }
-    /* Check if the current file is the document that updated */
-    if((SpellCheckerCore::instance()->settings()->onlyParseCurrentFile == true)
-            && (d->currentEditorFileName != fileName)) {
-        return;
-    }
-    if((d->currentEditorFileName != fileName)
-            && (shouldParseDocument(fileName)) == false) {
+    if(shouldParseDocument(fileName) == false) {
         return;
     }
     WordList words = parseCppDocument(docPtr);
@@ -167,15 +157,29 @@ void CppDocumentParser::reparseProject()
     }
     CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
     QStringList list = d->activeProject->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
-    static QRegularExpression cppRegExp(QLatin1String("") + QLatin1String(SpellChecker::Parsers::CppParser::Constants::CPP_SOURCE_FILES_REGEXP_PATTERN));
-    d->filesInStartupProject = list.filter(cppRegExp);
+    d->filesInStartupProject = list.filter(d->cppRegExp);
     modelManager->updateSourceFiles(d->filesInStartupProject.toSet());
 }
 //--------------------------------------------------
 
 bool CppDocumentParser::shouldParseDocument(const QString& fileName)
 {
-    return d->filesInStartupProject.contains(fileName);
+    if((SpellCheckerCore::instance()->settings()->onlyParseCurrentFile == true)
+            && (d->currentEditorFileName != fileName)) {
+        /* The global setting is set to only parse the current file and the
+         * file asked about is not the current one, thus do not parse it. */
+        return false;
+    }
+
+    if((SpellCheckerCore::instance()->settings()->checkExternalFiles) == false) {
+        /* Do not check external files so check if the file is part of the
+         * active project. */
+        return d->filesInStartupProject.contains(fileName);
+    }
+
+    /* Any file can go, project files or external files so just make sure that the
+     * current one is at least a C++ source file. */
+    return fileName.contains(d->cppRegExp);
 }
 //--------------------------------------------------
 
