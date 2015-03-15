@@ -189,8 +189,8 @@ private slots:
      * spelling mistakes should become active so that the user can interact with the
      * misspelled words. */
     void cursorPositionChanged();
-    /*! \brief Slot called when the current editor changes. */
-    void currentEditorChanged(Core::IEditor* editor);
+    /*! \brief Slot called when the current editor changes on the editor manager. */
+    void mangerEditorChanged(Core::IEditor* editor);
     /*! \brief Slot called when an editor is opened. */
     void editorOpened(Core::IEditor* editor);
     /*! \brief Slot called when an editor is closed. */

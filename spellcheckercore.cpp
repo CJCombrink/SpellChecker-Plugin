@@ -96,7 +96,7 @@ SpellCheckerCore::SpellCheckerCore(QObject *parent) :
 
     d->mistakesModel = new SpellingMistakesModel(this);
     d->mistakesModel->setCurrentSpellingMistakes(WordList());
-    connect(this, SIGNAL(activeProjectChanged(ProjectExplorer::Project*)), d->mistakesModel, SLOT(setActiveProject(ProjectExplorer::Project*)));
+    connect(this, &SpellCheckerCore::activeProjectChanged, d->mistakesModel, &SpellingMistakesModel::setActiveProject);
 
     d->outputPane = new OutputPane(d->mistakesModel, this);
     connect(d->spellingMistakesModel, &ProjectMistakesModel::editorOpened, [=]() { d->outputPane->popup(Core::IOutputPane::NoModeSwitch); });
@@ -105,12 +105,12 @@ SpellCheckerCore::SpellCheckerCore(QObject *parent) :
 
     /* Connect to the editor changed signal for the core to act on */
     Core::EditorManager *editorManager = Core::EditorManager::instance();
-    connect(editorManager, SIGNAL(currentEditorChanged(Core::IEditor*)), this, SLOT(currentEditorChanged(Core::IEditor*)));
-    connect(editorManager, SIGNAL(editorOpened(Core::IEditor*)), this, SLOT(editorOpened(Core::IEditor*)));
-    connect(editorManager, SIGNAL(editorAboutToClose(Core::IEditor*)), this, SLOT(editorAboutToClose(Core::IEditor*)));
+    connect(editorManager, &Core::EditorManager::currentEditorChanged, this, &SpellCheckerCore::mangerEditorChanged);
+    connect(editorManager, &Core::EditorManager::editorOpened, this, &SpellCheckerCore::editorOpened);
+    connect(editorManager, &Core::EditorManager::editorAboutToClose, this, &SpellCheckerCore::editorAboutToClose);
 
-    connect(ProjectExplorer::SessionManager::instance(), SIGNAL(startupProjectChanged(ProjectExplorer::Project*)), this, SLOT(startupProjectChanged(ProjectExplorer::Project*)));
-    connect(ProjectExplorer::ProjectExplorerPlugin::instance(), SIGNAL(fileListChanged()), this, SLOT(projectsFilesChanged()));
+    connect(ProjectExplorer::SessionManager::instance(), &ProjectExplorer::SessionManager::startupProjectChanged, this, &SpellCheckerCore::startupProjectChanged);
+    connect(ProjectExplorer::ProjectExplorerPlugin::instance(), &ProjectExplorer::ProjectExplorerPlugin::fileListChanged, this, &SpellCheckerCore::projectsFilesChanged);
 
     d->contextMenu = Core::ActionManager::createMenu(Constants::CONTEXT_MENU_ID);
     Q_ASSERT(d->contextMenu != NULL);
@@ -141,9 +141,9 @@ bool SpellCheckerCore::addDocumentParser(IDocumentParser *parser)
     if(d->documentParsers.contains(parser) == false) {
         d->documentParsers << parser;
         /* Connect all signals and slots between the parser and the core. */
-        connect(this, SIGNAL(currentEditorChanged(QString)), parser, SLOT(setCurrentEditor(QString)));
-        connect(this, SIGNAL(activeProjectChanged(ProjectExplorer::Project*)), parser, SLOT(setActiveProject(ProjectExplorer::Project*)));
-        connect(parser, SIGNAL(spellcheckWordsParsed(QString,SpellChecker::WordList)), this, SLOT(spellcheckWordsFromParser(QString,SpellChecker::WordList)), Qt::DirectConnection);
+        connect(this, &SpellCheckerCore::currentEditorChanged, parser, &IDocumentParser::setCurrentEditor);
+        connect(this, &SpellCheckerCore::activeProjectChanged, parser, &IDocumentParser::setActiveProject);
+        connect(parser, &IDocumentParser::spellcheckWordsParsed, this, &SpellCheckerCore::spellcheckWordsFromParser, Qt::DirectConnection);
         return true;
     }
     return false;
@@ -156,9 +156,9 @@ void SpellCheckerCore::removeDocumentParser(IDocumentParser *parser)
         return;
     }
     /* Disconnect all signals between the parser and the core. */
-    disconnect(this, SIGNAL(currentEditorChanged(QString)), parser, SLOT(setCurrentEditor(QString)));
-    disconnect(this, SIGNAL(activeProjectChanged(ProjectExplorer::Project*)), parser, SLOT(setActiveProject(ProjectExplorer::Project*)));
-    disconnect(parser, SIGNAL(spellcheckWordsParsed(QString,SpellChecker::WordList)), this, SLOT(spellcheckWordsFromParser(QString,SpellChecker::WordList)));
+    disconnect(this, &SpellCheckerCore::currentEditorChanged, parser, &IDocumentParser::setCurrentEditor);
+    disconnect(this, &SpellCheckerCore::activeProjectChanged, parser, &IDocumentParser::setActiveProject);
+    disconnect(parser, &IDocumentParser::spellcheckWordsParsed, this, &SpellCheckerCore::spellcheckWordsFromParser);
     /* Remove the parser from the Core. The removeOne() function is used since
      * the check in the addDocumentParser() would prevent the list from having
      * more than one occurrence of the parser in the list of parsers */
@@ -262,8 +262,8 @@ void SpellCheckerCore::setSpellChecker(ISpellChecker *spellChecker)
 {
     if(d->spellChecker != NULL) {
         /* Disconnect all signals connected to the current set spellchecker */
-        connect(this, SIGNAL(spellcheckWords(QString,SpellChecker::WordList)), d->spellChecker, SLOT(spellcheckWords(QString,SpellChecker::WordList)), Qt::DirectConnection);
-        connect(d->spellChecker, SIGNAL(misspelledWordsForFile(QString,SpellChecker::WordList)), this, SLOT(addMisspelledWords(QString,SpellChecker::WordList)));
+        connect(this, &SpellCheckerCore::spellcheckWords, d->spellChecker, &ISpellChecker::spellcheckWords, Qt::DirectConnection);
+        connect(d->spellChecker, &ISpellChecker::misspelledWordsForFile, this, &SpellCheckerCore::addMisspelledWords);
     }
     if(spellChecker == NULL) {
         return;
@@ -275,8 +275,8 @@ void SpellCheckerCore::setSpellChecker(ISpellChecker *spellChecker)
 
     d->spellChecker = spellChecker;
     /* Connect the signals between the core and the spellchecker. */
-    connect(this, SIGNAL(spellcheckWords(QString,SpellChecker::WordList)), d->spellChecker, SLOT(spellcheckWords(QString,SpellChecker::WordList)), Qt::DirectConnection);
-    connect(d->spellChecker, SIGNAL(misspelledWordsForFile(QString,SpellChecker::WordList)), this, SLOT(addMisspelledWords(QString,SpellChecker::WordList)));
+    connect(this, &SpellCheckerCore::spellcheckWords, d->spellChecker, &ISpellChecker::spellcheckWords, Qt::DirectConnection);
+    connect(d->spellChecker, &ISpellChecker::misspelledWordsForFile, this, &SpellCheckerCore::addMisspelledWords);
 }
 //--------------------------------------------------
 
@@ -540,7 +540,7 @@ void SpellCheckerCore::projectsFilesChanged()
 }
 //--------------------------------------------------
 
-void SpellCheckerCore::currentEditorChanged(Core::IEditor *editor)
+void SpellCheckerCore::mangerEditorChanged(Core::IEditor *editor)
 {
     d->currentFilePath = QLatin1String("");
     d->currentEditor = editor;
@@ -563,7 +563,7 @@ void SpellCheckerCore::editorOpened(Core::IEditor *editor)
     if(editor == NULL) {
         return;
     }
-    connect(editor->widget(), SIGNAL(cursorPositionChanged()), this, SLOT(cursorPositionChanged()));
+    connect(qobject_cast<QPlainTextEdit*>(editor->widget()), &QPlainTextEdit::cursorPositionChanged, this, &SpellCheckerCore::cursorPositionChanged);
 }
 //--------------------------------------------------
 
@@ -572,6 +572,6 @@ void SpellCheckerCore::editorAboutToClose(Core::IEditor *editor)
     if(editor == NULL) {
         return;
     }
-    connect(editor->widget(), SIGNAL(cursorPositionChanged()), this, SLOT(cursorPositionChanged()));
+    disconnect(qobject_cast<QPlainTextEdit*>(editor->widget()), &QPlainTextEdit::cursorPositionChanged, this, &SpellCheckerCore::cursorPositionChanged);
 }
 //--------------------------------------------------
