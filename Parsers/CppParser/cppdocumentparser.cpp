@@ -579,8 +579,8 @@ void CppDocumentParser::getListOfWordsFromSourceRecursive(QStringList &words, co
     /* Go to the next level into the scope of the symbol and get the words from that level as well*/
     const CPlusPlus::Scope *scope = symbol->asScope();
     if (scope != NULL) {
-        CPlusPlus::Scope::iterator cur = scope->firstMember();
-        while (cur != scope->lastMember()) {
+        CPlusPlus::Scope::iterator cur = scope->memberBegin();
+        while (cur != scope->memberEnd()) {
             const CPlusPlus::Symbol *curSymbol = *cur;
             ++cur;
             if (!curSymbol) {

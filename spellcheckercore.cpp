@@ -34,6 +34,7 @@
 #include <projectexplorer/session.h>
 
 #include <coreplugin/icore.h>
+#include <coreplugin/idocument.h>
 #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
@@ -45,6 +46,7 @@
 #include <QPointer>
 #include <QMouseEvent>
 #include <QTextCursor>
+#include <QMenu>
 
 class SpellChecker::Internal::SpellCheckerCorePrivate {
 public:
@@ -112,7 +114,7 @@ SpellCheckerCore::SpellCheckerCore(QObject *parent) :
 
     d->contextMenu = Core::ActionManager::createMenu(Constants::CONTEXT_MENU_ID);
     Q_ASSERT(d->contextMenu != NULL);
-    connect(this, SIGNAL(wordUnderCursorMistake(bool)), d->contextMenu->menu(), SLOT(setEnabled(bool)));
+    connect(this, &SpellCheckerCore::wordUnderCursorMistake, d->contextMenu->menu(), &QMenu::setEnabled);
 }
 //--------------------------------------------------
 
@@ -310,7 +312,7 @@ bool SpellCheckerCore::isWordUnderCursorMistake(Word& word)
 
     unsigned int column = d->currentEditor->currentColumn();
     unsigned int line = d->currentEditor->currentLine();
-    QString currentFileName = d->currentEditor->document()->filePath();
+    QString currentFileName = d->currentEditor->document()->filePath().toString();
     WordList wl;
     wl = d->spellingMistakesModel->mistakesForFile(currentFileName);
     if(wl.isEmpty() == true) {
@@ -337,7 +339,7 @@ bool SpellCheckerCore::getAllOccurrencesOfWord(const Word &word, WordList& words
         return false;
     }
     WordList wl;
-    QString currentFileName = d->currentEditor->document()->filePath();
+    QString currentFileName = d->currentEditor->document()->filePath().toString();
     wl = d->spellingMistakesModel->mistakesForFile(currentFileName);
     if(wl.isEmpty() == true) {
         return false;
@@ -440,7 +442,7 @@ void SpellCheckerCore::removeWordUnderCursor(RemoveAction action)
     if(d->spellChecker == NULL) {
         return;
     }
-    QString currentFileName = d->currentEditor->document()->filePath();
+    QString currentFileName = d->currentEditor->document()->filePath().toString();
     if(d->spellingMistakesModel->indexOfFile(currentFileName) == -1) {
         return;
     }
@@ -543,7 +545,7 @@ void SpellCheckerCore::currentEditorChanged(Core::IEditor *editor)
     d->currentFilePath = QLatin1String("");
     d->currentEditor = editor;
     if(editor != NULL) {
-        d->currentFilePath = editor->document()->filePath();
+        d->currentFilePath = editor->document()->filePath().toString();
     }
 
     emit currentEditorChanged(d->currentFilePath);
