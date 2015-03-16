@@ -122,10 +122,10 @@ bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *error
     cmdIgnore->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+I")));
     cmdAdd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+A")));
     cmdLucky->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+L")));
-    connect(actionSuggest, SIGNAL(triggered()), m_spellCheckerCore, SLOT(giveSuggestionsForWordUnderCursor()));
-    connect(actionIgnore, SIGNAL(triggered()), m_spellCheckerCore, SLOT(ignoreWordUnderCursor()));
-    connect(actionAdd, SIGNAL(triggered()), m_spellCheckerCore, SLOT(addWordUnderCursor()));
-    connect(actionLucky, SIGNAL(triggered()), m_spellCheckerCore, SLOT(replaceWordUnderCursorFirstSuggestion()));
+    connect(actionSuggest, &QAction::triggered, m_spellCheckerCore, &SpellCheckerCore::giveSuggestionsForWordUnderCursor);
+    connect(actionIgnore, &QAction::triggered, m_spellCheckerCore, &SpellCheckerCore::ignoreWordUnderCursor);
+    connect(actionAdd, &QAction::triggered, m_spellCheckerCore, &SpellCheckerCore::addWordUnderCursor);
+    connect(actionLucky, &QAction::triggered, m_spellCheckerCore, &SpellCheckerCore::replaceWordUnderCursorFirstSuggestion);
     connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, actionSuggest, &QAction::setEnabled);
     connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, actionIgnore, &QAction::setEnabled);
     connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, actionAdd, &QAction::setEnabled);

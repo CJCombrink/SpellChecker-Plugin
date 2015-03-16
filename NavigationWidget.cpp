@@ -109,7 +109,7 @@ NavigationWidget::NavigationWidget(ProjectMistakesModel *model) :
     setSelectionMode(QAbstractItemView::SingleSelection);
     setSelectionBehavior(QAbstractItemView::SelectRows);
 
-    connect(Core::EditorManager::instance(), SIGNAL(currentEditorChanged(Core::IEditor*)), this, SLOT(updateCurrentItem(Core::IEditor*)));
+    connect(Core::EditorManager::instance(), &Core::EditorManager::currentEditorChanged, this, &NavigationWidget::updateCurrentItem);
 }
 //--------------------------------------------------
 

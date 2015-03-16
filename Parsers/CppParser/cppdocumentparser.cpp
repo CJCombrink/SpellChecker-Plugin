@@ -74,13 +74,13 @@ CppDocumentParser::CppDocumentParser(QObject *parent) :
     /* Create the settings for this parser */
     d->settings = new SpellChecker::CppSpellChecker::Internal::CppParserSettings();
     d->settings->loadFromSettings(Core::ICore::settings());
-    connect(d->settings, SIGNAL(settingsChanged()), this, SLOT(settingsChanged()));
-    connect(SpellCheckerCore::instance()->settings(), SIGNAL(settingsChanged()), this, SLOT(settingsChanged()));
+    connect(d->settings, &CppParserSettings::settingsChanged, this, &CppDocumentParser::settingsChanged);
+    connect(SpellCheckerCore::instance()->settings(), &SpellChecker::Internal::SpellCheckerCoreSettings::settingsChanged, this, &CppDocumentParser::settingsChanged);
     /* Crete the options page for the parser */
     d->optionsPage = new CppParserOptionsPage(d->settings, this);
 
     CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
-    connect(modelManager, SIGNAL(documentUpdated(CPlusPlus::Document::Ptr)), this, SLOT(parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr)), Qt::DirectConnection);
+    connect(modelManager, &CppTools::CppModelManager::documentUpdated, this, &CppDocumentParser::parseCppDocumentOnUpdate, Qt::DirectConnection);
 
     Core::Context context(CppEditor::Constants::CPPEDITOR_ID);
     Core::ActionContainer *cppEditorContextMenu= Core::ActionManager::createMenu(CppEditor::Constants::M_CONTEXT);

@@ -88,33 +88,33 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
     d->buttonSuggest->setText(tr("Give Suggestions"));
     d->buttonSuggest->setToolTip(tr("Give suggestions for the word"));
     d->toolbarWidgets.push_back(d->buttonSuggest);
-    connect(d->buttonSuggest, SIGNAL(clicked()), SpellCheckerCore::instance(), SLOT(giveSuggestionsForWordUnderCursor()));
+    connect(d->buttonSuggest, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::giveSuggestionsForWordUnderCursor);
 
     d->buttonIgnore = new QToolButton();
     d->buttonIgnore->setText(tr("-"));
     d->buttonIgnore->setToolTip(tr("Ignore the word"));
     d->toolbarWidgets.push_back(d->buttonIgnore);
-    connect(d->buttonIgnore, SIGNAL(clicked()), SpellCheckerCore::instance(), SLOT(ignoreWordUnderCursor()));
+    connect(d->buttonIgnore, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::ignoreWordUnderCursor);
 
     d->buttonAdd = new QToolButton();
     d->buttonAdd->setText(tr("+"));
     d->buttonAdd->setToolTip(tr("Add the word to the user dictionary"));
     d->toolbarWidgets.push_back(d->buttonAdd);
-    connect(d->buttonAdd, SIGNAL(clicked()), SpellCheckerCore::instance(), SLOT(addWordUnderCursor()));
+    connect(d->buttonAdd, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::addWordUnderCursor);
 
     d->buttonLucky = new QToolButton();
     d->buttonLucky->setIcon(QIcon(QLatin1String(Constants::ICON_OUTPUTPANE_LUKCY_BUTTON)));
     d->buttonLucky->setText(tr("Feeling Lucky"));
     d->buttonLucky->setToolTip(tr("Replace the word with the first suggestion"));
     d->toolbarWidgets.push_back(d->buttonLucky);
-    connect(d->buttonLucky, SIGNAL(clicked()), SpellCheckerCore::instance(), SLOT(replaceWordUnderCursorFirstSuggestion()));
+    connect(d->buttonLucky, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::replaceWordUnderCursorFirstSuggestion);
 
     SpellCheckerCore* core = SpellCheckerCore::instance();
-    connect(core, SIGNAL(wordUnderCursorMistake(bool,SpellChecker::Word)), this, SLOT(wordUnderCursorMistake(bool,SpellChecker::Word)), Qt::DirectConnection);
+    connect(core, &SpellCheckerCore::wordUnderCursorMistake, this, &OutputPane::wordUnderCursorMistake, Qt::DirectConnection);
 
-    connect(d->model, SIGNAL(mistakesUpdated()), SIGNAL(navigateStateUpdate()));
-    connect(d->model, SIGNAL(mistakesUpdated()), this, SLOT(updateMistakesCount()));
-    connect(d->treeView, SIGNAL(clicked(QModelIndex)), this, SLOT(mistakeSelected(QModelIndex)));
+    connect(d->model, &SpellingMistakesModel::mistakesUpdated, this, &IOutputPane::navigateStateUpdate);
+    connect(d->model, &SpellingMistakesModel::mistakesUpdated, this, &OutputPane::updateMistakesCount);
+    connect(d->treeView, &QAbstractItemView::clicked, this, &OutputPane::mistakeSelected);
 }
 //--------------------------------------------------
 

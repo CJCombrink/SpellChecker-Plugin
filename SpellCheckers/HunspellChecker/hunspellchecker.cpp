@@ -180,10 +180,10 @@ bool HunspellChecker::ignoreWord(const QString &word)
 QWidget *HunspellChecker::optionsWidget()
 {
     HunspellOptionsWidget* widget = new HunspellOptionsWidget(d->dictionary, d->userDictionary);
-    connect(this, SIGNAL(dictionaryChanged(QString)), widget, SLOT(updateDictionary(QString)));
-    connect(this, SIGNAL(userDictionaryChanged(QString)), widget, SLOT(updateUserDictionary(QString)));
-    connect(widget, SIGNAL(dictionaryChanged(QString)), this, SLOT(updateDictionary(QString)));
-    connect(widget, SIGNAL(userDictionaryChanged(QString)), this, SLOT(updateUserDictionary(QString)));
+    connect(this, &HunspellChecker::dictionaryChanged, widget, &HunspellOptionsWidget::updateDictionary);
+    connect(this, &HunspellChecker::userDictionaryChanged, widget, &HunspellOptionsWidget::updateUserDictionary);
+    connect(widget, &HunspellOptionsWidget::dictionaryChanged, this, &HunspellChecker::updateDictionary);
+    connect(widget, &HunspellOptionsWidget::userDictionaryChanged, this, &HunspellChecker::updateUserDictionary);
     return widget;
 }
 //--------------------------------------------------
