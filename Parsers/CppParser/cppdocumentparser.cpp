@@ -4,16 +4,16 @@
 **
 ** This file is part of the SpellChecker Plugin, a Qt Creator plugin.
 **
-** The SpellChecker Plugin is free software: you can redistribute it and/or 
-** modify it under the terms of the GNU Lesser General Public License as 
-** published by the Free Software Foundation, either version 3 of the 
+** The SpellChecker Plugin is free software: you can redistribute it and/or
+** modify it under the terms of the GNU Lesser General Public License as
+** published by the Free Software Foundation, either version 3 of the
 ** License, or (at your option) any later version.
-** 
+**
 ** The SpellChecker Plugin is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU Lesser General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU Lesser General Public License
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
@@ -579,8 +579,8 @@ void CppDocumentParser::getListOfWordsFromSourceRecursive(QStringList &words, co
     /* Go to the next level into the scope of the symbol and get the words from that level as well*/
     const CPlusPlus::Scope *scope = symbol->asScope();
     if (scope != NULL) {
-        CPlusPlus::Scope::iterator cur = scope->firstMember();
-        while (cur != scope->lastMember()) {
+        CPlusPlus::Scope::iterator cur = scope->memberBegin();
+        while (cur != scope->memberEnd()) {
             const CPlusPlus::Symbol *curSymbol = *cur;
             ++cur;
             if (!curSymbol) {
