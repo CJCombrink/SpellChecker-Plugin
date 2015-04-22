@@ -4,16 +4,16 @@
 **
 ** This file is part of the SpellChecker Plugin, a Qt Creator plugin.
 **
-** The SpellChecker Plugin is free software: you can redistribute it and/or 
-** modify it under the terms of the GNU Lesser General Public License as 
-** published by the Free Software Foundation, either version 3 of the 
+** The SpellChecker Plugin is free software: you can redistribute it and/or
+** modify it under the terms of the GNU Lesser General Public License as
+** published by the Free Software Foundation, either version 3 of the
 ** License, or (at your option) any later version.
-** 
+**
 ** The SpellChecker Plugin is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU Lesser General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU Lesser General Public License
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
@@ -34,6 +34,7 @@
 #include <projectexplorer/session.h>
 
 #include <coreplugin/icore.h>
+#include <coreplugin/idocument.h>
 #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
@@ -43,6 +44,7 @@
 #include <cpptools/cppmodelmanager.h>
 
 #include <QPointer>
+#include <QMenu>
 #include <QMouseEvent>
 #include <QTextCursor>
 
@@ -112,7 +114,8 @@ SpellCheckerCore::SpellCheckerCore(QObject *parent) :
 
     d->contextMenu = Core::ActionManager::createMenu(Constants::CONTEXT_MENU_ID);
     Q_ASSERT(d->contextMenu != NULL);
-    connect(this, SIGNAL(wordUnderCursorMistake(bool)), d->contextMenu->menu(), SLOT(setEnabled(bool)));
+    connect(this, &SpellCheckerCore::wordUnderCursorMistake, d->contextMenu->menu(), &QMenu::setEnabled);
+//	connect(this, SIGNAL(wordUnderCursorMistake(bool)), , d->contextMenu->menu(), SLOT(setEnabled(bool)));
 }
 //--------------------------------------------------
 
@@ -310,7 +313,7 @@ bool SpellCheckerCore::isWordUnderCursorMistake(Word& word)
 
     unsigned int column = d->currentEditor->currentColumn();
     unsigned int line = d->currentEditor->currentLine();
-    QString currentFileName = d->currentEditor->document()->filePath();
+    QString currentFileName = d->currentEditor->document()->filePath().toString();
     WordList wl;
     wl = d->spellingMistakesModel->mistakesForFile(currentFileName);
     if(wl.isEmpty() == true) {
@@ -337,7 +340,7 @@ bool SpellCheckerCore::getAllOccurrencesOfWord(const Word &word, WordList& words
         return false;
     }
     WordList wl;
-    QString currentFileName = d->currentEditor->document()->filePath();
+    QString currentFileName = d->currentEditor->document()->filePath().toString();
     wl = d->spellingMistakesModel->mistakesForFile(currentFileName);
     if(wl.isEmpty() == true) {
         return false;
@@ -440,7 +443,7 @@ void SpellCheckerCore::removeWordUnderCursor(RemoveAction action)
     if(d->spellChecker == NULL) {
         return;
     }
-    QString currentFileName = d->currentEditor->document()->filePath();
+    QString currentFileName = d->currentEditor->document()->filePath().toString();
     if(d->spellingMistakesModel->indexOfFile(currentFileName) == -1) {
         return;
     }
@@ -543,7 +546,7 @@ void SpellCheckerCore::currentEditorChanged(Core::IEditor *editor)
     d->currentFilePath = QLatin1String("");
     d->currentEditor = editor;
     if(editor != NULL) {
-        d->currentFilePath = editor->document()->filePath();
+        d->currentFilePath = editor->document()->filePath().toString();
     }
 
     emit currentEditorChanged(d->currentFilePath);

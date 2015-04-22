@@ -22,11 +22,13 @@
 
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
+#include <coreplugin/idocument.h>
 
 #include <QHeaderView>
 #include <QPainter>
 #include <QToolButton>
 #include <QActionGroup>
+#include <QMenu>
 
 using namespace SpellChecker::Internal;
 
@@ -123,7 +125,7 @@ void NavigationWidget::updateCurrentItem(Core::IEditor *editor)
         clearSelection();
         return;
     }
-    QString fileName = editor->document()->filePath();
+    QString fileName = editor->document()->filePath().toString();
     int idx = d->model->indexOfFile(fileName);
     QModelIndex modelIndex = model()->index(idx, 0);
     if(modelIndex.isValid() == false) {
