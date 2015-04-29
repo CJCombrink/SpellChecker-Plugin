@@ -7,6 +7,7 @@ QTC_PLUGIN_DEPENDS += \
     coreplugin \
     texteditor \
     projectexplorer \
+    cppeditor \
     cpptools
 
 QTC_PLUGIN_RECOMMENDS += \

@@ -304,7 +304,7 @@ ProjectMistakesModel *SpellCheckerCore::spellingMistakesModel() const
 }
 //--------------------------------------------------
 
-bool SpellCheckerCore::isWordUnderCursorMistake(Word& word)
+bool SpellCheckerCore::isWordUnderCursorMistake(Word& word) const
 {
     if(d->currentEditor.isNull() == true) {
         return false;

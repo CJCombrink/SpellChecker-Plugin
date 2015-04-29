@@ -14,7 +14,8 @@ SOURCES += \
         spellcheckercoreoptionswidget.cpp \
         suggestionsdialog.cpp \
         NavigationWidget.cpp \
-        ProjectMistakesModel.cpp
+        ProjectMistakesModel.cpp \
+        spellcheckquickfix.cpp
 
 HEADERS += spellcheckerplugin.h\
         spellchecker_global.h\
@@ -30,7 +31,8 @@ HEADERS += spellcheckerplugin.h\
         spellcheckercoreoptionswidget.h \
         suggestionsdialog.h \
         NavigationWidget.h \
-        ProjectMistakesModel.h
+        ProjectMistakesModel.h \
+        spellcheckquickfix.h
 
 FORMS += \
         spellcheckercoreoptionswidget.ui \
