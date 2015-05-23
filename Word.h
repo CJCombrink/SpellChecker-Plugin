@@ -51,6 +51,13 @@ public:
     QChar charAfter; /*!< Next character after the end of the word in the comment. */
     bool inComment; /*!< If the word comes from a comment or a String Literal. */
     QStringList suggestions;
+
+    bool operator==(const Word &other) const {
+        return ((lineNumber      == other.lineNumber)
+                && (columnNumber == other.columnNumber)
+                && (text         == other.text)
+                && (fileName     == other.fileName));
+    }
 };
 
 /* Define used to use different types of word lists

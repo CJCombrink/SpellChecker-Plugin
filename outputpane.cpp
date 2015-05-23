@@ -264,5 +264,16 @@ void OutputPane::wordUnderCursorMistake(bool isMistake, const SpellChecker::Word
     d->buttonAdd->setEnabled(isMistake);
     /* Do not set the button for Lucky enabled if there is no suggestions for the word. */
     d->buttonLucky->setEnabled(isMistake && (word.suggestions.isEmpty() == false));
+    /* Select the Word in the Output pane */
+    QModelIndex index;
+    if(isMistake == true) {
+        index = d->model->indexOfWord(word);
+    }
+    /* Select the index on the pane. If the word is not a spelling mistake,
+     * the selection on the pane is cleared.
+     * mistakeSelected() is not called since the cursor is already
+     * at the selection and there is no need to jump to the word in the
+     * editor, just update the selection on the pane. */
+    d->treeView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent | QItemSelectionModel::Rows);
 }
 //--------------------------------------------------

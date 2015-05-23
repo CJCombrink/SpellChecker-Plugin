@@ -38,7 +38,21 @@ public:
     SpellingMistakesModel(QObject *parent = 0);
     ~SpellingMistakesModel();
 
+    /*! \ brief Set the words of the model.
+     *
+     * This function clears the previous words and sets the model
+     * to contain the new \a words. This will then be reflected on
+     * all views connected to the model.
+     * \param[in] words List of words that must be set on the model. */
     void setCurrentSpellingMistakes(const WordList &words);
+    /*! \brief Get the index of the word.
+     *
+     * Get the index of the \a word from the model.
+     * If the word is not in the list of words on this model then
+     * this function will return an invalid index.
+     * \param[in] word Word of which the index must be returned.
+     * \return Index of the given word. */
+    QModelIndex indexOfWord(const Word& word) const;
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent  = QModelIndex()) const;

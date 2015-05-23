@@ -123,6 +123,19 @@ void SpellingMistakesModel::setCurrentSpellingMistakes(const SpellChecker::WordL
 }
 //--------------------------------------------------
 
+QModelIndex SpellingMistakesModel::indexOfWord(const Word &word) const
+{
+    int idx = d->wordList.indexOf(word);
+    if(idx == -1) {
+        /* The word was not found in the List, return the invalid index */
+        return QModelIndex();
+    }
+
+    /* The word was found, get an index and return it */
+    return createIndex(idx, 0);
+}
+//--------------------------------------------------
+
 int SpellingMistakesModel::rowCount(const QModelIndex &parent) const
 {
     /* Make sure the hierarchy is correct, there should only be one level */
