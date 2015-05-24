@@ -43,6 +43,13 @@ CppParserOptionsWidget::CppParserOptionsWidget(const CppParserSettings* const se
     connect(ui->radioButtonWhatComments, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonWhatToggled);
     connect(ui->radioButtonWhatLiterals, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonWhatToggled);
     connect(ui->radioButtonWhatBoth, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonWhatToggled);
+    /* Set up the options for Comments to Check */
+    ui->radioButtonCommentsC->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::CommentsC);
+    ui->radioButtonCommentsCpp->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::CommentsCpp);
+    ui->radioButtonCommentsBoth->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::CommentsBoth);
+    connect(ui->radioButtonCommentsC, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonCommentsToggled);
+    connect(ui->radioButtonCommentsCpp, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonCommentsToggled);
+    connect(ui->radioButtonCommentsBoth, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonCommentsToggled);
     /* Set up the options for words with numbers. */
     ui->radioButtonNumbersRemove->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::RemoveWordsWithNumbers);
     ui->radioButtonNumbersSplit->setProperty(ENUM_VAL_PROPERTY, CppParserSettings::SplitWordsOnNumbers);
@@ -101,6 +108,14 @@ void CppParserOptionsWidget::radioButtonWhatToggled()
 }
 //--------------------------------------------------
 
+void CppParserOptionsWidget::radioButtonCommentsToggled()
+{
+    if(static_cast<QRadioButton*>(sender())->isChecked() == true) {
+        m_settings.commentsToCheck = static_cast<CppParserSettings::CommentsToCheckOptions>(sender()->property(ENUM_VAL_PROPERTY).toInt());
+    }
+}
+//--------------------------------------------------
+
 void CppParserOptionsWidget::radioButtonNumbersToggled()
 {
     if(static_cast<QRadioButton*>(sender())->isChecked() == true) {
@@ -140,6 +155,8 @@ void CppParserOptionsWidget::updateWithSettings(const CppParserSettings *const s
     ui->checkBoxIgnoreCaps->setChecked(!settings->checkAllCapsWords);
     QRadioButton* whatButtons[] = {NULL, ui->radioButtonWhatComments, ui->radioButtonWhatLiterals, ui->radioButtonWhatBoth};
     whatButtons[settings->whatToCheck]->setChecked(true);
+    QRadioButton* commentButtons[] = {NULL, ui->radioButtonCommentsC, ui->radioButtonCommentsCpp, ui->radioButtonCommentsBoth};
+    commentButtons[settings->commentsToCheck]->setChecked(true);
     QRadioButton* numberButtons[] = {ui->radioButtonNumbersRemove, ui->radioButtonNumbersSplit, ui->radioButtonNumbersLeave};
     numberButtons[settings->wordsWithNumberOption]->setChecked(true);
     QRadioButton* underscoreButtons[] = {ui->radioButtonUnderscoresRemove, ui->radioButtonUnderscoresSplit, ui->radioButtonUnderscoresLeave};

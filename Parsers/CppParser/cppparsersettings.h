@@ -31,20 +31,28 @@ namespace Internal {
 class CppParserSettings : public QObject
 {
     Q_OBJECT
-    Q_ENUMS(WhatToCheck WordsWithNumbersOption WordsWithUnderscoresOption CamelCaseWordOption WordsWithDotsOption)
-    Q_FLAGS(WhatToCheckOptions)
+    Q_ENUMS(WhatToCheck CommentsToCheck WordsWithNumbersOption WordsWithUnderscoresOption CamelCaseWordOption WordsWithDotsOption)
+    Q_FLAGS(WhatToCheckOptions CommentsToCheckOptions)
 public:
     CppParserSettings();
     CppParserSettings(const CppParserSettings& settings);
     ~CppParserSettings();
 
     enum WhatToCheck {
-        Tokens_NONE         = 0,      /*! Invalid option but needed for QFLAGS. */
-        CheckComments       = 1 << 0, /*! Check Comments. */
-        CheckStringLiterals = 1 << 1, /*! Check String Literals */
+        Tokens_NONE         = 0,      /*!< Invalid option but needed for QFLAGS. */
+        CheckComments       = 1 << 0, /*!< Check Comments. */
+        CheckStringLiterals = 1 << 1, /*!< Check String Literals */
         CheckBoth           = CheckComments | CheckStringLiterals
     };
     Q_DECLARE_FLAGS(WhatToCheckOptions, WhatToCheck)
+
+    enum CommentsToCheck {
+        Comments_NONE = 0,      /*!< Invalid option but needed for the QFLAGS. */
+        CommentsC     = 1 << 0, /*!< Check C Style comments. */
+        CommentsCpp   = 1 << 1, /*!< Check C++ Style comments. */
+        CommentsBoth  = CommentsC |CommentsCpp
+    };
+    Q_DECLARE_FLAGS(CommentsToCheckOptions, CommentsToCheck)
 
     enum WordsWithNumbersOption {
         RemoveWordsWithNumbers = 0, /*!< Words containing numbers will not be checked and will be removed from words that should be checked, most spell checkers discard words with numbers in. */
@@ -72,6 +80,12 @@ public:
     /*! Flag for the setting about what to check in the document. This includes Comments,
      * String Literals or both. */
     WhatToCheckOptions whatToCheck;
+    /*! Flag for the settings about what comments to check if the \a whatToCheck setting
+     * includes comments. If comments are not getting checked, this setting does not
+     * apply.
+     * Doxygen comments will always be checked no matter what the setting.
+     * \todo Change the options so that all combinations are selectable, C, Cpp and Doxygen. */
+    CommentsToCheckOptions commentsToCheck;
     /*! Qt keywords are words in the form where the first letter is a caps 'Q' followed
      * by a capital letter. Keywords can also start with 'Q_' or words like 'emit',
      * 'slot', etc. If this is false, such words will be removed from the words to be checked. */
@@ -114,5 +128,6 @@ protected:
 } // namespace SpellChecker
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(SpellChecker::CppSpellChecker::Internal::CppParserSettings::WhatToCheckOptions)
+Q_DECLARE_OPERATORS_FOR_FLAGS(SpellChecker::CppSpellChecker::Internal::CppParserSettings::CommentsToCheckOptions)
 
 #endif // SPELLCHECKER_CPPSPELLCHECKER_INTERNAL_CPPPARSERSETTINGS_H

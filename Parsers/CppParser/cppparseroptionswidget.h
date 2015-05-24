@@ -46,6 +46,7 @@ public:
 
 public slots:
     void radioButtonWhatToggled();
+    void radioButtonCommentsToggled();
     void radioButtonNumbersToggled();
     void radioButtonUnderscoresToggled();
     void radioButtonCamelCaseToggled();

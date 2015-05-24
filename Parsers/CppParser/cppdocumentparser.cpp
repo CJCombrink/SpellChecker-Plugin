@@ -236,6 +236,18 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
         unsigned int commentCount = trUnit->commentCount();
         for(unsigned int comment = 0; comment < commentCount; ++comment) {
             const CPlusPlus::Token& token = trUnit->commentAt(comment);
+            /* Check to see if the current comment type must be checked */
+            if((d->settings->commentsToCheck.testFlag(CppParserSettings::CommentsC) == false)
+                    && (token.kind() == CPlusPlus::T_COMMENT)) {
+                /* C Style comments should not be checked and this is one */
+                continue;
+            }
+            if((d->settings->commentsToCheck.testFlag(CppParserSettings::CommentsCpp) == false)
+                    && (token.kind() == CPlusPlus::T_CPP_COMMENT)) {
+                /* C++ Style comments should not be checked and this is one */
+                continue;
+            }
+
             bool isDoxygenComment = ((token.kind() == CPlusPlus::T_DOXY_COMMENT)
                                      || (token.kind() == CPlusPlus::T_CPP_DOXY_COMMENT));
             parseToken(docPtr, token, trUnit, wordsInSource, /* Comment */ true, isDoxygenComment, parsedWords);

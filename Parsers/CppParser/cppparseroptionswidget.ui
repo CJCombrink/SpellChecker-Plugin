@@ -20,8 +20,7 @@
    <string>Form</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">
-</string>
+   <string notr="true"/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <property name="leftMargin">
@@ -66,7 +65,7 @@
         <x>0</x>
         <y>0</y>
         <width>800</width>
-        <height>1279</height>
+        <height>1434</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -235,6 +234,159 @@
             </property>
             <property name="text">
              <string>Comments and String Literals will be checked. </string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_11">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>Comments to Check</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_11">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+          </property>
+          <property name="verticalSpacing">
+           <number>0</number>
+          </property>
+          <item row="0" column="0" colspan="2">
+           <widget class="QRadioButton" name="radioButtonCommentsC">
+            <property name="text">
+             <string>C Style Comments Only</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <spacer name="horizontalSpacer_22">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>16</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="label_23">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <italic>true</italic>
+             </font>
+            </property>
+            <property name="text">
+             <string>Check comments made with /* */</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QRadioButton" name="radioButtonCommentsCpp">
+            <property name="text">
+             <string>C++ Style Comments Only</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <spacer name="horizontalSpacer_23">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>16</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="label_25">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <italic>true</italic>
+             </font>
+            </property>
+            <property name="text">
+             <string>Check comments made with //</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0" colspan="2">
+           <widget class="QRadioButton" name="radioButtonCommentsBoth">
+            <property name="text">
+             <string>Both C and C++ Style Comments</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <spacer name="horizontalSpacer_24">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>16</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLabel" name="label_26">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <italic>true</italic>
+             </font>
+            </property>
+            <property name="text">
+             <string>Check both /* */ and // comments. For any option Doxygen Comments will always be checked. </string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -1213,6 +1365,9 @@ The match pattern used is: %1</string>
   <tabstop>radioButtonWhatLiterals</tabstop>
   <tabstop>radioButtonWhatBoth</tabstop>
   <tabstop>scrollArea</tabstop>
+  <tabstop>radioButtonCommentsC</tabstop>
+  <tabstop>radioButtonCommentsCpp</tabstop>
+  <tabstop>radioButtonCommentsBoth</tabstop>
   <tabstop>checkBoxRemoveEmailAddresses</tabstop>
   <tabstop>checkBoxIgnoreKeywords</tabstop>
   <tabstop>checkBoxIgnoreCaps</tabstop>
@@ -1244,8 +1399,8 @@ The match pattern used is: %1</string>
      <y>25</y>
     </hint>
     <hint type="destinationlabel">
-     <x>512</x>
-     <y>371</y>
+     <x>557</x>
+     <y>526</y>
     </hint>
    </hints>
   </connection>
@@ -1260,8 +1415,8 @@ The match pattern used is: %1</string>
      <y>18</y>
     </hint>
     <hint type="destinationlabel">
-     <x>434</x>
-     <y>470</y>
+     <x>479</x>
+     <y>625</y>
     </hint>
    </hints>
   </connection>
@@ -1276,8 +1431,8 @@ The match pattern used is: %1</string>
      <y>19</y>
     </hint>
     <hint type="destinationlabel">
-     <x>437</x>
-     <y>553</y>
+     <x>482</x>
+     <y>708</y>
     </hint>
    </hints>
   </connection>
@@ -1292,8 +1447,8 @@ The match pattern used is: %1</string>
      <y>25</y>
     </hint>
     <hint type="destinationlabel">
-     <x>455</x>
-     <y>589</y>
+     <x>500</x>
+     <y>744</y>
     </hint>
    </hints>
   </connection>
@@ -1308,8 +1463,8 @@ The match pattern used is: %1</string>
      <y>17</y>
     </hint>
     <hint type="destinationlabel">
-     <x>492</x>
-     <y>625</y>
+     <x>537</x>
+     <y>780</y>
     </hint>
    </hints>
   </connection>
@@ -1324,8 +1479,8 @@ The match pattern used is: %1</string>
      <y>21</y>
     </hint>
     <hint type="destinationlabel">
-     <x>541</x>
-     <y>708</y>
+     <x>586</x>
+     <y>859</y>
     </hint>
    </hints>
   </connection>
@@ -1340,8 +1495,8 @@ The match pattern used is: %1</string>
      <y>28</y>
     </hint>
     <hint type="destinationlabel">
-     <x>583</x>
-     <y>744</y>
+     <x>628</x>
+     <y>899</y>
     </hint>
    </hints>
   </connection>
@@ -1356,8 +1511,8 @@ The match pattern used is: %1</string>
      <y>23</y>
     </hint>
     <hint type="destinationlabel">
-     <x>642</x>
-     <y>780</y>
+     <x>687</x>
+     <y>935</y>
     </hint>
    </hints>
   </connection>
@@ -1372,8 +1527,8 @@ The match pattern used is: %1</string>
      <y>27</y>
     </hint>
     <hint type="destinationlabel">
-     <x>493</x>
-     <y>863</y>
+     <x>538</x>
+     <y>1009</y>
     </hint>
    </hints>
   </connection>
@@ -1388,8 +1543,8 @@ The match pattern used is: %1</string>
      <y>25</y>
     </hint>
     <hint type="destinationlabel">
-     <x>420</x>
-     <y>899</y>
+     <x>465</x>
+     <y>1054</y>
     </hint>
    </hints>
   </connection>
@@ -1404,8 +1559,8 @@ The match pattern used is: %1</string>
      <y>21</y>
     </hint>
     <hint type="destinationlabel">
-     <x>393</x>
-     <y>935</y>
+     <x>438</x>
+     <y>1090</y>
     </hint>
    </hints>
   </connection>
@@ -1420,8 +1575,8 @@ The match pattern used is: %1</string>
      <y>19</y>
     </hint>
     <hint type="destinationlabel">
-     <x>489</x>
-     <y>1034</y>
+     <x>534</x>
+     <y>1176</y>
     </hint>
    </hints>
   </connection>
@@ -1436,8 +1591,8 @@ The match pattern used is: %1</string>
      <y>25</y>
     </hint>
     <hint type="destinationlabel">
-     <x>679</x>
-     <y>1102</y>
+     <x>724</x>
+     <y>1257</y>
     </hint>
    </hints>
   </connection>
@@ -1452,8 +1607,8 @@ The match pattern used is: %1</string>
      <y>25</y>
     </hint>
     <hint type="destinationlabel">
-     <x>749</x>
-     <y>1153</y>
+     <x>794</x>
+     <y>1293</y>
     </hint>
    </hints>
   </connection>
@@ -1468,8 +1623,8 @@ The match pattern used is: %1</string>
      <y>24</y>
     </hint>
     <hint type="destinationlabel">
-     <x>316</x>
-     <y>1189</y>
+     <x>361</x>
+     <y>1342</y>
     </hint>
    </hints>
   </connection>
@@ -1484,8 +1639,8 @@ The match pattern used is: %1</string>
      <y>20</y>
     </hint>
     <hint type="destinationlabel">
-     <x>477</x>
-     <y>1265</y>
+     <x>522</x>
+     <y>1412</y>
     </hint>
    </hints>
   </connection>
@@ -1500,8 +1655,8 @@ The match pattern used is: %1</string>
      <y>22</y>
     </hint>
     <hint type="destinationlabel">
-     <x>186</x>
-     <y>272</y>
+     <x>231</x>
+     <y>427</y>
     </hint>
    </hints>
   </connection>

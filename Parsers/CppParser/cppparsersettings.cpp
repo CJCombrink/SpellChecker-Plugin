@@ -38,6 +38,7 @@ CppParserSettings::CppParserSettings(const CppParserSettings &settings) :
     QObject(NULL)
 {
     whatToCheck                   = settings.whatToCheck;
+    commentsToCheck               = settings.commentsToCheck;
     removeEmailAddresses          = settings.removeEmailAddresses;
     checkQtKeywords               = settings.checkQtKeywords;
     checkAllCapsWords             = settings.checkAllCapsWords;
@@ -64,6 +65,7 @@ void CppParserSettings::loadFromSettings(QSettings *settings)
     settings->beginGroup(QLatin1String(Parsers::CppParser::Constants::CPP_PARSER_GROUP));
 
     whatToCheck                   = static_cast<WhatToCheckOptions>(settings->value(QLatin1String(Parsers::CppParser::Constants::WHAT_TO_CHECK), int(whatToCheck)).toInt());
+    commentsToCheck               = static_cast<CommentsToCheckOptions>(settings->value(QLatin1String(Parsers::CppParser::Constants::COMMENTS_TO_CHECK), int(commentsToCheck)).toInt());
     checkQtKeywords               = settings->value(QLatin1String(Parsers::CppParser::Constants::CHECK_QT_KEYWORDS), checkQtKeywords).toBool();
     checkAllCapsWords             = settings->value(QLatin1String(Parsers::CppParser::Constants::CHECK_CAPS), checkAllCapsWords).toBool();
     wordsWithNumberOption         = static_cast<WordsWithNumbersOption>(settings->value(QLatin1String(Parsers::CppParser::Constants::CHECK_NUMBERS), wordsWithNumberOption).toInt());
@@ -89,6 +91,7 @@ void CppParserSettings::saveToSetting(QSettings *settings) const
     settings->beginGroup(QLatin1String(Parsers::CppParser::Constants::CPP_PARSER_GROUP));
 
     settings->setValue(QLatin1String(Parsers::CppParser::Constants::WHAT_TO_CHECK), int(whatToCheck));
+    settings->setValue(QLatin1String(Parsers::CppParser::Constants::COMMENTS_TO_CHECK), int(commentsToCheck));
     settings->setValue(QLatin1String(Parsers::CppParser::Constants::CHECK_QT_KEYWORDS), checkQtKeywords);
     settings->setValue(QLatin1String(Parsers::CppParser::Constants::CHECK_CAPS), checkAllCapsWords);
     settings->setValue(QLatin1String(Parsers::CppParser::Constants::CHECK_NUMBERS), wordsWithNumberOption);
@@ -109,6 +112,7 @@ void CppParserSettings::saveToSetting(QSettings *settings) const
 void CppParserSettings::setDefaults()
 {
     whatToCheck                     = CheckBoth;
+    commentsToCheck                 = CommentsBoth;
     removeEmailAddresses            = true;
     checkQtKeywords                 = false;
     checkAllCapsWords               = false;
@@ -126,6 +130,7 @@ CppParserSettings &CppParserSettings::operator=(const CppParserSettings &other)
     bool settingsSame = (operator==(other));
     if(settingsSame == false) {
         this->whatToCheck                   = other.whatToCheck;
+        this->commentsToCheck               = other.commentsToCheck;
         this->checkQtKeywords               = other.checkQtKeywords;
         this->checkAllCapsWords             = other.checkAllCapsWords;
         this->wordsWithNumberOption         = other.wordsWithNumberOption;
@@ -146,6 +151,7 @@ bool CppParserSettings::operator==(const CppParserSettings &other) const
 {
     bool different = false;
     different = different | (whatToCheck                    != other.whatToCheck);
+    different = different | (commentsToCheck                != other.commentsToCheck);
     different = different | (checkQtKeywords                != other.checkQtKeywords);
     different = different | (checkAllCapsWords              != other.checkAllCapsWords);
     different = different | (wordsWithNumberOption          != other.wordsWithNumberOption);
