@@ -1708,5 +1708,101 @@ The match pattern used is: %1</string>
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>radioButtonWhatComments</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>groupBox_11</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>324</x>
+     <y>72</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>321</x>
+     <y>213</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButtonWhatLiterals</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>groupBox_11</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>404</x>
+     <y>111</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>386</x>
+     <y>205</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButtonWhatBoth</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>groupBox_11</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>411</x>
+     <y>149</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>410</x>
+     <y>206</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBoxDescriptions</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>label_23</receiver>
+   <slot>setHidden(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>417</x>
+     <y>25</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>424</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBoxDescriptions</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>label_25</receiver>
+   <slot>setHidden(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>389</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>371</x>
+     <y>286</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBoxDescriptions</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>label_26</receiver>
+   <slot>setHidden(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>341</x>
+     <y>22</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>336</x>
+     <y>326</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
 </ui>
