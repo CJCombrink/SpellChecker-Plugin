@@ -29,10 +29,11 @@
 #include <coreplugin/icore.h>
 
 #include <QFile>
+#include <QSharedPointer>
 
 class SpellChecker::Checker::Hunspell::HunspellCheckerPrivate {
 public:
-    ::Hunspell *hunspell;
+    QSharedPointer< ::Hunspell> hunspell;
     QString dictionary;
     QString userDictionary;
 
@@ -56,7 +57,7 @@ HunspellChecker::HunspellChecker() :
     loadSettings();
     /* Get the affix dictionary path */
     QString affPath = QString(d->dictionary).replace(QRegExp(QLatin1String("\\.dic$")), QLatin1String(".aff"));
-    d->hunspell = new ::Hunspell(affPath.toLatin1(), d->dictionary.toLatin1());
+    d->hunspell = QSharedPointer< ::Hunspell>(new ::Hunspell(affPath.toLatin1(), d->dictionary.toLatin1()));
     loadUserAddedWords();
 }
 //--------------------------------------------------
@@ -64,7 +65,6 @@ HunspellChecker::HunspellChecker() :
 HunspellChecker::~HunspellChecker()
 {
     saveSettings();
-    delete d->hunspell;
     delete d;
 }
 //--------------------------------------------------
