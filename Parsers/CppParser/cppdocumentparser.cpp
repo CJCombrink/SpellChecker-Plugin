@@ -210,23 +210,51 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 
     if(d->settings->whatToCheck.testFlag(CppParserSettings::CheckStringLiterals) == true) {
         /* Parse string literals */
+        QList<QPair<unsigned, unsigned>> tokenPosTrackList;
         unsigned int tokenCount = trUnit->tokenCount();
+        QString tokenString;
+        unsigned line, column;
         for(unsigned int idx = 0; idx < tokenCount; ++idx) {
             const CPlusPlus::Token& token = trUnit->tokenAt(idx);
-            CPlusPlus::Kind kind = token.kind();
-            if((kind >= CPlusPlus::T_FIRST_STRING_LITERAL)
-                    &&(kind <= CPlusPlus::T_LAST_STRING_LITERAL)) {
-                const CPlusPlus::StringLiteral *lit = trUnit->stringLiteral(idx);
-                if(lit == NULL) {
-                    /* This should not be possible, but just make sure */
-                    continue;
-                }
+            if(token.isStringLiteral() == true) {
                 if(token.expanded() == true) {
-                    /* Do not parse expanded literals since they come from
-                     * macros. */
-                    continue;
+#ifndef WIN32
+                    /* Expanded String Literals needs a bit more effort to extract the words. */
+                    tokenString = QString::fromUtf8(token.spell());
+                    if(tokenString.size() == 0) {
+                        /* The tokenString is empty, skip it. */
+                        continue;
+                    }
+                    /* Need to use TranslationUnit::getTokenStartPosition() on the expanded token instead of
+                     * Token::utf16charsBegin() that is used in this::parseToken(). */
+                    trUnit->getTokenStartPosition(idx, &line, &column);
+                    /* Due to the macro expansions a string might be seen twice,
+                     * this checks prevents parsing the same string twice.
+                     * This happens for instance for QStringLiteral. */
+                    if(tokenPosTrackList.contains(qMakePair(line, column)) == true) {
+                        continue;
+                    }
+                    tokenPosTrackList.append(qMakePair(line, column));
+                    /* Do not use the parseToken() function direclty, use the functions inside to
+                     * tokenize and process the words. */
+                    WordList words;
+                    tokenizeWords(docPtr->fileName(), tokenString, column + 1, trUnit, words, false);
+                    /* Apply the user settings to the words. */
+                    applySettingsToWords(tokenString, words, false, wordsInSource);
+                    /* Iterate the words and set the line to the correct number. This is needed because at
+                     * this point the lineNumber of each word will be 0 because of the way that the above
+                     * functions are used. */
+                    for(Word& word: words) {
+                        word.lineNumber = line;
+                    }
+                    /* Add the words that passed the tokenization and the settings to the list of words
+                     * that must be spell checked. */
+                    parsedWords.append(words);
+#endif /* WIN32 */
+                } else {
+                    /* The String Literal is not expanded thus handle it like a comment is handled. */
+                    parseToken(docPtr, token, trUnit, wordsInSource, /* Comment */ false, /* Doxygen */ false, parsedWords);
                 }
-                parseToken(docPtr, token, trUnit, wordsInSource, /* Comment */ false, /* Doxygen */ false, parsedWords);
             }
         }
     }
