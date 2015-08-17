@@ -262,8 +262,8 @@ void SpellCheckerCore::setSpellChecker(ISpellChecker *spellChecker)
 {
     if(d->spellChecker != NULL) {
         /* Disconnect all signals connected to the current set spellchecker */
-        connect(this, &SpellCheckerCore::spellcheckWords, d->spellChecker, &ISpellChecker::spellcheckWords, Qt::DirectConnection);
-        connect(d->spellChecker, &ISpellChecker::misspelledWordsForFile, this, &SpellCheckerCore::addMisspelledWords);
+        disconnect(this, &SpellCheckerCore::spellcheckWords, d->spellChecker, &ISpellChecker::spellcheckWords);
+        disconnect(d->spellChecker, &ISpellChecker::misspelledWordsForFile, this, &SpellCheckerCore::addMisspelledWords);
     }
     if(spellChecker == NULL) {
         return;

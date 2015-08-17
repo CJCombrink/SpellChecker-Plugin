@@ -160,7 +160,7 @@ void ProjectMistakesModel::fileSelected(const QModelIndex &index)
         Core::IEditor* editor = Core::EditorManager::openEditor(fileName);
         emit editorOpened();
         Q_ASSERT(editor != NULL);
-        Q_ASSERT(d->spellingMistakes.value(fileName).isEmpty() == false);
+        Q_ASSERT(d->spellingMistakes.value(fileName).first.isEmpty() == false);
         /* Go to the first misspelled word in the editor. */
         Word word = d->spellingMistakes.value(fileName).first.at(0);
         editor->gotoLine(word.lineNumber, word.columnNumber - 1);

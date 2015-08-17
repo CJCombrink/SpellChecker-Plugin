@@ -71,7 +71,6 @@ void SpellChecker::Internal::SuggestionsDialog::on_listWidgetSuggestions_doubleC
 
 void SpellChecker::Internal::SuggestionsDialog::on_lineEditReplacement_textChanged(const QString &arg1)
 {
-    Q_ASSERT(ui->buttonBox->button(QDialogButtonBox::Ok) != NULL);
     /* Only enable the Ok button, when there is valid text to replace the
      * word with */
     ui->pushButtonReplace->setEnabled(arg1.isEmpty() == false);

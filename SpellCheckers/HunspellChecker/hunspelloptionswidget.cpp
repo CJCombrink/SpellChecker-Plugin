@@ -34,6 +34,7 @@ HunspellOptionsWidget::HunspellOptionsWidget(const QString &dictionary, const QS
     ui->setupUi(this);
     /* Set the hints on the different Dictionaries */
     ui->lineEditDictionary->setToolTip(tr("The dictionary is a *.dic file that Hunspell will use to spellcheck words. \n"
+                                          "A *.aff file with the same name as the selected dictionary file must be in the selected folder. \n"
                                           "On most Unix/ Linux based system some will already be installed and can be re-used. \n"
                                           "On other systems one might need to download one manually."));
     ui->lineEditUserDictionary->setToolTip(tr("The User Dictionary is a custom user dictionary that the Hunspel Spellchecker \n"
@@ -59,6 +60,13 @@ void HunspellOptionsWidget::applySettings()
         emit dictionaryChanged(ui->lineEditDictionary->text());
     } else {
         emit optionsError(QLatin1String("Hunspell Spellchecker"), tr("Dictionary does not exist"));
+        return;
+    }
+    /* Check if the aff file is located along with the .dic file */
+    QString affFIleName = QString(ui->lineEditDictionary->text()).replace(QRegExp(QLatin1String("\\.dic$")), QLatin1String(".aff"));
+    QFileInfo affFile(affFIleName);
+    if(affFile.exists() == false) {
+        emit optionsError(QLatin1String("Hunspell Spellchecker"), tr("The *.aff File for selected dictionary does not exist"));
         return;
     }
 

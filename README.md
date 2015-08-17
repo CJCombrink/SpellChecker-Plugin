@@ -28,7 +28,7 @@ For MinGW the hunspell-mingw repository on github was used to build hunspell. Th
 <h4>2.1.2. MSVC</h4>
   1. Get the sources
     - Download the sources for 1.3.2 from http://sourceforge.net/projects/hunspell/files/Hunspell/1.3.2/
-	2. Build the sources
+  2. Build the sources
     - Open the hunspell.sln file in the folder src\win_api using Visual Studio
     - Build the debug\_dll and release\_dll of the libhunspell project
 
@@ -61,7 +61,8 @@ After opening Qt Creator and the plugin loaded successfully the following steps 
     - On the "*SpellChecker*" tab, select the required Spell Checker in the dropdown box. 
       Currently only the Hunspell Spell Checker will be available, but perhaps in future more might be added. 
     - Set the "*Dictionary*" and "*User Dictionary*" paths for the spell checker to use. <br>
-      Dictionaries can be downloaded from http://archive.services.openoffice.org/pub/mirror/OpenOffice.org/contrib/dictionaries/ <br>
+      English Dictionaries can be downloaded from: http://cgit.freedesktop.org/libreoffice/dictionaries/tree/en <br>
+	  Both the *.dic and *.aff files for the selected dictionary must be downloaded to the same folder.<br> 
       The *User Dictionary* is a custom file used to store words added to the dictionary of the spell checker. If such a file does not exist, the plugin will create the file for this purpose. The plugin will attempt to create this file in the User Resource path. On Windows this is in %APPDATA%\QtProject\ and on Linux this is in ~/.config/QtProject/. 
     - After setting the Spell Checker, restart Qt Creator.
   3. Set the Parser Options

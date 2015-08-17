@@ -31,14 +31,16 @@
 #include <QFile>
 #include <QSharedPointer>
 
+typedef QSharedPointer< ::Hunspell> HunspellPtr;
+
 class SpellChecker::Checker::Hunspell::HunspellCheckerPrivate {
 public:
-    QSharedPointer< ::Hunspell> hunspell;
+    HunspellPtr hunspell;
     QString dictionary;
     QString userDictionary;
 
     HunspellCheckerPrivate() :
-        hunspell(NULL),
+        hunspell(nullptr),
         dictionary(),
         userDictionary()
     {}
@@ -57,7 +59,7 @@ HunspellChecker::HunspellChecker() :
     loadSettings();
     /* Get the affix dictionary path */
     QString affPath = QString(d->dictionary).replace(QRegExp(QLatin1String("\\.dic$")), QLatin1String(".aff"));
-    d->hunspell = QSharedPointer< ::Hunspell>(new ::Hunspell(affPath.toLatin1(), d->dictionary.toLatin1()));
+    d->hunspell = HunspellPtr(new ::Hunspell(affPath.toLatin1(), d->dictionary.toLatin1()));
     loadUserAddedWords();
 }
 //--------------------------------------------------
@@ -130,25 +132,28 @@ void HunspellChecker::saveSettings() const
 
 bool HunspellChecker::isSpellingMistake(const QString &word) const
 {
-    bool recognised = d->hunspell->spell(word.toLatin1());
+    HunspellPtr hunspell = d->hunspell;
+    bool recognised = hunspell->spell(word.toLatin1());
     return (recognised == false);
 }
 //--------------------------------------------------
 
 void HunspellChecker::getSuggestionsForWord(const QString &word, QStringList &suggestionsList) const
 {
+    HunspellPtr hunspell = d->hunspell;
     char ** suggestions;
-    int numSuggestions = d->hunspell->suggest(&suggestions, word.toLatin1());
+    int numSuggestions = hunspell->suggest(&suggestions, word.toLatin1());
     for (int i = 0; i < numSuggestions; ++i) {
         suggestionsList << QLatin1String(suggestions[i]);
     }
-    d->hunspell->free_list(&suggestions, numSuggestions);
+    hunspell->free_list(&suggestions, numSuggestions);
     return;
 }
 //--------------------------------------------------
 
 bool HunspellChecker::addWord(const QString &word)
 {
+    HunspellPtr hunspell = d->hunspell;
     /* Save the word to the user dictionary */
     if(d->userDictionary.isEmpty() == true) {
         qDebug() << "User dictionary name empty";
@@ -161,7 +166,7 @@ bool HunspellChecker::addWord(const QString &word)
         return false;
     }
     /* Only add the word to the spellchecker if the previous checkers passed. */
-    d->hunspell->add(word.toLatin1());
+    hunspell->add(word.toLatin1());
 
     QTextStream stream(&dictionary);
     stream << word << endl;
@@ -172,7 +177,8 @@ bool HunspellChecker::addWord(const QString &word)
 
 bool HunspellChecker::ignoreWord(const QString &word)
 {
-    d->hunspell->add(word.toLatin1());
+    HunspellPtr hunspell = d->hunspell;
+    hunspell->add(word.toLatin1());
     return true;
 }
 //--------------------------------------------------
