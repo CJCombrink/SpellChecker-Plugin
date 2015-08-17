@@ -61,6 +61,7 @@ public:
     SpellChecker::ISpellChecker* spellChecker;
     QPointer<Core::IEditor> currentEditor;
     Core::ActionContainer *contextMenu;
+    QList<Core::Command*> contextMenuHolderCommands;
     QString currentFilePath;
     ProjectExplorer::Project* startupProject;
     QStringList filesInStartupProject;
@@ -114,7 +115,7 @@ SpellCheckerCore::SpellCheckerCore(QObject *parent) :
 
     d->contextMenu = Core::ActionManager::createMenu(Constants::CONTEXT_MENU_ID);
     Q_ASSERT(d->contextMenu != NULL);
-    connect(this, &SpellCheckerCore::wordUnderCursorMistake, d->contextMenu->menu(), &QMenu::setEnabled);
+    connect(d->contextMenu->menu(), &QMenu::aboutToShow, this, &SpellCheckerCore::updateContextMenu);
 }
 //--------------------------------------------------
 
@@ -573,5 +574,52 @@ void SpellCheckerCore::editorAboutToClose(Core::IEditor *editor)
         return;
     }
     disconnect(qobject_cast<QPlainTextEdit*>(editor->widget()), &QPlainTextEdit::cursorPositionChanged, this, &SpellCheckerCore::cursorPositionChanged);
+}
+//--------------------------------------------------
+
+void SpellCheckerCore::updateContextMenu()
+{
+    if(d->contextMenuHolderCommands.isEmpty() == true) {
+        /* Populate the internal vector with the holder actions to speed up the process
+         * of updating the context menu when requested again. */
+        QVector<const char *> holderActionIds {Constants::ACTION_HOLDER1_ID, Constants::ACTION_HOLDER2_ID, Constants::ACTION_HOLDER3_ID, Constants::ACTION_HOLDER4_ID, Constants::ACTION_HOLDER5_ID};
+        /* Iterate the commands and */
+        for(int count = 0 ; count < holderActionIds.size(); ++count) {;
+            Core::Command* cmd = Core::ActionManager::command(holderActionIds[count]);
+            d->contextMenuHolderCommands.push_back(cmd);
+        }
+    }
+
+    Word word;
+    bool isMistake = isWordUnderCursorMistake(word);
+    /* Do nothing if the context menu is not a mistake.
+     * The context menu will in this case already be disabled so there
+     * is no need to update it. */
+    if(isMistake == false) {
+        return;
+    }
+    QStringList list = word.suggestions;
+    /* Iterate the commands and */
+    for(Core::Command* cmd: d->contextMenuHolderCommands) {
+        Q_ASSERT(cmd != nullptr);
+        if(list.size() > 0) {
+            /* Disconnect the previous connection made, otherwise it will also trigger */
+            cmd->action()->disconnect();
+            /* Set the text on the action for the word to use*/
+            cmd->action()->setText(list.takeFirst());
+            /* Show the action */
+            cmd->action()->setVisible(true);
+            /* Connect to lambda function to call to replace the words if the
+             * action is triggered. */
+            connect(cmd->action(), &QAction::triggered, [this, word, cmd]() {
+                WordList wordsToReplace;
+                this->getAllOccurrencesOfWord(word, wordsToReplace);
+                this->replaceWordsInCurrentEditor(wordsToReplace, cmd->action()->text());
+            });
+        } else {
+            /* Hide the action since there are less than 5 suggestions for the word. */
+            cmd->action()->setVisible(false);
+        }
+    }
 }
 //--------------------------------------------------

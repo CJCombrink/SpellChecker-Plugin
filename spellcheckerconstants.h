@@ -32,6 +32,11 @@ const char ACTION_SUGGEST_ID[] = "SpellChecker.ActionSuggest";
 const char ACTION_IGNORE_ID[]  = "SpellChecker.ActionIgnore";
 const char ACTION_ADD_ID[]     = "SpellChecker.ActionAdd";
 const char ACTION_LUCKY_ID[]   = "SpellChecker.ActionLucky";
+const char ACTION_HOLDER1_ID[] = "SpellChecker.ActionHolder1";
+const char ACTION_HOLDER2_ID[] = "SpellChecker.ActionHolder2";
+const char ACTION_HOLDER3_ID[] = "SpellChecker.ActionHolder3";
+const char ACTION_HOLDER4_ID[] = "SpellChecker.ActionHolder4";
+const char ACTION_HOLDER5_ID[] = "SpellChecker.ActionHolder5";
 
 const char CORE_SETTINGS_GROUP[]      = "SpellCheckerPlugin";
 const char CORE_SPELLCHECKERS_GROUP[] = "SpellCheckers";

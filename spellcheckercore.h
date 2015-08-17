@@ -195,6 +195,13 @@ private slots:
     void editorOpened(Core::IEditor* editor);
     /*! \brief Slot called when an editor is closed. */
     void editorAboutToClose(Core::IEditor* editor);
+    /*! \brief Slot that will get called when the "Spell Check" right-click
+     * Context menu is about to be shown.
+     *
+     * This slot updates the context menu with the possible spellings for the misspelled
+     * words as actions that can be used to replace the misspelled words with the given
+     * actions. */
+    void updateContextMenu();
 
 private:
     Internal::SpellCheckerCorePrivate* const d;

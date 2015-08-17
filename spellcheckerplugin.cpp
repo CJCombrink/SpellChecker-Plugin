@@ -141,13 +141,23 @@ bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *error
     menu->addAction(cmdLucky);
     Core::ActionManager::actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
 
-    /* Action Container for the context menu */
+    /* Action Container for the context menu on the Right Click Menu */
     Core::ActionContainer *contextMenu = Core::ActionManager::createMenu(Constants::CONTEXT_MENU_ID);
     contextMenu->menu()->setTitle(tr("Spell Check"));
     contextMenu->addAction(cmdSuggest);
     contextMenu->addAction(cmdIgnore);
     contextMenu->addAction(cmdAdd);
     contextMenu->addAction(cmdLucky);
+    contextMenu->addSeparator();
+    /* Add 5 dummy actions that will be used for spelling mistakes that can be fixed from the context menu */
+    QVector<const char *> holderActionIds {Constants::ACTION_HOLDER1_ID, Constants::ACTION_HOLDER2_ID, Constants::ACTION_HOLDER3_ID, Constants::ACTION_HOLDER4_ID, Constants::ACTION_HOLDER5_ID};
+    for(int count = 0 ; count < holderActionIds.size(); ++count) {
+        QAction *actionHolder = new QAction(QStringLiteral(""), this);
+        Core::Command *cmdHolder = Core::ActionManager::registerAction(actionHolder, holderActionIds[count], textContext);
+        contextMenu->addAction(cmdHolder);
+    }
+    /* Set the right click context menu only enabled if the word under the cursor is a spelling mistake */
+    connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, contextMenu->menu(), &QMenu::setEnabled);
 
     /* Create the navigation widget factory */
     addAutoReleasedObject(new NavigationWidgetFactory(m_spellCheckerCore->spellingMistakesModel()));
