@@ -42,11 +42,19 @@
 #include <coreplugin/coreconstants.h>
 #include <texteditor/texteditor.h>
 #include <cpptools/cppmodelmanager.h>
+#include <utils/QtConcurrentTools>
 
 #include <QPointer>
 #include <QMouseEvent>
 #include <QTextCursor>
 #include <QMenu>
+#include <QtConcurrent>
+#include <QFuture>
+#include <QFutureWatcher>
+#include <QMutex>
+
+typedef QMap<QFutureWatcher<SpellChecker::WordList>*, QString> FutureWatcherMap;
+typedef FutureWatcherMap::Iterator FutureWatcherMapIter;
 
 class SpellChecker::Internal::SpellCheckerCorePrivate {
 public:
@@ -65,6 +73,10 @@ public:
     QString currentFilePath;
     ProjectExplorer::Project* startupProject;
     QStringList filesInStartupProject;
+    QMutex futureMutex;
+    FutureWatcherMap futureWatchers;
+    QStringList filesInProcess;
+    QHash<QString, WordList> filesWaitingForProcess;
 
     SpellCheckerCorePrivate() :
         spellChecker(NULL),
@@ -116,6 +128,7 @@ SpellCheckerCore::SpellCheckerCore(QObject *parent) :
     d->contextMenu = Core::ActionManager::createMenu(Constants::CONTEXT_MENU_ID);
     Q_ASSERT(d->contextMenu != NULL);
     connect(d->contextMenu->menu(), &QMenu::aboutToShow, this, &SpellCheckerCore::updateContextMenu);
+
 }
 //--------------------------------------------------
 
@@ -144,7 +157,7 @@ bool SpellCheckerCore::addDocumentParser(IDocumentParser *parser)
         /* Connect all signals and slots between the parser and the core. */
         connect(this, &SpellCheckerCore::currentEditorChanged, parser, &IDocumentParser::setCurrentEditor);
         connect(this, &SpellCheckerCore::activeProjectChanged, parser, &IDocumentParser::setActiveProject);
-        connect(parser, &IDocumentParser::spellcheckWordsParsed, this, &SpellCheckerCore::spellcheckWordsFromParser, Qt::DirectConnection);
+        connect(parser, &IDocumentParser::spellcheckWordsParsed, this, &SpellCheckerCore::spellcheckWordsFromParser, Qt::QueuedConnection);
         return true;
     }
     return false;
@@ -276,14 +289,111 @@ void SpellCheckerCore::setSpellChecker(ISpellChecker *spellChecker)
 
     d->spellChecker = spellChecker;
     /* Connect the signals between the core and the spellchecker. */
-    connect(this, &SpellCheckerCore::spellcheckWords, d->spellChecker, &ISpellChecker::spellcheckWords, Qt::DirectConnection);
+    connect(this, &SpellCheckerCore::spellcheckWords, d->spellChecker, &ISpellChecker::spellcheckWords);
     connect(d->spellChecker, &ISpellChecker::misspelledWordsForFile, this, &SpellCheckerCore::addMisspelledWords);
 }
 //--------------------------------------------------
 
 void SpellCheckerCore::spellcheckWordsFromParser(const QString& fileName, const WordList &words)
 {
-    emit spellcheckWords(fileName, words);
+    /* Lock the mutex to prevent threading issues. This might not be needed since
+     * queued connections are used and this function should always execute in the
+     * main thread, but for now lets rather be safe. */
+    QMutexLocker locker(&d->futureMutex);
+    /* Check if this file is not already being processed by QtConcurrent in the
+     * background. The current implementation will only use one QFuter per file
+     * and if spell checking is requested for the same file if it is already being
+     * spell checked, the file will get added to a list that will only be checked
+     * if the current QFuture completes. This prevents possible redundant spell checking
+     * but can result in a bit of a latency to update new words. It will however reduce
+     * the amount of processing, especially if code is edited, and not comments and
+     * literals. */
+    if(d->filesInProcess.contains(fileName) == true) {
+        /* There is alreay a QFuture out for the given file. Add it to the list of
+         * of waiting files and replace the current set of words with the latest ones.
+         * The assumption is that the last call to this function will always contain
+         * the latest words that should be spell checked. */
+        d->filesWaitingForProcess[fileName] = words;
+    } else {
+        /* There is no background process processing the words for the given file.
+         * Create a processor and start processing the spelling mistakes in the
+         * background using QtConcurrent and a QFuture. */
+        SpellCheckProcessor *processor = new SpellCheckProcessor(d->spellChecker, fileName, words);
+        QFutureWatcher<WordList> *watcher = new QFutureWatcher<WordList>();
+        connect(watcher, &QFutureWatcher<WordList>::finished, this, &SpellCheckerCore::futureFinished, Qt::QueuedConnection);
+        /* Keep track of the watchers that are busy and the file that it is working on.
+         * Since all QFuterWatchers are connected to the same slot, this map is used
+         * to map the correct watcher to the correct file. */
+        d->futureWatchers.insert(watcher, fileName);
+        /* This is just a convenience list to speed up checking if a file is getting
+         * processed already. An alternative would be to iterate through the above map
+         * and check where the value matches the file. This can be slow especially if
+         * there are multiple watchers running. The separate list can use indexing and
+         * other search technicians compared to the mentioned iteration search. */
+        d->filesInProcess.append(fileName);
+        /* Run the processor in the background and set a watcher to monitor the progress. */
+        QFuture<WordList> future = QtConcurrent::run(&SpellCheckProcessor::process, processor);
+        watcher->setFuture(future);
+        /* Make sure that the processor gets cleaned up after it has finished processing
+         * the words. */
+        connect(watcher, &QFutureWatcher<WordList>::finished, processor, &SpellCheckProcessor::deleteLater);
+        /* Connect to the aboutToQuit signal on the application to stop the spell checking
+         * if the application is commanded to quit. */
+        connect(qApp, &QCoreApplication::aboutToQuit, watcher, &QFutureWatcher<WordList>::cancel);
+    }
+}
+//--------------------------------------------------
+
+void SpellCheckerCore::futureFinished()
+{
+    /* Get the watcher from the sender() of the signal that invoked this slot.
+     * reinterpret_cast is used since qobject_cast is not valid of template
+     * classes since the template class does not have the Q_OBJECT macro. */
+    QFutureWatcher<WordList> *watcher = reinterpret_cast<QFutureWatcher<WordList>*>(sender());
+    if(watcher == nullptr) {
+        return;
+    }
+    if(watcher->isCanceled() == true) {
+        /* Application is shutting down */
+        return;
+    }
+    /* Get the list of words with spelling mistakes from the future. */
+    WordList checkedWords = watcher->result();
+    QMutexLocker locker(&d->futureMutex);
+    /* Get the file name associated with this future and the misspelled
+     * words. */
+    FutureWatcherMapIter iter = d->futureWatchers.find(watcher);
+    if(iter == d->futureWatchers.end()) {
+        return;
+    }
+    QString fileName = iter.value();
+    /* Remove the watcher from the list of running watchers and the file that
+     * kept track of the file getting spell checked. */
+    d->futureWatchers.erase(iter);
+    d->filesInProcess.removeAll(fileName);
+    /* Check if the file was scheduled for a re-check. As discussed previously,
+     * if a spell check was requested for a file that had a future already in
+     * progress, it was scheduled for a re-check as soon as the in progress one
+     * completes. If it was scheduled, restart it using the normal slot. */
+    QHash<QString, WordList>::iterator waitingIter = d->filesWaitingForProcess.find(fileName);
+    if(waitingIter != d->filesWaitingForProcess.end()) {
+        WordList wordsToSpellCheck = waitingIter.value();
+        /* remove the file and words from the scheduled list. */
+        d->filesWaitingForProcess.erase(waitingIter);
+        locker.unlock();
+        /* Invoke the method to make sure that it gets called from the main thread.
+         * This will most probably be already in the main thread, but to make sure
+         * it is done like this. */
+        this->metaObject()->invokeMethod(this
+                                         , "spellcheckWordsFromParser"
+                                         , Qt::QueuedConnection
+                                         , Q_ARG(QString, fileName)
+                                         , Q_ARG(SpellChecker::WordList, wordsToSpellCheck));
+    }
+    locker.unlock();
+    watcher->deleteLater();
+    /* Add the list of misspelled words to the mistakes model */
+    addMisspelledWords(fileName, checkedWords);
 }
 //--------------------------------------------------
 

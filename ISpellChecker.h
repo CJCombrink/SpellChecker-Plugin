@@ -25,6 +25,7 @@
 
 #include <QObject>
 #include <QSettings>
+#include <QFutureInterface>
 
 namespace SpellChecker {
 
@@ -77,13 +78,14 @@ public:
      */
     virtual QWidget* optionsWidget() = 0;
 
-public slots:
-    /*! \brief Slot on the interface that will spellcheck the words for the given file.
+    /*! \brief Function on the interface that will spellcheck the words for the given file.
      *
-     * This slot will get called from the SpellChecker Core.
+     * This function is used by the SpellCheckProcessor to spell check the words for the
+     * given file.
      * \param[in] fileName Name of the file that the words belong to.
-     * \param[in] words List of words that should be spellchecked.*/
-    void spellcheckWords(const QString& fileName, const SpellChecker::WordList& words);
+     * \param[in] words List of words that should be spellchecked.
+     * \return List of words that have spelling mistakes. */
+    WordList spellcheckWords(const QString& fileName, const SpellChecker::WordList& words);
 signals:
     /*! \brief Signal emitted with misspelled words after they are checked.
      *
@@ -91,6 +93,29 @@ signals:
      * \param[in] fileName Name of the file that the misspelled words belong to.
      * \param[in] words List of misspelled words. */
     void misspelledWordsForFile(const QString& fileName, const SpellChecker::WordList& words);
+};
+
+/*! \brief The SpellCheckProcessor class
+ *
+ * This processor class is used by a QtConcurrent proccess to use the
+ * SpellChecker interface to spell check words extracted from the files
+ * in a separate thread in the background. This is done to release the
+ * document parser as soon as possible and spell checking blocks the main
+ * thread if done there. */
+class SpellCheckProcessor
+    : public QObject {
+    Q_OBJECT
+public:
+    /*! \brief Create the SpellCheckProcessor with a spell checker, for a file and the
+     * given list of words. */
+    SpellCheckProcessor(ISpellChecker* spellChecker, const QString& fileName, const WordList& wordList);
+    ~SpellCheckProcessor();
+    /*! Function that will run in the background/thread. */
+    void process(QFutureInterface<WordList> &future);
+protected:
+    ISpellChecker* d_spellChecker;
+    QString d_fileName;
+    WordList d_wordList;
 };
 
 }

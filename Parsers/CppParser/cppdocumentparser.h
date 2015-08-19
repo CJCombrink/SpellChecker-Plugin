@@ -57,7 +57,7 @@ protected slots:
     void parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr);
     void settingsChanged();
 
-protected:
+public:
     void reparseProject();
     /*! \brief Query if the given file should be parsed.
      *

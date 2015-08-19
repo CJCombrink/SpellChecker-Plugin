@@ -87,6 +87,7 @@ CppDocumentParser::CppDocumentParser(QObject *parent) :
     Core::ActionContainer *contextMenu = Core::ActionManager::createMenu(Constants::CONTEXT_MENU_ID);
     cppEditorContextMenu->addSeparator(context);
     cppEditorContextMenu->addMenu(contextMenu);
+
 }
 //--------------------------------------------------
 
@@ -136,6 +137,7 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
     if(shouldParseDocument(fileName) == false) {
         return;
     }
+
     WordList words = parseCppDocument(docPtr);
     /* Now that we have all of the words from the parser, emit the signal
      * so that they will get spell checked. */
@@ -185,7 +187,6 @@ bool CppDocumentParser::shouldParseDocument(const QString& fileName)
 
 WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 {
-
     if(docPtr.isNull() == true) {
         return WordList();
     }

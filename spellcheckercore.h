@@ -202,6 +202,7 @@ private slots:
      * words as actions that can be used to replace the misspelled words with the given
      * actions. */
     void updateContextMenu();
+    void futureFinished();
 
 private:
     Internal::SpellCheckerCorePrivate* const d;

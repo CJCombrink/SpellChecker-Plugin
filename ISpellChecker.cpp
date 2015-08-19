@@ -23,8 +23,9 @@
 
 using namespace SpellChecker;
 
-void ISpellChecker::spellcheckWords(const QString &fileName, const WordList &words)
+WordList ISpellChecker::spellcheckWords(const QString &fileName, const WordList &words)
 {
+    Q_UNUSED(fileName); /*< Was used in the previous version, must probably be removed. */
     Word misspelledWord;
     WordList misspelledWords;
     WordList::ConstIterator iter = words.constBegin();
@@ -46,6 +47,33 @@ void ISpellChecker::spellcheckWords(const QString &fileName, const WordList &wor
         }
         ++iter;
     }
-    emit misspelledWordsForFile(fileName, misspelledWords);
+    return misspelledWords;
+}
+//--------------------------------------------------
+//--------------------------------------------------
+//--------------------------------------------------
+
+SpellCheckProcessor::SpellCheckProcessor(ISpellChecker *spellChecker, const QString &fileName, const WordList &wordList)
+    : d_spellChecker(spellChecker)
+    , d_fileName(fileName)
+    , d_wordList(wordList)
+{
+}
+//--------------------------------------------------
+
+SpellCheckProcessor::~SpellCheckProcessor()
+{
+}
+//--------------------------------------------------
+
+void SpellCheckProcessor::process(QFutureInterface<WordList> &future)
+{
+    /* Spell Check the words and post the result to the future. */
+    /* The ISpellChecker::spellcheckWords() functionality can probably be
+     * moved into this function so that the progress of the future can
+     * be updated. This will also allow the future to be cancelled. For now
+     * this is not done to keep the changes minimal. */
+    WordList words = d_spellChecker->spellcheckWords(d_fileName, d_wordList);
+    future.reportResult(words);
 }
 //--------------------------------------------------
