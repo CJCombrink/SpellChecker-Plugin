@@ -23,36 +23,6 @@
 
 using namespace SpellChecker;
 
-WordList ISpellChecker::spellcheckWords(const QString &fileName, const WordList &words)
-{
-    Q_UNUSED(fileName); /*< Was used in the previous version, must probably be removed. */
-    Word misspelledWord;
-    WordList misspelledWords;
-    WordList::ConstIterator iter = words.constBegin();
-    while(iter != words.end()) {
-        bool spellingMistake = isSpellingMistake((*iter).text);
-        /* Check to see if the char after the word is a period. If it is,
-         * add the period to the word an see if it passes the checker. */
-        if((spellingMistake == true)
-                && ((*iter).charAfter == QLatin1Char('.'))) {
-            /* Recheck the word with the period added */
-            spellingMistake = isSpellingMistake((*iter).text + QLatin1Char('.'));
-        }
-
-        if(spellingMistake == true) {
-            misspelledWord = (*iter);
-            getSuggestionsForWord(misspelledWord.text, misspelledWord.suggestions);
-            /* Add the word to the local list of misspelled words. */
-            misspelledWords.append(misspelledWord);
-        }
-        ++iter;
-    }
-    return misspelledWords;
-}
-//--------------------------------------------------
-//--------------------------------------------------
-//--------------------------------------------------
-
 SpellCheckProcessor::SpellCheckProcessor(ISpellChecker *spellChecker, const QString &fileName, const WordList &wordList)
     : d_spellChecker(spellChecker)
     , d_fileName(fileName)
@@ -68,12 +38,34 @@ SpellCheckProcessor::~SpellCheckProcessor()
 
 void SpellCheckProcessor::process(QFutureInterface<WordList> &future)
 {
-    /* Spell Check the words and post the result to the future. */
-    /* The ISpellChecker::spellcheckWords() functionality can probably be
-     * moved into this function so that the progress of the future can
-     * be updated. This will also allow the future to be cancelled. For now
-     * this is not done to keep the changes minimal. */
-    WordList words = d_spellChecker->spellcheckWords(d_fileName, d_wordList);
-    future.reportResult(words);
+    Word misspelledWord;
+    WordList misspelledWords;
+    WordList words = d_wordList;
+    WordList::ConstIterator iter = words.constBegin();
+    future.setProgressRange(0, words.count());
+    while(iter != d_wordList.constEnd()) {
+        misspelledWord = (*iter);
+        if(future.isCanceled() == true) {
+            return;
+        }
+        bool spellingMistake = d_spellChecker->isSpellingMistake(misspelledWord.text);
+        /* Check to see if the char after the word is a period. If it is,
+         * add the period to the word an see if it passes the checker. */
+        if((spellingMistake == true)
+                && ((*iter).charAfter == QLatin1Char('.'))) {
+            /* Recheck the word with the period added */
+            spellingMistake = d_spellChecker->isSpellingMistake(misspelledWord.text + QLatin1Char('.'));
+        }
+
+        if(spellingMistake == true) {
+            d_spellChecker->getSuggestionsForWord(misspelledWord.text, misspelledWord.suggestions);
+            /* Add the word to the local list of misspelled words. */
+            misspelledWords.append(misspelledWord);
+        }
+        ++iter;
+        future.setProgressValue(future.progressValue() + 1);
+    }
+
+    future.reportResult(misspelledWords);
 }
 //--------------------------------------------------

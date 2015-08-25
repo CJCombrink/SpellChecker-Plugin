@@ -128,6 +128,7 @@ SpellCheckerCore::SpellCheckerCore(QObject *parent) :
     d->contextMenu = Core::ActionManager::createMenu(Constants::CONTEXT_MENU_ID);
     Q_ASSERT(d->contextMenu != NULL);
     connect(d->contextMenu->menu(), &QMenu::aboutToShow, this, &SpellCheckerCore::updateContextMenu);
+    connect(qApp, &QCoreApplication::aboutToQuit, this, &SpellCheckerCore::cancelFutures, Qt::DirectConnection);
 
 }
 //--------------------------------------------------
@@ -274,11 +275,6 @@ void SpellCheckerCore::addSpellChecker(ISpellChecker *spellChecker)
 
 void SpellCheckerCore::setSpellChecker(ISpellChecker *spellChecker)
 {
-    if(d->spellChecker != NULL) {
-        /* Disconnect all signals connected to the current set spellchecker */
-        disconnect(this, &SpellCheckerCore::spellcheckWords, d->spellChecker, &ISpellChecker::spellcheckWords);
-        disconnect(d->spellChecker, &ISpellChecker::misspelledWordsForFile, this, &SpellCheckerCore::addMisspelledWords);
-    }
     if(spellChecker == NULL) {
         return;
     }
@@ -288,9 +284,6 @@ void SpellCheckerCore::setSpellChecker(ISpellChecker *spellChecker)
     }
 
     d->spellChecker = spellChecker;
-    /* Connect the signals between the core and the spellchecker. */
-    connect(this, &SpellCheckerCore::spellcheckWords, d->spellChecker, &ISpellChecker::spellcheckWords);
-    connect(d->spellChecker, &ISpellChecker::misspelledWordsForFile, this, &SpellCheckerCore::addMisspelledWords);
 }
 //--------------------------------------------------
 
@@ -309,7 +302,7 @@ void SpellCheckerCore::spellcheckWordsFromParser(const QString& fileName, const 
      * the amount of processing, especially if code is edited, and not comments and
      * literals. */
     if(d->filesInProcess.contains(fileName) == true) {
-        /* There is alreay a QFuture out for the given file. Add it to the list of
+        /* There is already a QFuture out for the given file. Add it to the list of
          * of waiting files and replace the current set of words with the latest ones.
          * The assumption is that the last call to this function will always contain
          * the latest words that should be spell checked. */
@@ -331,15 +324,12 @@ void SpellCheckerCore::spellcheckWordsFromParser(const QString& fileName, const 
          * there are multiple watchers running. The separate list can use indexing and
          * other search technicians compared to the mentioned iteration search. */
         d->filesInProcess.append(fileName);
-        /* Run the processor in the background and set a watcher to monitor the progress. */
-        QFuture<WordList> future = QtConcurrent::run(&SpellCheckProcessor::process, processor);
-        watcher->setFuture(future);
         /* Make sure that the processor gets cleaned up after it has finished processing
          * the words. */
         connect(watcher, &QFutureWatcher<WordList>::finished, processor, &SpellCheckProcessor::deleteLater);
-        /* Connect to the aboutToQuit signal on the application to stop the spell checking
-         * if the application is commanded to quit. */
-        connect(qApp, &QCoreApplication::aboutToQuit, watcher, &QFutureWatcher<WordList>::cancel);
+        /* Run the processor in the background and set a watcher to monitor the progress. */
+        QFuture<WordList> future = QtConcurrent::run(&SpellCheckProcessor::process, processor);
+        watcher->setFuture(future);
     }
 }
 //--------------------------------------------------
@@ -394,6 +384,17 @@ void SpellCheckerCore::futureFinished()
     watcher->deleteLater();
     /* Add the list of misspelled words to the mistakes model */
     addMisspelledWords(fileName, checkedWords);
+}
+//--------------------------------------------------
+
+void SpellCheckerCore::cancelFutures()
+{
+    QMutexLocker lock(&d->futureMutex);
+    /* Iterate the futures and cancel them. */
+    FutureWatcherMapIter iter = d->futureWatchers.begin();
+    for(iter = d->futureWatchers.begin(); iter != d->futureWatchers.end(); ++iter) {
+        iter.key()->future().cancel();
+    }
 }
 //--------------------------------------------------
 

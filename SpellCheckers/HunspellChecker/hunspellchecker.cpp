@@ -30,6 +30,7 @@
 
 #include <QFile>
 #include <QSharedPointer>
+#include <QMutex>
 
 typedef QSharedPointer< ::Hunspell> HunspellPtr;
 
@@ -38,6 +39,7 @@ public:
     HunspellPtr hunspell;
     QString dictionary;
     QString userDictionary;
+    QMutex mutex;
 
     HunspellCheckerPrivate() :
         hunspell(nullptr),
@@ -132,6 +134,7 @@ void HunspellChecker::saveSettings() const
 
 bool HunspellChecker::isSpellingMistake(const QString &word) const
 {
+    QMutexLocker lock(&d->mutex);
     HunspellPtr hunspell = d->hunspell;
     bool recognised = hunspell->spell(word.toLatin1());
     return (recognised == false);
@@ -140,6 +143,7 @@ bool HunspellChecker::isSpellingMistake(const QString &word) const
 
 void HunspellChecker::getSuggestionsForWord(const QString &word, QStringList &suggestionsList) const
 {
+    QMutexLocker lock(&d->mutex);
     HunspellPtr hunspell = d->hunspell;
     char ** suggestions;
     int numSuggestions = hunspell->suggest(&suggestions, word.toLatin1());
@@ -153,6 +157,7 @@ void HunspellChecker::getSuggestionsForWord(const QString &word, QStringList &su
 
 bool HunspellChecker::addWord(const QString &word)
 {
+    QMutexLocker lock(&d->mutex);
     HunspellPtr hunspell = d->hunspell;
     /* Save the word to the user dictionary */
     if(d->userDictionary.isEmpty() == true) {
@@ -177,6 +182,7 @@ bool HunspellChecker::addWord(const QString &word)
 
 bool HunspellChecker::ignoreWord(const QString &word)
 {
+    QMutexLocker lock(&d->mutex);
     HunspellPtr hunspell = d->hunspell;
     hunspell->add(word.toLatin1());
     return true;

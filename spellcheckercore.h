@@ -141,11 +141,6 @@ signals:
      * startupProjectChanged() slot to notify parsers that the active project changed.
      * \param startupProject Pointer to the startup project. */
     void activeProjectChanged(ProjectExplorer::Project *startupProject);
-    /*! \brief Signal between the Core and the active spellchecker to spellcheck the
-     *          list of given words.
-     * \param fileName Name of the file that the words belong to.
-     * \param words List of words that must be spellchecked. */
-    void spellcheckWords(const QString& fileName, const SpellChecker::WordList& words);
     
 public slots:
     /*! \brief Open the suggestions widget for the word under the cursor. */
@@ -202,8 +197,11 @@ private slots:
      * words as actions that can be used to replace the misspelled words with the given
      * actions. */
     void updateContextMenu();
+    /*! \brief Slot called when a Future is finished checking the spelling of potential
+     * words. */
     void futureFinished();
-
+    /*! \brief Slot called when the application quits to cancel all outstanding futures. */
+    void cancelFutures();
 private:
     Internal::SpellCheckerCorePrivate* const d;
 };

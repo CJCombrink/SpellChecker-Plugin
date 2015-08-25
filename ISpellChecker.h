@@ -77,37 +77,28 @@ public:
      * \return Pointer to the options widget.
      */
     virtual QWidget* optionsWidget() = 0;
-
-    /*! \brief Function on the interface that will spellcheck the words for the given file.
-     *
-     * This function is used by the SpellCheckProcessor to spell check the words for the
-     * given file.
-     * \param[in] fileName Name of the file that the words belong to.
-     * \param[in] words List of words that should be spellchecked.
-     * \return List of words that have spelling mistakes. */
-    WordList spellcheckWords(const QString& fileName, const SpellChecker::WordList& words);
-signals:
-    /*! \brief Signal emitted with misspelled words after they are checked.
-     *
-     * This signal is the result of checking the words using the slot spellcheckWords().
-     * \param[in] fileName Name of the file that the misspelled words belong to.
-     * \param[in] words List of misspelled words. */
-    void misspelledWordsForFile(const QString& fileName, const SpellChecker::WordList& words);
 };
 
 /*! \brief The SpellCheckProcessor class
  *
- * This processor class is used by a QtConcurrent proccess to use the
+ * This processor class is used by a QtConcurrent process to use the
  * SpellChecker interface to spell check words extracted from the files
  * in a separate thread in the background. This is done to release the
  * document parser as soon as possible and spell checking blocks the main
- * thread if done there. */
+ * thread if done there.
+ *
+ * This process can be cancelled by cancelling the future. */
 class SpellCheckProcessor
     : public QObject {
     Q_OBJECT
 public:
     /*! \brief Create the SpellCheckProcessor with a spell checker, for a file and the
-     * given list of words. */
+     * given list of words.
+     *
+     * \param[in] spellChecker Spell Checker object that must be used. This spell checker
+     *      must be thread safe.
+     * \param[in] fileName Name of the file that the given words to be checked belongs to.
+     * \param[in] wordList Words that must be checked for possible spelling mistakes.*/
     SpellCheckProcessor(ISpellChecker* spellChecker, const QString& fileName, const WordList& wordList);
     ~SpellCheckProcessor();
     /*! Function that will run in the background/thread. */
