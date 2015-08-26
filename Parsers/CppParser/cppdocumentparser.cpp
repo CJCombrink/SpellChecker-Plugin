@@ -294,7 +294,7 @@ void CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusP
     tokenizeWords(docPtr->fileName(), tokenString, token.utf16charsBegin(), trUnit, words, isComment);
     /* Apply the user settings to the words. */
     applySettingsToWords(tokenString, words, isDoxygenComment, wordsInSource);
-    /* Check to see if there are words that should now be spellchecked. */
+    /* Check to see if there are words that should now be spell checked. */
     if(words.count() != 0) {
         extractedWords.append(words);
     }
@@ -493,7 +493,7 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
             /* Check to see if the word appears to be in camelCase. If it does, handle according to the settings */
             /* The check is not precise and accurate science, but a rough estimation of the word is in camelCase. This
              * will probably be updated as this gets tested. The current check checks for one or more lower case letters,
-             * followed by one or more uppercase letter, followed by a lower case letter */
+             * followed by one or more upper-case letter, followed by a lower case letter */
             if(currentWord.contains(QRegularExpression(QLatin1String("[a-z]{1,}[A-Z]{1,}[a-z]{1,}"))) == true ) {
                 if(d->settings->camelCaseWordOption == CppParserSettings::RemoveWordsInCamelCase) {
                     removeCurrentWord = true;
@@ -782,21 +782,21 @@ bool CppDocumentParser::isReservedWord(const QString &word)
     case 3:
         switch(word.at(0).toUpper().toLatin1()) {
         case 'C':
-            if(word.toUpper() == QLatin1String("CPP"))
+            if(word.toUpper() == QStringLiteral("CPP"))
                 return true;
             break;
         }
     case 4:
         switch(word.at(0).toUpper().toLatin1()) {
         case 'E':
-            if(word.toUpper() == QLatin1String("ENUM"))
+            if(word.toUpper() == QStringLiteral("ENUM"))
                 return true;
             break;
         }
     case 6:
         switch(word.at(0).toUpper().toLatin1()) {
         case 'S':
-            if(word.toUpper() == QLatin1String("STRUCT"))
+            if(word.toUpper() == QStringLiteral("STRUCT"))
                 return true;
             break;
         }
@@ -804,7 +804,11 @@ bool CppDocumentParser::isReservedWord(const QString &word)
     case 7:
         switch(word.at(0).toUpper().toLatin1()) {
         case 'D':
-            if(word.toUpper() == QLatin1String("DOXYGEN"))
+            if(word.toUpper() == QStringLiteral("DOXYGEN"))
+                return true;
+            break;
+        case 'N':
+            if(word.toUpper() == QStringLiteral("NULLPTR"))
                 return true;
             break;
         }
@@ -812,7 +816,7 @@ bool CppDocumentParser::isReservedWord(const QString &word)
     case 9:
         switch(word.at(0).toUpper().toLatin1()) {
         case 'N':
-            if(word.toUpper() == QLatin1String("NAMESPACE"))
+            if(word.toUpper() == QStringLiteral("NAMESPACE"))
                 return true;
             break;
         }
