@@ -43,6 +43,7 @@
 #include <texteditor/texteditor.h>
 #include <cpptools/cppmodelmanager.h>
 #include <utils/QtConcurrentTools>
+#include <utils/fadingindicator.h>
 
 #include <QPointer>
 #include <QMouseEvent>
@@ -624,6 +625,12 @@ void SpellCheckerCore::replaceWordsInCurrentEditor(const WordList &wordsToReplac
         cursor.removeSelectedText();
         cursor.insertText(replacementWord);
         cursor.endEditBlock();
+    }
+    /* If more than one suggestion was replaced, show a notification */
+    if(wordsToReplace.count() > 1) {
+        Utils::FadingIndicator::showText(editorWidget,
+                                         tr("%1 occurrences replaced.").arg(wordsToReplace.count()),
+                                         Utils::FadingIndicator::SmallText);
     }
 }
 //--------------------------------------------------
