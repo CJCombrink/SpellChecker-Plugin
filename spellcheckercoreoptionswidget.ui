@@ -24,13 +24,44 @@
    <item row="0" column="1">
     <widget class="QComboBox" name="comboBoxSpellChecker"/>
    </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QWidget" name="spellCheckerOptionsWidgetHolder" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <zorder>groupBox_3</zorder>
+    </widget>
+   </item>
    <item row="2" column="0" colspan="2">
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>Project Options</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
+      <item row="1" column="0">
+       <widget class="QCheckBox" name="checkBoxOnlyCheckCurrent">
+        <property name="toolTip">
+         <string>Parsing the whole project can sometimes take a lot of time, especially for large projects. This setting will restrict the number of files parsed to only the current editor when a project is opened or a setting is changed.</string>
+        </property>
+        <property name="text">
+         <string>Only check current editor</string>
+        </property>
+       </widget>
+      </item>
       <item row="2" column="0">
+       <widget class="QCheckBox" name="checkBoxCheckExternal">
+        <property name="toolTip">
+         <string>Enable or disable if the SpellChecker should attempt to parse files external to the current active project as they are opened/edited.</string>
+        </property>
+        <property name="text">
+         <string>Check external files</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
        <widget class="QGroupBox" name="groupBox_2">
         <property name="title">
          <string>Projects to ignore</string>
@@ -87,23 +118,10 @@
         </layout>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QCheckBox" name="checkBoxOnlyCheckCurrent">
-        <property name="toolTip">
-         <string>Parsing the whole project can sometimes take a lot of time, especially for large projects. This setting will restrict the number of files parsed to only the current editor when a project is opened or a setting is changed.</string>
-        </property>
+      <item row="3" column="0">
+       <widget class="QCheckBox" name="checkBoxReplaceAllRightClick">
         <property name="text">
-         <string>Only check current editor</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QCheckBox" name="checkBoxCheckExternal">
-        <property name="toolTip">
-         <string>Enable or disable if the SpellChecker should attempt to parse files external to the current active project as they are opened/edited.</string>
-        </property>
-        <property name="text">
-         <string>Check external files</string>
+         <string>Replace all occurances of selected word from suggestion on Right Click menu </string>
         </property>
        </widget>
       </item>
@@ -172,16 +190,6 @@
        </widget>
       </item>
      </layout>
-    </widget>
-   </item>
-   <item row="1" column="0" colspan="2">
-    <widget class="QWidget" name="spellCheckerOptionsWidgetHolder" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
     </widget>
    </item>
   </layout>

@@ -724,7 +724,11 @@ void SpellCheckerCore::updateContextMenu()
              * action is triggered. */
             connect(cmd->action(), &QAction::triggered, [this, word, cmd]() {
                 WordList wordsToReplace;
-                this->getAllOccurrencesOfWord(word, wordsToReplace);
+                if(d->settings->replaceAllFromRightClick == true) {
+                    this->getAllOccurrencesOfWord(word, wordsToReplace);
+                } else {
+                    wordsToReplace.append(word);
+                }
                 this->replaceWordsInCurrentEditor(wordsToReplace, cmd->action()->text());
             });
         } else {

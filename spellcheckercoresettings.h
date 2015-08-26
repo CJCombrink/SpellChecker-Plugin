@@ -45,6 +45,9 @@ public:
     bool onlyParseCurrentFile;
     bool checkExternalFiles;
     QStringList projectsToIgnore;
+    /*! Replace all occurrences of a misspelled word on the current page when
+     * a suggestion is selected from the right click menu. */
+    bool replaceAllFromRightClick;
     
 signals:
     void settingsChanged();

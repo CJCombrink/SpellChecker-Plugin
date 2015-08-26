@@ -54,10 +54,11 @@ SpellCheckerCoreOptionsWidget::~SpellCheckerCoreOptionsWidget()
 
 const SpellCheckerCoreSettings &SpellCheckerCoreOptionsWidget::settings()
 {
-    m_settings.activeSpellChecker   = ui->comboBoxSpellChecker->currentText();
-    m_settings.onlyParseCurrentFile = ui->checkBoxOnlyCheckCurrent->isChecked();
-    m_settings.checkExternalFiles   = ui->checkBoxCheckExternal->isChecked();
-    m_settings.projectsToIgnore     = m_projectsToIgnore;
+    m_settings.activeSpellChecker       = ui->comboBoxSpellChecker->currentText();
+    m_settings.onlyParseCurrentFile     = ui->checkBoxOnlyCheckCurrent->isChecked();
+    m_settings.checkExternalFiles       = ui->checkBoxCheckExternal->isChecked();
+    m_settings.projectsToIgnore         = m_projectsToIgnore;
+    m_settings.replaceAllFromRightClick = ui->checkBoxReplaceAllRightClick->isChecked();
     return m_settings;
 }
 //--------------------------------------------------
@@ -93,6 +94,7 @@ void SpellCheckerCoreOptionsWidget::updateWithSettings(const SpellCheckerCoreSet
     m_projectsToIgnore.removeDuplicates();
     ui->listWidget->clear();
     ui->listWidget->addItems(m_projectsToIgnore);
+    ui->checkBoxReplaceAllRightClick->setChecked(settings->replaceAllFromRightClick);
 }
 //--------------------------------------------------
 
