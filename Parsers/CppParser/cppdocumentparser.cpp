@@ -219,7 +219,13 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
             const CPlusPlus::Token& token = trUnit->tokenAt(idx);
             if(token.isStringLiteral() == true) {
                 if(token.expanded() == true) {
-#ifndef WIN32
+                    /* Removing the code that handles expanded literals.
+                     * This was sort of working on Linux, but not Windows.
+                     * It worked correctly for QStringLiteral but not for
+                     * other macro expansions like, Q_ASSERT. Until a
+                     * solution is found for at least the Linux side,
+                     * this code will not be used. */
+#if 0
                     /* Expanded String Literals needs a bit more effort to extract the words. */
                     tokenString = QString::fromUtf8(token.spell());
                     if(tokenString.size() == 0) {
@@ -236,7 +242,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
                         continue;
                     }
                     tokenPosTrackList.append(qMakePair(line, column));
-                    /* Do not use the parseToken() function direclty, use the functions inside to
+                    /* Do not use the parseToken() function directly, use the functions inside to
                      * tokenize and process the words. */
                     WordList words;
                     tokenizeWords(docPtr->fileName(), tokenString, column + 1, trUnit, words, false);
