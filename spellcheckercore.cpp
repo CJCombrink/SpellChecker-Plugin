@@ -637,6 +637,8 @@ void SpellCheckerCore::replaceWordsInCurrentEditor(const WordList &wordsToReplac
 
 void SpellCheckerCore::startupProjectChanged(ProjectExplorer::Project *startupProject)
 {
+    /* Cancel all outstanding futures */
+    cancelFutures();
     d->spellingMistakesModel->clearAllSpellingMistakes();
     d->filesInStartupProject.clear();
     d->startupProject = startupProject;
