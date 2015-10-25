@@ -68,7 +68,7 @@ void SpellCheckerCoreSettings::loadFromSettings(QSettings *settings)
     settings->beginGroup(QLatin1String(Constants::CORE_SETTINGS_GROUP));
     activeSpellChecker       = settings->value(QLatin1String(Constants::SETTING_ACTIVE_SPELLCHECKER), activeSpellChecker).toString();
     onlyParseCurrentFile     = settings->value(QLatin1String(Constants::SETTING_ONLY_PARSE_CURRENT), onlyParseCurrentFile).toBool();
-    projectsToIgnore         = settings->value(QLatin1String(Constants::SETTING_CHECK_EXTERNAL), checkExternalFiles).toStringList();
+    checkExternalFiles       = settings->value(QLatin1String(Constants::SETTING_CHECK_EXTERNAL), checkExternalFiles).toStringList();
     projectsToIgnore         = settings->value(QLatin1String(Constants::PROJECTS_TO_IGNORE), projectsToIgnore).toStringList();
     replaceAllFromRightClick = settings->value(QLatin1String(Constants::REPLACE_ALL_FROM_RIGHT_CLICK), replaceAllFromRightClick).toBool();
     settings->endGroup(); /* CORE_SETTINGS_GROUP */
