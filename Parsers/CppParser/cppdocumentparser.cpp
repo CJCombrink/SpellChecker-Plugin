@@ -214,7 +214,6 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
         QList<QPair<unsigned, unsigned>> tokenPosTrackList;
         unsigned int tokenCount = trUnit->tokenCount();
         QString tokenString;
-        unsigned line, column;
         for(unsigned int idx = 0; idx < tokenCount; ++idx) {
             const CPlusPlus::Token& token = trUnit->tokenAt(idx);
             if(token.isStringLiteral() == true) {
@@ -226,6 +225,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
                      * solution is found for at least the Linux side,
                      * this code will not be used. */
 #if 0
+                    unsigned line, column;
                     /* Expanded String Literals needs a bit more effort to extract the words. */
                     tokenString = QString::fromUtf8(token.spell());
                     if(tokenString.size() == 0) {
@@ -815,6 +815,10 @@ bool CppDocumentParser::isReservedWord(const QString &word)
             break;
         case 'N':
             if(word.toUpper() == QStringLiteral("NULLPTR"))
+                return true;
+            break;
+        case 'T':
+            if(word.toUpper() == QStringLiteral("TYPEDEF"))
                 return true;
             break;
         }
