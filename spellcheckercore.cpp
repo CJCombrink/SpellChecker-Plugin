@@ -294,6 +294,7 @@ void SpellCheckerCore::spellcheckWordsFromParser(const QString& fileName, const 
      * queued connections are used and this function should always execute in the
      * main thread, but for now lets rather be safe. */
     QMutexLocker locker(&d->futureMutex);
+
     /* Check if this file is not already being processed by QtConcurrent in the
      * background. The current implementation will only use one QFuter per file
      * and if spell checking is requested for the same file if it is already being
@@ -309,10 +310,13 @@ void SpellCheckerCore::spellcheckWordsFromParser(const QString& fileName, const 
          * the latest words that should be spell checked. */
         d->filesWaitingForProcess[fileName] = words;
     } else {
+        /* Get the list of mistakes that were extracted on the file during the last
+         * run of the processing. */
+        WordList previousMistakes = d->spellingMistakesModel->mistakesForFile(fileName);
         /* There is no background process processing the words for the given file.
          * Create a processor and start processing the spelling mistakes in the
          * background using QtConcurrent and a QFuture. */
-        SpellCheckProcessor *processor = new SpellCheckProcessor(d->spellChecker, fileName, words);
+        SpellCheckProcessor *processor = new SpellCheckProcessor(d->spellChecker, fileName, words, previousMistakes);
         QFutureWatcher<WordList> *watcher = new QFutureWatcher<WordList>();
         connect(watcher, &QFutureWatcher<WordList>::finished, this, &SpellCheckerCore::futureFinished, Qt::QueuedConnection);
         /* Keep track of the watchers that are busy and the file that it is working on.

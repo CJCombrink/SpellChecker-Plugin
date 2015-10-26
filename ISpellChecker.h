@@ -87,6 +87,15 @@ public:
  * document parser as soon as possible and spell checking blocks the main
  * thread if done there.
  *
+ * The processor uses the spell checker that is set on the application
+ * to check the words that were extracted from the file and check them
+ * for spelling mistakes. To speed up the checking the processor also takes
+ * in the list of previous mistakes extracted from the file. This is done
+ * since the suggestions for mispelled words can be reused without having to
+ * ask the spell checker for suggestions each time for repeating words.
+ * The chance that a word repeats in a file is big for different passes and the
+ * time for a spell checker to get suggestions can be rather slow.
+ *
  * This process can be cancelled by cancelling the future. */
 class SpellCheckProcessor
     : public QObject {
@@ -98,8 +107,10 @@ public:
      * \param[in] spellChecker Spell Checker object that must be used. This spell checker
      *      must be thread safe.
      * \param[in] fileName Name of the file that the given words to be checked belongs to.
-     * \param[in] wordList Words that must be checked for possible spelling mistakes.*/
-    SpellCheckProcessor(ISpellChecker* spellChecker, const QString& fileName, const WordList& wordList);
+     * \param[in] wordList Words that must be checked for possible spelling mistakes.
+     * \param[in] previousMistakes List of words that were identified as spelling mistakes in
+     *      the previous processing run of the current file.*/
+    SpellCheckProcessor(ISpellChecker* spellChecker, const QString& fileName, const WordList& wordList, const WordList& previousMistakes);
     ~SpellCheckProcessor();
     /*! Function that will run in the background/thread. */
     void process(QFutureInterface<WordList> &future);
@@ -107,6 +118,7 @@ protected:
     ISpellChecker* d_spellChecker;
     QString d_fileName;
     WordList d_wordList;
+    WordList d_previousMistakes;
 };
 
 }

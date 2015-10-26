@@ -21,12 +21,18 @@
 #include "ISpellChecker.h"
 #include "Word.h"
 
+//#define BENCH_TIME
+#ifdef BENCH_TIME
+#include <QElapsedTimer>
+#endif /* BENCH_TIME */
+
 using namespace SpellChecker;
 
-SpellCheckProcessor::SpellCheckProcessor(ISpellChecker *spellChecker, const QString &fileName, const WordList &wordList)
+SpellCheckProcessor::SpellCheckProcessor(ISpellChecker *spellChecker, const QString &fileName, const WordList &wordList, const WordList &previousMistakes)
     : d_spellChecker(spellChecker)
     , d_fileName(fileName)
     , d_wordList(wordList)
+    , d_previousMistakes(previousMistakes)
 {
 }
 //--------------------------------------------------
@@ -38,48 +44,88 @@ SpellCheckProcessor::~SpellCheckProcessor()
 
 void SpellCheckProcessor::process(QFutureInterface<WordList> &future)
 {
+#ifdef BENCH_TIME
+    QElapsedTimer timer;
+    timer.start();
+#endif /* BENCH_TIME */
     WordListConstIter misspelledIter;
+    WordListConstIter prevMisspelledIter;
     Word misspelledWord;
     WordList misspelledWords;
     WordList words = d_wordList;
     WordListConstIter wordIter = words.constBegin();
     bool spellingMistake;
-    future.setProgressRange(0, words.count());
+    future.setProgressRange(0, words.count() + 1);
     while(wordIter != d_wordList.constEnd()) {
+        /* Get the word at the current iterator position.
+         * After this is done, move the iterator to the next position and
+         * increment the progress value. This is done so that one can call
+         * 'continue' anywhere after this in the loop without having to worry
+         * about advancing the iterator since this will already be done and
+         * correct for the next iteration. */
         misspelledWord = (*wordIter);
+        ++wordIter;
+        future.setProgressValue(future.progressValue() + 1);
+        /* Check if the future was cancelled */
         if(future.isCanceled() == true) {
             return;
         }
-        /* Search for the word in the list of words that were already
-         * identified as spelling mistakes. If there are words that are
-         * repeated and misspelled, this can reduce the time to process
-         * the file since the time to get suggestions is rather slow.
-         * If there are no repeating mistakes then this might add unneeded
-         * overhead. */
-        misspelledIter = misspelledWords.find(misspelledWord.text);
-        if(misspelledIter != misspelledWords.constEnd()) {
-            misspelledWord.suggestions = (*misspelledIter).suggestions;
-            /* Add the word to the local list of misspelled words. */
-            misspelledWords.append(misspelledWord);
-        } else {
-            spellingMistake = d_spellChecker->isSpellingMistake(misspelledWord.text);
-            /* Check to see if the char after the word is a period. If it is,
-             * add the period to the word an see if it passes the checker. */
-            if((spellingMistake == true)
-                    && ((*wordIter).charAfter == QLatin1Char('.'))) {
-                /* Recheck the word with the period added */
-                spellingMistake = d_spellChecker->isSpellingMistake(misspelledWord.text + QLatin1Char('.'));
-            }
 
-            if(spellingMistake == true) {
-                d_spellChecker->getSuggestionsForWord(misspelledWord.text, misspelledWord.suggestions);
+        /* Check if the word was a spelling mistake in the previous pass
+         * of this file. If it was the suggestions can be reused without
+         * having to get the suggestons through the spell checker since
+         * this is slow compared to the rest of the work. */
+
+
+
+        spellingMistake = d_spellChecker->isSpellingMistake(misspelledWord.text);
+        /* Check to see if the char after the word is a period. If it is,
+         * add the period to the word an see if it passes the checker. */
+        if((spellingMistake == true)
+                && (misspelledWord.charAfter == QLatin1Char('.'))) {
+            /* Recheck the word with the period added */
+            spellingMistake = d_spellChecker->isSpellingMistake(misspelledWord.text + QLatin1Char('.'));
+        }
+
+        if(spellingMistake == true) {
+            /* The word is a spelling mistake, check if the word was a mistake
+             * the previous time that this file was processed. If it was the
+             * suggestions can be reused without having to get the suggestons
+             * through the spell checker since this is slow compared to the rest
+             * of the processing. */
+            prevMisspelledIter = d_previousMistakes.find(misspelledWord.text);
+            if(prevMisspelledIter != d_previousMistakes.constEnd()) {
+                misspelledWord.suggestions = (*prevMisspelledIter).suggestions;
+                misspelledWords.append(misspelledWord);
+                continue;
+            }
+            /* The word was not in the previous iteration, search for the word
+             * in the list of words that were already checked in this iteration
+             * and identified as spelling mistakes. If there are words that are
+             * repeated and misspelled, this can reduce the time to process
+             * the file since the time to get suggestions is rather slow.
+             * If there are no repeating mistakes then this might add unneeded
+             * overhead. */
+            misspelledIter = misspelledWords.find(misspelledWord.text);
+            if(misspelledIter != misspelledWords.constEnd()) {
+                misspelledWord.suggestions = (*misspelledIter).suggestions;
                 /* Add the word to the local list of misspelled words. */
                 misspelledWords.append(misspelledWord);
+                continue;
             }
+            /* At this point the word is a mistake for the first time. It was neither
+             * a mistake in the previous pass of the file nor did the word occur previouly
+             * in this file, use the spell checker to get the suggestions for the word. */
+            d_spellChecker->getSuggestionsForWord(misspelledWord.text, misspelledWord.suggestions);
+            /* Add the word to the local list of misspelled words. */
+            misspelledWords.append(misspelledWord);
         }
-        ++wordIter;
-        future.setProgressValue(future.progressValue() + 1);
     }
+#ifdef BENCH_TIME
+    qDebug() << "File: " << d_fileName
+             << "\n  - time : " << timer.elapsed()
+             << "\n  - count: " << misspelledWords.size();
+#endif /* BENCH_TIME */
     future.reportResult(misspelledWords);
 }
 //--------------------------------------------------
