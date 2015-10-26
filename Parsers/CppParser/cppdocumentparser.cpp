@@ -212,7 +212,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
     }
 
     WordList parsedWords;
-    QStringList wordsInSource;
+    QSet<QString> wordsInSource;
     /* If the setting is set to remove words from the list based on words found in the source,
      * parse the source file and then remove all words found in the source files from the list
      * of words that will be checked. */
@@ -305,7 +305,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 }
 //--------------------------------------------------
 
-void CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, const QStringList& wordsInSource, bool isComment, bool isDoxygenComment, WordList& extractedWords)
+void CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, const QSet<QString>& wordsInSource, bool isComment, bool isDoxygenComment, WordList& extractedWords)
 {
     WordList words;
     QString tokenString = QString::fromUtf8(docPtr->utf8Source().mid(token.bytesBegin(), token.bytes()).trimmed());
@@ -358,7 +358,7 @@ void CppDocumentParser::tokenizeWords(const QString& fileName, const QString &st
 }
 //--------------------------------------------------
 
-void CppDocumentParser::applySettingsToWords(const QString &string, WordList &words, bool isDoxygenComment, const QStringList &wordsInSource)
+void CppDocumentParser::applySettingsToWords(const QString &string, WordList &words, bool isDoxygenComment, const QSet<QString> &wordsInSource)
 {
     using namespace SpellChecker::Parsers::CppParser;
 
@@ -607,34 +607,29 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
 }
 //--------------------------------------------------
 
-void CppDocumentParser::getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr, QStringList &wordsInSource)
+void CppDocumentParser::getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr, QSet<QString> &wordsInSource)
 {
     if(docPtr == NULL) {
         Q_ASSERT(docPtr != NULL);
         return;
     }
-
     unsigned total = docPtr->globalSymbolCount();
     CPlusPlus::Overview overview;
     for (unsigned i = 0; i < total; ++i) {
         CPlusPlus::Symbol *symbol = docPtr->globalSymbolAt(i);
         getListOfWordsFromSourceRecursive(wordsInSource, symbol, overview);
     }
-    /* Remove all duplicates from the list of words that occur in the source. Also sort the list.
-     * Not sure which is better, to first remove and then sort, or to first sort and then remove */
-    wordsInSource.removeDuplicates();
-    wordsInSource.sort();
 }
 //--------------------------------------------------
 
-void CppDocumentParser::getListOfWordsFromSourceRecursive(QStringList &words, const CPlusPlus::Symbol *symbol, const CPlusPlus::Overview &overview)
+void CppDocumentParser::getListOfWordsFromSourceRecursive(QSet<QString> &words, const CPlusPlus::Symbol *symbol, const CPlusPlus::Overview &overview)
 {
     /* Get the pretty name and type for the current symbol. This name is then split up into
      * different words that are added to the list of words that appear in the source */
     QString name = overview.prettyName(symbol->name()).trimmed();
     QString type = overview.prettyType(symbol->type()).trimmed();
-    words << getPossibleNamesFromString(name);
-    words << getPossibleNamesFromString(type);
+    getPossibleNamesFromString(words, name);
+    getPossibleNamesFromString(words, type);
 
     /* Go to the next level into the scope of the symbol and get the words from that level as well*/
     const CPlusPlus::Scope *scope = symbol->asScope();
@@ -652,20 +647,18 @@ void CppDocumentParser::getListOfWordsFromSourceRecursive(QStringList &words, co
 }
 //--------------------------------------------------
 
-QStringList CppDocumentParser::getPossibleNamesFromString(const QString& string)
+void CppDocumentParser::getPossibleNamesFromString(QSet<QString> &words, const QString& string)
 {
-    QStringList possibleNames;
     QRegExp nameRegExp(QLatin1String("(\\w+)"));
     int pos = 0;
     while ((pos = nameRegExp.indexIn(string, pos)) != -1) {
-        possibleNames << nameRegExp.cap(1);
+        words << nameRegExp.cap(1);
         pos += nameRegExp.matchedLength();
     }
-    return possibleNames;
 }
 //--------------------------------------------------
 
-void CppDocumentParser::removeWordsThatAppearInSource(const QStringList &wordsInSource, WordList &words)
+void CppDocumentParser::removeWordsThatAppearInSource(const QSet<QString> &wordsInSource, WordList &words)
 {
     /* Hopefully all words that are the same would be together in the WordList because of
      * the nature of the QMultiHash. This would make removing multiple instances of the same

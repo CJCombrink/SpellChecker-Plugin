@@ -89,7 +89,7 @@ public:
      * \param[out] extractedWords Words that were extracted from the token that must now
      *              be spellchecked. The extracted words will only get added to the list
      *              and previous items added will stay in the list. */
-    void parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, const QStringList& wordsInSource, bool isComment, bool isDoxygenComment, WordList& extractedWords);
+    void parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, const QSet<QString> &wordsInSource, bool isComment, bool isDoxygenComment, WordList& extractedWords);
     /*! \brief Tokenize Words from a string.
      *
      * This function takes a string, either a comment or a string literal and
@@ -110,11 +110,11 @@ public:
      * \param[in] wordsInSource List of words that appear in the source. Based on the user
      *                  setting words that appear in this list will be removed from the
      *                  final list of \a words. */
-    void applySettingsToWords(const QString& string, WordList& words, bool isDoxygenComment, const QStringList &wordsInSource = QStringList());
-    void getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr, QStringList& wordsInSource);
-    void getListOfWordsFromSourceRecursive(QStringList &words, const CPlusPlus::Symbol* symbol, const CPlusPlus::Overview& overview);
-    QStringList getPossibleNamesFromString(const QString &string);
-    void removeWordsThatAppearInSource(const QStringList& wordsInSource, WordList& words);
+    void applySettingsToWords(const QString& string, WordList& words, bool isDoxygenComment, const QSet<QString> &wordsInSource = QSet<QString>());
+    void getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr, QSet<QString>& wordsInSource);
+    void getListOfWordsFromSourceRecursive(QSet<QString> &words, const CPlusPlus::Symbol* symbol, const CPlusPlus::Overview& overview);
+    void getPossibleNamesFromString(QSet<QString> &words, const QString &string);
+    void removeWordsThatAppearInSource(const QSet<QString> &wordsInSource, WordList& words);
     bool isEndOfCurrentWord(const QString& comment, int currentPos);
     bool isReservedWord(const QString& word);
 
