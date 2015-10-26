@@ -38,34 +38,48 @@ SpellCheckProcessor::~SpellCheckProcessor()
 
 void SpellCheckProcessor::process(QFutureInterface<WordList> &future)
 {
+    WordListConstIter misspelledIter;
     Word misspelledWord;
     WordList misspelledWords;
     WordList words = d_wordList;
-    WordList::ConstIterator iter = words.constBegin();
+    WordListConstIter wordIter = words.constBegin();
+    bool spellingMistake;
     future.setProgressRange(0, words.count());
-    while(iter != d_wordList.constEnd()) {
-        misspelledWord = (*iter);
+    while(wordIter != d_wordList.constEnd()) {
+        misspelledWord = (*wordIter);
         if(future.isCanceled() == true) {
             return;
         }
-        bool spellingMistake = d_spellChecker->isSpellingMistake(misspelledWord.text);
-        /* Check to see if the char after the word is a period. If it is,
-         * add the period to the word an see if it passes the checker. */
-        if((spellingMistake == true)
-                && ((*iter).charAfter == QLatin1Char('.'))) {
-            /* Recheck the word with the period added */
-            spellingMistake = d_spellChecker->isSpellingMistake(misspelledWord.text + QLatin1Char('.'));
-        }
-
-        if(spellingMistake == true) {
-            d_spellChecker->getSuggestionsForWord(misspelledWord.text, misspelledWord.suggestions);
+        /* Search for the word in the list of words that were already
+         * identified as spelling mistakes. If there are words that are
+         * repeated and misspelled, this can reduce the time to process
+         * the file since the time to get suggestions is rather slow.
+         * If there are no repeating mistakes then this might add unneeded
+         * overhead. */
+        misspelledIter = misspelledWords.find(misspelledWord.text);
+        if(misspelledIter != misspelledWords.constEnd()) {
+            misspelledWord.suggestions = (*misspelledIter).suggestions;
             /* Add the word to the local list of misspelled words. */
             misspelledWords.append(misspelledWord);
+        } else {
+            spellingMistake = d_spellChecker->isSpellingMistake(misspelledWord.text);
+            /* Check to see if the char after the word is a period. If it is,
+             * add the period to the word an see if it passes the checker. */
+            if((spellingMistake == true)
+                    && ((*wordIter).charAfter == QLatin1Char('.'))) {
+                /* Recheck the word with the period added */
+                spellingMistake = d_spellChecker->isSpellingMistake(misspelledWord.text + QLatin1Char('.'));
+            }
+
+            if(spellingMistake == true) {
+                d_spellChecker->getSuggestionsForWord(misspelledWord.text, misspelledWord.suggestions);
+                /* Add the word to the local list of misspelled words. */
+                misspelledWords.append(misspelledWord);
+            }
         }
-        ++iter;
+        ++wordIter;
         future.setProgressValue(future.progressValue() + 1);
     }
-
     future.reportResult(misspelledWords);
 }
 //--------------------------------------------------

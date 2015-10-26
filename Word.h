@@ -77,6 +77,9 @@ public:
     const Word& at(int i) const
     { return values().at(i); }
 };
+
+typedef WordList::iterator WordListIter;
+typedef WordList::const_iterator WordListConstIter;
 #else /* USE_MULTI_HASH */
 typedef QList<Word> WordList;
 #endif /* USE_MULTI_HASH */
