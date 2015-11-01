@@ -70,14 +70,6 @@ void SpellCheckProcessor::process(QFutureInterface<WordList> &future)
         if(future.isCanceled() == true) {
             return;
         }
-
-        /* Check if the word was a spelling mistake in the previous pass
-         * of this file. If it was the suggestions can be reused without
-         * having to get the suggestons through the spell checker since
-         * this is slow compared to the rest of the work. */
-
-
-
         spellingMistake = d_spellChecker->isSpellingMistake(misspelledWord.text);
         /* Check to see if the char after the word is a period. If it is,
          * add the period to the word an see if it passes the checker. */
@@ -90,7 +82,7 @@ void SpellCheckProcessor::process(QFutureInterface<WordList> &future)
         if(spellingMistake == true) {
             /* The word is a spelling mistake, check if the word was a mistake
              * the previous time that this file was processed. If it was the
-             * suggestions can be reused without having to get the suggestons
+             * suggestions can be reused without having to get the suggestions
              * through the spell checker since this is slow compared to the rest
              * of the processing. */
             prevMisspelledIter = d_previousMistakes.find(misspelledWord.text);
@@ -114,7 +106,7 @@ void SpellCheckProcessor::process(QFutureInterface<WordList> &future)
                 continue;
             }
             /* At this point the word is a mistake for the first time. It was neither
-             * a mistake in the previous pass of the file nor did the word occur previouly
+             * a mistake in the previous pass of the file nor did the word occur previously
              * in this file, use the spell checker to get the suggestions for the word. */
             d_spellChecker->getSuggestionsForWord(misspelledWord.text, misspelledWord.suggestions);
             /* Add the word to the local list of misspelled words. */
