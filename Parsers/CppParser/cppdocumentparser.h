@@ -36,6 +36,15 @@ namespace Internal {
 
 class CppParserSettings;
 class CppDocumentParserPrivate;
+class TokenWords;
+/*! \brief Hash of a token and the corresponding list of words that were extracted from the token.
+ *
+ * The quint32 is result of the qHash(QString, 0) and stored in the hash for each token, along with the
+ * list of words that were extracted from that comment. The hash of the token is used instead of the string
+ * because there is no need for the extra memory in the hash to store the actual token. If the hash was
+ * defined as QHash<QString, CommentWords> the hash would store the full token in memory so that it can
+ * be obtained using the QHash::key() function. Some token can be long and the overhead is not needed. */
+typedef QHash<quint32, TokenWords> HashWords;
 
 class CppDocumentParser : public SpellChecker::IDocumentParser
 {
@@ -89,7 +98,7 @@ public:
      * \param[out] extractedWords Words that were extracted from the token that must now
      *              be spellchecked. The extracted words will only get added to the list
      *              and previous items added will stay in the list. */
-    void parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, const QSet<QString> &wordsInSource, bool isComment, bool isDoxygenComment, WordList& extractedWords);
+    void parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, const QSet<QString> &wordsInSource, bool isComment, bool isDoxygenComment, WordList& extractedWords, const HashWords& hashIn, HashWords& hashOut);
     /*! \brief Tokenize Words from a string.
      *
      * This function takes a string, either a comment or a string literal and
