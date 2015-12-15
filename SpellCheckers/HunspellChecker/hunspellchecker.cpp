@@ -31,6 +31,7 @@
 #include <QFile>
 #include <QSharedPointer>
 #include <QMutex>
+#include <QTextCodec>
 
 typedef QSharedPointer< ::Hunspell> HunspellPtr;
 
@@ -40,13 +41,27 @@ public:
     QString dictionary;
     QString userDictionary;
     QMutex mutex;
+    QTextCodec *codec;
 
     HunspellCheckerPrivate() :
         hunspell(nullptr),
         dictionary(),
-        userDictionary()
+        userDictionary(),
+        codec()
     {}
     ~HunspellCheckerPrivate() {}
+
+    QByteArray encode(const QString &word) {
+        if (codec)
+            return codec->fromUnicode(word);
+        return word.toLatin1();
+    }
+
+    QString decode(const QByteArray &word) {
+        if (codec)
+            return codec->toUnicode(word);
+        return QLatin1String(word);
+    }
 };
 //--------------------------------------------------
 //--------------------------------------------------
@@ -62,6 +77,7 @@ HunspellChecker::HunspellChecker() :
     /* Get the affix dictionary path */
     QString affPath = QString(d->dictionary).replace(QRegExp(QLatin1String("\\.dic$")), QLatin1String(".aff"));
     d->hunspell = HunspellPtr(new ::Hunspell(affPath.toLatin1(), d->dictionary.toLatin1()));
+    d->codec = QTextCodec::codecForName(d->hunspell->get_dic_encoding());
     loadUserAddedWords();
 }
 //--------------------------------------------------
@@ -136,7 +152,7 @@ bool HunspellChecker::isSpellingMistake(const QString &word) const
 {
     QMutexLocker lock(&d->mutex);
     HunspellPtr hunspell = d->hunspell;
-    bool recognised = hunspell->spell(word.toLatin1());
+    bool recognised = hunspell->spell(d->encode(word));
     return (recognised == false);
 }
 //--------------------------------------------------
@@ -146,9 +162,9 @@ void HunspellChecker::getSuggestionsForWord(const QString &word, QStringList &su
     QMutexLocker lock(&d->mutex);
     HunspellPtr hunspell = d->hunspell;
     char ** suggestions;
-    int numSuggestions = hunspell->suggest(&suggestions, word.toLatin1());
+    int numSuggestions = hunspell->suggest(&suggestions, d->encode(word));
     for (int i = 0; i < numSuggestions; ++i) {
-        suggestionsList << QLatin1String(suggestions[i]);
+        suggestionsList << d->decode(suggestions[i]);
     }
     hunspell->free_list(&suggestions, numSuggestions);
     return;
@@ -171,7 +187,7 @@ bool HunspellChecker::addWord(const QString &word)
         return false;
     }
     /* Only add the word to the spellchecker if the previous checkers passed. */
-    hunspell->add(word.toLatin1());
+    hunspell->add(d->encode(word));
 
     QTextStream stream(&dictionary);
     stream << word << endl;
@@ -184,7 +200,7 @@ bool HunspellChecker::ignoreWord(const QString &word)
 {
     QMutexLocker lock(&d->mutex);
     HunspellPtr hunspell = d->hunspell;
-    hunspell->add(word.toLatin1());
+    hunspell->add(d->encode(word));
     return true;
 }
 //--------------------------------------------------
