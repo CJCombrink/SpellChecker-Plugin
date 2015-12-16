@@ -797,11 +797,8 @@ bool CppDocumentParser::isEndOfCurrentWord(const QString &comment, int currentPo
     /* Use a regular expression to check if the current character is a word character or
      * or an apostrophe. Some settings might change what the end of a word actually is.
      * For some settings an underscore will be considered as the end of a word */
-    QRegExp wordChars(QLatin1String("[a-zA-Z0-9_]"));
-    if(wordChars.indexIn(currentChar) != -1){
-        /* The character is in the list given, thus it is not the end of a word */
+    if (currentChar.isLetterOrNumber() || currentChar == QLatin1Char('_'))
         return false;
-    }
 
     /* Check for an apostrophe in a word. This is for words like we're. Not all
      * apostrophes are part of a word, like words that starts with and end with */
