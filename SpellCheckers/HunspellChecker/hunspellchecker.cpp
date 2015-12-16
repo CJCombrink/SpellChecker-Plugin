@@ -41,7 +41,7 @@ public:
     QString dictionary;
     QString userDictionary;
     QMutex mutex;
-    QTextCodec *codec;
+    QTextCodec* codec;
 
     HunspellCheckerPrivate() :
         hunspell(nullptr),
@@ -51,15 +51,36 @@ public:
     {}
     ~HunspellCheckerPrivate() {}
 
-    QByteArray encode(const QString &word) {
-        if (codec)
+    /*! \brief Encode a word into the encoding of the selected dictionary.
+     *
+     * If the selected dictionary uses a different encoding than the one
+     * that Qt Creator uses (UTF-8) then this function will encode the
+     * word to the encoding of the dictionary, before it is spell checked by the
+     * hunspell library.
+     *
+     * If the codec is not set or valid the word is converted to
+     * its Latin-1 representation. */
+    QByteArray encode(const QString& word)
+    {
+        if(codec != nullptr) {
             return codec->fromUnicode(word);
+        }
         return word.toLatin1();
     }
 
-    QString decode(const QByteArray &word) {
-        if (codec)
+    /*! \brief Decode a word from the encoding of the selected dictionary.
+     *
+     * If the selected dictionary uses a different encoding than the one
+     * that Qt Creator uses (UTF-8) then this function will decode the
+     * word returned by the hunspell library to Unicode.
+     *
+     * If the codec is not set or invalid the word is converted to
+     * its Latin-1 representation. */
+    QString decode(const QByteArray& word)
+    {
+        if(codec != nullptr) {
             return codec->toUnicode(word);
+        }
         return QLatin1String(word);
     }
 };
@@ -84,6 +105,8 @@ HunspellChecker::HunspellChecker() :
 
 HunspellChecker::~HunspellChecker()
 {
+    /* Codec not deleted since the destructor of QTextCodec is private */
+    // delete d->codec;
     saveSettings();
     delete d;
 }
