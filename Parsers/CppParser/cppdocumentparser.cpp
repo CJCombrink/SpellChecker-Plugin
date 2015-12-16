@@ -42,12 +42,6 @@
 
 #include <QRegularExpression>
 #include <QTextBlock>
-#include <QElapsedTimer>
-
-//#define BENCH_TIME
-#ifdef BENCH_TIME
-#include <QElapsedTimer>
-#endif /* BENCH_TIME */
 
 namespace SpellChecker {
 namespace CppSpellChecker {
@@ -116,7 +110,6 @@ CppDocumentParser::CppDocumentParser(QObject *parent) :
     Core::ActionContainer *contextMenu = Core::ActionManager::createMenu(Constants::CONTEXT_MENU_ID);
     cppEditorContextMenu->addSeparator(context);
     cppEditorContextMenu->addMenu(contextMenu);
-
 }
 //--------------------------------------------------
 
@@ -167,15 +160,7 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
         return;
     }
 
-#ifdef BENCH_TIME
-    QElapsedTimer timer;
-    timer.start();
-#endif /* BENCH_TIME */
     WordList words = parseCppDocument(docPtr);
-#ifdef BENCH_TIME
-    qDebug() << "Parsing doc " << fileName << " took " << timer.elapsed() << " ( " << timer.nsecsElapsed() << ")"
-                    << "\n - Count : " << words.size();
-#endif /* BENCH_TIME */
     /* Now that we have all of the words from the parser, emit the signal
      * so that they will get spell checked. */
     emit spellcheckWordsParsed(fileName, words);
@@ -406,7 +391,7 @@ void CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusP
         if(words.count() != 0) {
             extractedWords.append(words);
         }
-        hashOut[hash] = {line, col, words};
+        hashOut[hash] = {line, col, std::move(words)};
     }
     return;
 }
