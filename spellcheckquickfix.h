@@ -25,19 +25,17 @@
 
 namespace SpellChecker {
 
-/*!
- * \brief QuickFixFactory implementation for fixing spelling mistakes inside C++ editor.
+/*! \brief QuickFixFactory implementation for fixing spelling mistakes inside C++ editor.
  *
  * It would be more generic to implement TextEditor::QuickFixFactory, but each editor actually only
  * uses a single quick fix factory at the moment (QtCreator 3.2); thus for C++ a CppQuickFixFactory
- * must be created instead.
- */
+ * must be created instead. */
 class SpellCheckCppQuickFixFactory: public CppEditor::CppQuickFixFactory
 {
 public:
     void match(const CppEditor::Internal::CppQuickFixInterface &interface, TextEditor::QuickFixOperations &result) Q_DECL_OVERRIDE;
 };
 
-}
+} // namespace SpellChecker
 
 #endif // SPELLCHECKER_SPELLCHECKQUICKFIX_H
