@@ -84,6 +84,20 @@ public:
     Internal::SpellCheckerCoreSettings* settings() const;
     Internal::ProjectMistakesModel* spellingMistakesModel() const;
 
+    /*! \brief Is the Word Under the Cursor a Mistake
+     * Check if the word under the cursor is a spelling mistake, and if it is,
+     * return the misspelled word.
+     * \param[out] word If the word is a mistake, this will return the misspelled word.
+     * \return True if the word is misspelled.
+     */
+    bool isWordUnderCursorMistake(Word& word) const;
+    /*! \brief Replace Words In CurrentEditor.
+     * Replace the given words in the current editor with the supplied replacement word.
+     * \param[in] wordsToReplace List of words to replace
+     * \param[in] replacementWord Word to replace all occurrences of the \a wordsToReplace
+     *              with.
+     */
+    void replaceWordsInCurrentEditor(const WordList& wordsToReplace, const QString& replacementWord);
 
 private:
     enum RemoveAction {
@@ -91,13 +105,6 @@ private:
         Ignore,   /*!< Ignore the word for the current Qt Creator Session. */
         Add       /*!< Add the word to the user's custom dictionary. */
     };
-    /*! \brief Is the Word Under the Cursor a Mistake
-     * Check if the word under the cursor is a spelling mistake, and if it is,
-     * return the misspelled word.
-     * \param[out] word If the word is a mistake, this will return the misspelled word.
-     * \return True if the word is misspelled.
-     */
-    bool isWordUnderCursorMistake(Word& word);
     /*! \brief Get All Occurrences Of a Word.
      * \param[in] word Word that must be retrieved.
      * \param[out] List of words that are the same as the \a word.
@@ -109,13 +116,6 @@ private:
      * \param[in] action Action to use to remove the word.
      */
     void removeWordUnderCursor(RemoveAction action);
-    /*! \brief Replace Words In CurrentEditor.
-     * Replace the given words in the current editor with the supplied replacement word.
-     * \param[in] wordsToReplace List of words to replace
-     * \param[in] replacementWord Word to replace all occurrences of the \a wordsToReplace
-     *              with.
-     */
-    void replaceWordsInCurrentEditor(const WordList& wordsToReplace, const QString& replacementWord);
     
 signals:
     /*! \brief Signal emitted to inform the plugin if the word under the cursor is a mistake.
