@@ -35,6 +35,7 @@
 #include <cpptools/cppdoxygen.h>
 #include <cplusplus/Overview.h>
 #include <cppeditor/cppeditorconstants.h>
+#include <cppeditor/cppeditordocument.h>
 #include <texteditor/texteditor.h>
 #include <texteditor/syntaxhighlighter.h>
 #include <projectexplorer/project.h>
@@ -250,56 +251,119 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 
     if(d->settings->whatToCheck.testFlag(CppParserSettings::CheckStringLiterals) == true) {
         /* Parse string literals */
-        QList<QPair<unsigned, unsigned>> tokenPosTrackList;
         unsigned int tokenCount = trUnit->tokenCount();
-        QString tokenString;
         for(unsigned int idx = 0; idx < tokenCount; ++idx) {
             const CPlusPlus::Token& token = trUnit->tokenAt(idx);
             if(token.isStringLiteral() == true) {
                 if(token.expanded() == true) {
-                    /* Removing the code that handles expanded literals.
-                     * This was sort of working on Linux, but not Windows.
-                     * It worked correctly for QStringLiteral but not for
-                     * other macro expansions like, Q_ASSERT. Until a
-                     * solution is found for at least the Linux side,
-                     * this code will not be used. */
-#if 0
-                    unsigned line, column;
-                    /* Expanded String Literals needs a bit more effort to extract the words. */
-                    tokenString = QString::fromUtf8(token.spell());
-                    if(tokenString.size() == 0) {
-                        /* The tokenString is empty, skip it. */
-                        continue;
+                    /* Expanded literals comes from macros. These are not checked since they can be the
+                     * result of a macro like '__LINE__'. A user is not interested in such literals.
+                     * The input arguments to Macros are more usable like MY_MAC("Some String").
+                     * The macro arguments are checked after the normal literals are checked. */
+                    continue;
+                }
+
+                /* The String Literal is not expanded thus handle it like a comment is handled. */
+                parseToken(docPtr, token, trUnit, wordsInSource, /* Comment */ false, /* Doxygen */ false, parsedWords, tokenHashesIn, tokenHashesOut);
+            }
+        }
+        /* Parse macros */
+        /* Get the macros from the document pointer. The arguments of the macro will then be parsed
+         * and checked for spelling mistakes.
+         * Since the TranslationUnit::getPosition() is not usable with the Macro Uses a manual method to extract
+         * the literals and their line and column positions are implemented. This involves getting the unprocessed
+         * source from the document for the macro and tracking the byte offsets manually from there.
+         * An alternative implementation can involve using the Snapshot::preprocessedDocument(), which makes use of the FastPreprocessor
+         * and the AST visitors.
+         * For more information around a discussion on the mailing list around this issue refer to the following
+         * link: http://comments.gmane.org/gmane.comp.lib.qt.creator/11853 */
+        QList<CPlusPlus::Document::MacroUse> macroUse = docPtr->macroUses();
+        if(macroUse.count() != 0) {
+            CppTools::CppModelManager *cppModelManager = CppTools::CppModelManager::instance();
+            CppTools::CppEditorDocumentHandle *cppEditorDocument = cppModelManager->cppEditorDocument(docPtr->fileName());
+            Q_ASSERT(cppEditorDocument != nullptr);
+            const QByteArray source = cppEditorDocument->contents();
+
+            for(const CPlusPlus::Document::MacroUse& mac: macroUse) {
+                const QVector<CPlusPlus::Document::Block>& args = mac.arguments();
+                if((mac.isFunctionLike() == false)
+                        || (args.count() == 0)) {
+                    /* The argument is not function like or there are no arguments */
+                    continue;
+                }
+                /* The line number of the macro is used as the reference. */
+                int line  = mac.beginLine();
+                /* Get the start of the line from the source. From this start the offset to the
+                 * words will be calculated. */
+                int start = source.lastIndexOf("\n", mac.bytesBegin());
+                /* Get the end index of the last argument of the macro. */
+                int end   = args.last().bytesEnd();
+                if(end == 0) {
+                    /* This will happen on an empty argument, for example Q_ASSERT() */
+                    continue;
+                }
+
+                /* Get the full macro from the start of the line until the last byte of the last
+                 * argument. */
+                QByteArray macroBytes = source.mid(start, end - start);
+                /* Quick check to see if there are any string literals in the macro text.
+                 * if the are this check can be a waist, but if not this can speed up the check by
+                 * avoiding an unneeded regular expression. */
+                if(macroBytes.contains('\"') == false) {
+                    continue;
+                }
+                /* Get the byte offsets inside the macro bytes for each line break inside the macro.
+                 * This will be used during the extraction to get the correct lines relative to the
+                 * line that the macro started on. */
+                QList<int> lineIndexes;
+                /* The search above for the start include the new line character so the start for other
+                 * new lines must start from index 1 so that it is not also included. */
+                int startSearch = 1;
+                while(true) {
+                      int idx = macroBytes.indexOf('\n', startSearch);
+                      if(idx < 0) {
+                          /* No more new lines, break out */
+                          break;
+                      }
+                      lineIndexes << idx;
+                      /* Must increment the start of the next search otherwise it will be found on
+                       * that index. */
+                      startSearch = idx + 1;
+                }
+                /* The end is also added to simplify some of the checks further on. No character can
+                 * fall outside of the end. */
+                lineIndexes << end;
+                int lineBreak = lineIndexes.front();
+                lineIndexes.pop_front();
+                int colOffset = 0;
+
+                /* Use a regular expression to get all string literals from the macro and its arguments. */
+                QRegularExpression regExp(QLatin1String("\"([^\"\\\\]|\\\\.)*\""));
+                QRegularExpressionMatchIterator regExpIter = regExp.globalMatch(QString::fromLatin1(macroBytes));
+                while(regExpIter.hasNext() == true) {
+                    QRegularExpressionMatch match = regExpIter.next();
+                    QString tokenString = match.captured(0);
+                    int capStart = match.capturedStart(0);
+                    /* Check if the literal starts on the next line from the current one */
+                    while(capStart > lineBreak) {
+                        /* Increase the line number and reset the column offset */
+                        ++line;
+                        colOffset = lineBreak;
+                        lineBreak = lineIndexes.front();
+                        lineIndexes.pop_front();
                     }
-                    /* Need to use TranslationUnit::getTokenStartPosition() on the expanded token instead of
-                     * Token::utf16charsBegin() that is used in this::parseToken(). */
-                    trUnit->getTokenStartPosition(idx, &line, &column);
-                    /* Due to the macro expansions a string might be seen twice,
-                     * this checks prevents parsing the same string twice.
-                     * This happens for instance for QStringLiteral. */
-                    if(tokenPosTrackList.contains(qMakePair(line, column)) == true) {
-                        continue;
-                    }
-                    tokenPosTrackList.append(qMakePair(line, column));
-                    /* Do not use the parseToken() function directly, use the functions inside to
-                     * tokenize and process the words. */
                     WordList words;
-                    tokenizeWords(docPtr->fileName(), tokenString, column + 1, trUnit, words, false);
-                    /* Apply the user settings to the words. */
-                    applySettingsToWords(tokenString, words, false, wordsInSource);
-                    /* Iterate the words and set the line to the correct number. This is needed because at
-                     * this point the lineNumber of each word will be 0 because of the way that the above
-                     * functions are used. */
+                    /* Get the words from the extracted literal */
+                    tokenizeWords(docPtr->fileName(), tokenString, 0, trUnit, words, false);
                     for(Word& word: words) {
+                        /* Apply the offsets to the words */
+                        word.columnNumber += capStart - colOffset;
                         word.lineNumber = line;
                     }
-                    /* Add the words that passed the tokenization and the settings to the list of words
-                     * that must be spell checked. */
+                    /* Apply settings */
+                    applySettingsToWords(tokenString, words, false, wordsInSource);
+                    /* The resulting words can be checked for spelling mistakes. */
                     parsedWords.append(words);
-#endif /* WIN32 */
-                } else {
-                    /* The String Literal is not expanded thus handle it like a comment is handled. */
-                    parseToken(docPtr, token, trUnit, wordsInSource, /* Comment */ false, /* Doxygen */ false, parsedWords, tokenHashesIn, tokenHashesOut);
                 }
             }
         }

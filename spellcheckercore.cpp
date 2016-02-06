@@ -206,7 +206,7 @@ void SpellCheckerCore::addMisspelledWords(const QString &fileName, const WordLis
         return;
     }
     QList<QTextEdit::ExtraSelection> selections;
-    foreach (const Word& word, words.values()) {
+    foreach(const Word& word, words.values()) {
         QTextCursor cursor(editorWidget->document());
         /* Walk to the correct position using the line and column number since the
          * absolute position is not available and I do not know of a way to get/
