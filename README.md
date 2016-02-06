@@ -3,7 +3,7 @@
 
 <h2>1. Introduction</h2>
 The SpellChecker Plugin is a spellchecker plugin for the Qt Creator IDE. 
-This plugin spell checks Comments and String Literals in source files for spelling mistakes and suggestt the correct spelling for misspelled words, if possible. <br>
+This plugin spell checks Comments and String Literals in source files for spelling mistakes and suggest the correct spelling for misspelled words, if possible. <br>
 Currently the plugin only checks C++ files and uses the Hunspell Spell Checker to check words for spelling mistakes. 
 The plugin provides an options page in Qt Creator that can be used to configure the parsers as well as the spell checkers available. <br><br>
 To build the plugin self, see section 2. <br>
