@@ -63,7 +63,7 @@ void SpellingMistakeDelegate::paint(QPainter *painter, const QStyleOptionViewIte
     int colMist = colLit - 4 - fm.width(QStringLiteral("\"000\""));
     int textArea = colMist - 4 - fm.width(QStringLiteral("000"));
 
-    QString fileName   = index.data(ProjectMistakesModel::COLUMN_FILE).toString();
+    QString fileName = index.data(ProjectMistakesModel::COLUMN_FILE).toString();
     /* Elide the text to make it fit into the available space. */
     fileName = fm.elidedText(fileName, Qt::ElideMiddle, textArea);
     QString nrMistakes = index.data(ProjectMistakesModel::COLUMN_MISTAKES_TOTAL).toString();

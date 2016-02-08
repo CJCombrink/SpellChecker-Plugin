@@ -233,6 +233,12 @@ void SpellCheckerCore::addMisspelledWords(const QString &fileName, const WordLis
         selections.append(selection);
     }
     editorWidget->setExtraSelections(Core::Id(SpellChecker::Constants::SPELLCHECK_MISTAKE_ID), selections);
+
+    /* The model updated, check if the word under the cursor is now a mistake
+     * and notify the rest of the checker with this information. */
+    Word word;
+    bool wordIsMisspelled = isWordUnderCursorMistake(word);
+    emit wordUnderCursorMistake(wordIsMisspelled, word);
 }
 //--------------------------------------------------
 
@@ -582,7 +588,7 @@ void SpellCheckerCore::removeWordUnderCursor(RemoveAction action)
 
     if(wordRemoved == true) {
         /* Remove all occurrences of the removed word. This removes the need to
-         * reparse the whole project, it will be a lot faster doing this.  */
+         * re-parse the whole project, it will be a lot faster doing this.  */
         d->spellingMistakesModel->removeAllOccurrences(word.text);
         /* Get the updated list associated with the file. */
         WordList newList = d->spellingMistakesModel->mistakesForFile(currentFileName);

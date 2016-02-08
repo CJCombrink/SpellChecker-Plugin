@@ -25,6 +25,10 @@
 
 #include <coreplugin/ioutputpane.h>
 
+#include <QStyledItemDelegate>
+#include <QItemDelegate>
+#include <QTreeView>
+
 QT_BEGIN_NAMESPACE
 class QModelIndex;
 QT_END_NAMESPACE
@@ -56,19 +60,75 @@ public:
     bool canPrevious() const;
     void goToNext();
     void goToPrev();
-    
 signals:
-    
-public slots:
+    void selectionChanged(const QModelIndex& index, const SpellChecker::Word& word);
 private slots:
-    void updateMistakesCount();
+    /*! \brief Slot called by the OutputPaneDelegate when a suggestion button is pressed
+     * for the current misspelled word.
+     *
+     * \param[in] index The index is used to update the selection to go to the next index in the model. This
+     * allows the user to replace words one after the other without much interaction with
+     * other buttons or the editor.
+     * \param[in] word The word that must be replaced.
+     * \param[in] suggestion Suggestion that was selected by the user. */
+    void replaceWord(const QModelIndex& index, const SpellChecker::Word& word, const QString& suggestion);
+    /*! \brief Slot called when the mistakes in the model gets updated.
+     *
+     * This slot is used to update the badge number to indicate the number of mistakes and to
+     * reset the selection if a replacement was made from the output pane. */
+    void modelMistakesUpdated();
+    /*! \brief Slot called when a mistake in the output pane is selected.
+     *
+     * This slot will cause the cursor in the current editor to jump to the location
+     * of the selected spelling mistake.
+     *
+     * This function will also get called when the user presses the next and previous buttons. */
     void mistakeSelected(const QModelIndex& index);
+    /*! \brief Slot called when the cursor moves over a spelling mistake.
+     *
+     * If the cursor in the editor is over a mistake, then the item in the
+     * output pane will be selected. */
     void wordUnderCursorMistake(bool isMistake, const SpellChecker::Word& word);
-
 private:
-    OutputPanePrivate* const d;
-    
+    OutputPanePrivate* const d;    
 };
+
+class OutputPaneDelegatePrivate;
+/*! \brief The output pane delegate.
+ *
+ * This class is responsible for drawing a list of buttons in the tree view of the output
+ * pane for a selected spelling mistake. Each button contains a possible suggestion for the
+ * current misspelled word under the cursor. When a user presses the button, the word under the
+ * cursor will be replaced with the selected suggestion. */
+class OutputPaneDelegate : public QItemDelegate
+{
+    Q_OBJECT
+public:
+    OutputPaneDelegate(QTreeView *parent);
+    virtual ~OutputPaneDelegate();
+private:
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;
+    void setEditorData(QWidget *editor, const QModelIndex &index) const Q_DECL_OVERRIDE;
+    void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const Q_DECL_OVERRIDE;
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;
+signals:
+    /*! \brief Signal emitted when the user clicks on one of the suggestions buttons.
+     *
+     * \param index Current index in the model that the word is in.
+     * \param word The misspelled word.
+     * \param suggestion The selected suggestion that the \a word must be replaced with. */
+    void replaceWord(const QModelIndex& index, const SpellChecker::Word& word, const QString suggestion) const;
+public slots:
+    /*! \brief Slot called when a row is selected.
+     *
+     * This slot will cause the row to be updated and the buttons to be drawn. If buttons are
+     * drawn for the previous selected row, those buttons will be hidden as well. */
+    void rowSelected(const QModelIndex &index, const SpellChecker::Word& word);
+private:
+    OutputPaneDelegatePrivate* const d;
+};
+
 
 } // namespace Internal
 } // namespace SpellChecker

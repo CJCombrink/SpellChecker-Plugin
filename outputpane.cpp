@@ -33,6 +33,8 @@
 #include <QApplication>
 #include <QFileInfo>
 #include <QCheckBox>
+#include <QHBoxLayout>
+#include <QPushButton>
 #include <QSpacerItem>
 
 class SpellChecker::Internal::OutputPanePrivate {
@@ -45,10 +47,10 @@ public:
     QToolButton* buttonSuggest;
     QToolButton* buttonLucky;
     QToolButton* buttonLiterals;
+    OutputPaneDelegate* delegate;
+    QModelIndex indexAfterReplace;
 
-    OutputPanePrivate()
-    {}
-    ~OutputPanePrivate() {}
+    OutputPanePrivate() {}
 };
 //--------------------------------------------------
 //--------------------------------------------------
@@ -71,6 +73,12 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
     d->treeView->setSortingEnabled(true);
     d->treeView->setModel(d->model);
     d->treeView->setAttribute(Qt::WA_MacShowFocusRect, false);
+
+    d->delegate = new OutputPaneDelegate(d->treeView);
+    d->treeView->setItemDelegate(d->delegate);
+    d->treeView->setUniformRowHeights(false);
+    connect(this, &OutputPane::selectionChanged, d->delegate, &OutputPaneDelegate::rowSelected);
+    connect(d->delegate, &OutputPaneDelegate::replaceWord, this, &OutputPane::replaceWord);
 
     QHeaderView *header = d->treeView->header();
     header->setSectionResizeMode(Constants::MISTAKE_COLUMN_IDX, QHeaderView::ResizeToContents);
@@ -112,8 +120,7 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
     SpellCheckerCore* core = SpellCheckerCore::instance();
     connect(core, &SpellCheckerCore::wordUnderCursorMistake, this, &OutputPane::wordUnderCursorMistake, Qt::DirectConnection);
 
-    connect(d->model, &SpellingMistakesModel::mistakesUpdated, this, &IOutputPane::navigateStateUpdate);
-    connect(d->model, &SpellingMistakesModel::mistakesUpdated, this, &OutputPane::updateMistakesCount);
+    connect(d->model, &SpellingMistakesModel::mistakesUpdated, this, &OutputPane::modelMistakesUpdated);
     connect(d->treeView, &QAbstractItemView::clicked, this, &OutputPane::mistakeSelected);
 }
 //--------------------------------------------------
@@ -206,9 +213,9 @@ void OutputPane::goToNext()
 {
     QModelIndex currentIndex;
     QModelIndexList currentSelectedList = d->treeView->selectionModel()->selectedIndexes();
-    if(currentSelectedList.isEmpty() == false)
+    if(currentSelectedList.isEmpty() == false) {
         currentIndex = currentSelectedList.first();
-
+    }
     QModelIndex nextIndex = d->treeView->indexBelow(currentIndex);
     if(nextIndex.isValid() == false) {
         nextIndex = d->treeView->model()->index(0, 0);
@@ -223,8 +230,9 @@ void OutputPane::goToPrev()
 {
     QModelIndex currentIndex;
     QModelIndexList currentSelectedList = d->treeView->selectionModel()->selectedIndexes();
-    if(currentSelectedList.isEmpty() == false)
+    if(currentSelectedList.isEmpty() == false) {
         currentIndex = currentSelectedList.first();
+    }
 
     QModelIndex previousIndex = d->treeView->indexAbove(currentIndex);
     if(previousIndex.isValid() == false) {
@@ -236,9 +244,35 @@ void OutputPane::goToPrev()
 }
 //--------------------------------------------------
 
-void OutputPane::updateMistakesCount()
+void OutputPane::replaceWord(const QModelIndex &index, const Word &word, const QString &suggestion)
 {
+    /* Keep track of the index that was selected before the replace is made.
+     * This index is then used when the model is updated to select that index.
+     * This is needed to implement the feature to go to the next mistake in the
+     * list when one is replaced.
+     * If the last item is replaced, the next index must go to the first item. */
+    if(index.row() == (d->treeView->model()->rowCount() - 1)) {
+        d->indexAfterReplace = d->treeView->model()->index(0, index.column());
+    } else {
+        d->indexAfterReplace = index;
+    }
+    WordList words;
+    words.append(word);
+    /* Replace the word which will result in the model getting updated/ */
+    SpellCheckerCore::instance()->replaceWordsInCurrentEditor(words, suggestion);
+}
+//--------------------------------------------------
+
+void OutputPane::modelMistakesUpdated()
+{
+    IOutputPane::navigateStateUpdate();
     setBadgeNumber(d->model->rowCount());
+    /* Check if the index is valid so that that index can be selected in the view. */
+    if(d->indexAfterReplace.isValid() == true) {
+        mistakeSelected(d->indexAfterReplace);
+        /* Reset/invalidate the index */
+        d->indexAfterReplace = QModelIndex();
+    }
 }
 //--------------------------------------------------
 
@@ -275,5 +309,133 @@ void OutputPane::wordUnderCursorMistake(bool isMistake, const SpellChecker::Word
      * at the selection and there is no need to jump to the word in the
      * editor, just update the selection on the pane. */
     d->treeView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent | QItemSelectionModel::Rows);
+    emit selectionChanged(index, word);
+}
+//--------------------------------------------------
+//--------------------------------------------------
+//--------------------------------------------------
+
+class SpellChecker::Internal::OutputPaneDelegatePrivate {
+public:
+    QTreeView* treeView;
+    bool buttonsShown = false;
+    int selectedRow   = -1;
+    QModelIndex editIndex;
+    int created = 0;
+    Word wordSelected;
+
+    OutputPaneDelegatePrivate() {}
+};
+//--------------------------------------------------
+//--------------------------------------------------
+//--------------------------------------------------
+
+OutputPaneDelegate::OutputPaneDelegate(QTreeView *parent)
+    : QItemDelegate(parent)
+    , d(new OutputPaneDelegatePrivate())
+{
+    d->treeView = parent;
+}
+//--------------------------------------------------
+
+OutputPaneDelegate::~OutputPaneDelegate()
+{
+    delete d;
+}
+//--------------------------------------------------
+
+void OutputPaneDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if((index.column() == Constants::MISTAKE_COLUMN_SUGGESTIONS)
+            && (index.row() == d->selectedRow)) {
+        /* Open the buttons for this row if it is the selected row and the column gets repainted. */
+        d->editIndex = index;
+        d->treeView->openPersistentEditor(index);
+        d->buttonsShown = true;
+    } else {
+        QItemDelegate::paint(painter, option, index);
+    }
+}
+//--------------------------------------------------
+
+QWidget *OutputPaneDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if(index.column() == Constants::MISTAKE_COLUMN_SUGGESTIONS) {
+        /* Create an editor widget that contains each suggestion as a button to replace the
+         * misspelled word with the clicked button. */
+        QWidget* widget = new QWidget(parent);
+        QHBoxLayout* layout = new QHBoxLayout();
+        widget->setLayout(layout);
+        layout->setMargin(0);
+        Word word = d->wordSelected;
+        QStringList suggestions = index.data().toString().split(QLatin1String(", "));
+        for(const QString& suggestion: suggestions) {
+            QPushButton* button = new QPushButton();
+            button->setText(suggestion);
+            button->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
+            button->setContentsMargins(0, 0, 0, 0);
+            connect(button, &QPushButton::clicked, [this, word, suggestion, index](){
+                emit replaceWord(index, word, suggestion);
+            });
+            layout->addWidget(button);
+        }
+        layout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding));
+        d->treeView->dataChanged(index, index);
+        return widget;
+    } else {
+        return QItemDelegate::createEditor(parent, option, index);
+    }
+}
+//--------------------------------------------------
+
+void OutputPaneDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+{
+    Q_UNUSED(editor);
+    Q_UNUSED(index);
+}
+//--------------------------------------------------
+
+void OutputPaneDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+{
+    Q_UNUSED(editor);
+    Q_UNUSED(model);
+    Q_UNUSED(index);
+}
+//--------------------------------------------------
+
+QSize OutputPaneDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if(index.row() == d->selectedRow) {
+        QSize size = QItemDelegate::sizeHint(option, index);
+        size.setHeight(size.height() + 10);
+        return size;
+    }
+    return QItemDelegate::sizeHint(option,index);
+}
+//--------------------------------------------------
+
+void OutputPaneDelegate::rowSelected(const QModelIndex &index, const Word &word)
+{
+    /* First close the editor/buttons if they are shown on a previous row. */
+    if(d->buttonsShown == true) {
+        d->buttonsShown = false;
+        QModelIndex prevIndex = d->editIndex;
+        d->editIndex   = QModelIndex();
+        d->selectedRow = -1;
+        d->treeView->closePersistentEditor(prevIndex);
+        d->treeView->dataChanged(prevIndex, prevIndex);
+        emit sizeHintChanged(prevIndex);
+    }
+    if(index.isValid() == false) {
+        return;
+    }
+    /* Mark the row for updates so that the buttons will be drawn and the
+     * row height updated. */
+    QModelIndex left = d->treeView->model()->index(index.row(), 0);
+    QModelIndex right = d->treeView->model()->index(index.row(), Constants::MISTAKE_COLUMN_COUNT);
+    d->selectedRow = index.row();
+    d->wordSelected = word;
+    d->treeView->dataChanged(left, right);
+    emit sizeHintChanged(index);
 }
 //--------------------------------------------------
