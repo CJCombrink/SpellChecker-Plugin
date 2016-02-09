@@ -323,6 +323,19 @@ public:
     QModelIndex editIndex;
     int created = 0;
     Word wordSelected;
+    const QString buttonStylesheet = QLatin1String("QPushButton { "
+                                                   "  border-style: groove;"
+                                                   "  border-width: 2px;"
+                                                   "  border-color: palette(dark);"
+                                                   "  border-radius: 6px;"
+                                                   "  padding: 0px 4px;"
+                                                   "  background-color: palette(button);"
+                                                   "  min-width: 60px;"
+                                                   "}"
+                                                   "QPushButton:hover {"
+                                                   "  border-style: solid; "
+                                                   "  background-color: palette(dark);"
+                                                   "}");
 
     OutputPaneDelegatePrivate() {}
 };
@@ -371,6 +384,7 @@ QWidget *OutputPaneDelegate::createEditor(QWidget *parent, const QStyleOptionVie
         QStringList suggestions = index.data().toString().split(QLatin1String(", "));
         for(const QString& suggestion: suggestions) {
             QPushButton* button = new QPushButton();
+            button->setStyleSheet(d->buttonStylesheet);
             button->setText(suggestion);
             button->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
             button->setContentsMargins(0, 0, 0, 0);
@@ -407,7 +421,7 @@ QSize OutputPaneDelegate::sizeHint(const QStyleOptionViewItem &option, const QMo
 {
     if(index.row() == d->selectedRow) {
         QSize size = QItemDelegate::sizeHint(option, index);
-        size.setHeight(size.height() + 10);
+        size.setHeight(size.height() + 5);
         return size;
     }
     return QItemDelegate::sizeHint(option,index);
