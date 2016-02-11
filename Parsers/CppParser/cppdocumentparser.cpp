@@ -281,89 +281,90 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
         if(macroUse.count() != 0) {
             CppTools::CppModelManager *cppModelManager = CppTools::CppModelManager::instance();
             CppTools::CppEditorDocumentHandle *cppEditorDocument = cppModelManager->cppEditorDocument(docPtr->fileName());
-            Q_ASSERT(cppEditorDocument != nullptr);
-            const QByteArray source = cppEditorDocument->contents();
+            if(cppEditorDocument != nullptr) {
+                const QByteArray source = cppEditorDocument->contents();
 
-            for(const CPlusPlus::Document::MacroUse& mac: macroUse) {
-                const QVector<CPlusPlus::Document::Block>& args = mac.arguments();
-                if((mac.isFunctionLike() == false)
-                        || (args.count() == 0)) {
-                    /* The argument is not function like or there are no arguments */
-                    continue;
-                }
-                /* The line number of the macro is used as the reference. */
-                int line  = mac.beginLine();
-                /* Get the start of the line from the source. From this start the offset to the
-                 * words will be calculated. */
-                int start = source.lastIndexOf("\n", mac.bytesBegin());
-                /* Get the end index of the last argument of the macro. */
-                int end   = args.last().bytesEnd();
-                if(end == 0) {
-                    /* This will happen on an empty argument, for example Q_ASSERT() */
-                    continue;
-                }
+                for(const CPlusPlus::Document::MacroUse& mac: macroUse) {
+                    const QVector<CPlusPlus::Document::Block>& args = mac.arguments();
+                    if((mac.isFunctionLike() == false)
+                            || (args.count() == 0)) {
+                        /* The argument is not function like or there are no arguments */
+                        continue;
+                    }
+                    /* The line number of the macro is used as the reference. */
+                    int line  = mac.beginLine();
+                    /* Get the start of the line from the source. From this start the offset to the
+                     * words will be calculated. */
+                    int start = source.lastIndexOf("\n", mac.bytesBegin());
+                    /* Get the end index of the last argument of the macro. */
+                    int end   = args.last().bytesEnd();
+                    if(end == 0) {
+                        /* This will happen on an empty argument, for example Q_ASSERT() */
+                        continue;
+                    }
 
-                /* Get the full macro from the start of the line until the last byte of the last
-                 * argument. */
-                QByteArray macroBytes = source.mid(start, end - start);
-                /* Quick check to see if there are any string literals in the macro text.
-                 * if the are this check can be a waist, but if not this can speed up the check by
-                 * avoiding an unneeded regular expression. */
-                if(macroBytes.contains('\"') == false) {
-                    continue;
-                }
-                /* Get the byte offsets inside the macro bytes for each line break inside the macro.
-                 * This will be used during the extraction to get the correct lines relative to the
-                 * line that the macro started on. */
-                QList<int> lineIndexes;
-                /* The search above for the start include the new line character so the start for other
-                 * new lines must start from index 1 so that it is not also included. */
-                int startSearch = 1;
-                while(true) {
-                      int idx = macroBytes.indexOf('\n', startSearch);
-                      if(idx < 0) {
-                          /* No more new lines, break out */
-                          break;
-                      }
-                      lineIndexes << idx;
-                      /* Must increment the start of the next search otherwise it will be found on
+                    /* Get the full macro from the start of the line until the last byte of the last
+                     * argument. */
+                    QByteArray macroBytes = source.mid(start, end - start);
+                    /* Quick check to see if there are any string literals in the macro text.
+                     * if the are this check can be a waist, but if not this can speed up the check by
+                     * avoiding an unneeded regular expression. */
+                    if(macroBytes.contains('\"') == false) {
+                        continue;
+                    }
+                    /* Get the byte offsets inside the macro bytes for each line break inside the macro.
+                     * This will be used during the extraction to get the correct lines relative to the
+                     * line that the macro started on. */
+                    QList<int> lineIndexes;
+                    /* The search above for the start include the new line character so the start for other
+                     * new lines must start from index 1 so that it is not also included. */
+                    int startSearch = 1;
+                    while(true) {
+                        int idx = macroBytes.indexOf('\n', startSearch);
+                        if(idx < 0) {
+                            /* No more new lines, break out */
+                            break;
+                        }
+                        lineIndexes << idx;
+                        /* Must increment the start of the next search otherwise it will be found on
                        * that index. */
-                      startSearch = idx + 1;
-                }
-                /* The end is also added to simplify some of the checks further on. No character can
-                 * fall outside of the end. */
-                lineIndexes << end;
-                int lineBreak = lineIndexes.front();
-                lineIndexes.pop_front();
-                int colOffset = 0;
+                        startSearch = idx + 1;
+                    }
+                    /* The end is also added to simplify some of the checks further on. No character can
+                     * fall outside of the end. */
+                    lineIndexes << end;
+                    int lineBreak = lineIndexes.front();
+                    lineIndexes.pop_front();
+                    int colOffset = 0;
 
-                /* Use a regular expression to get all string literals from the macro and its arguments. */
-                QRegularExpression regExp(QLatin1String("\"([^\"\\\\]|\\\\.)*\""));
-                QRegularExpressionMatchIterator regExpIter = regExp.globalMatch(QString::fromLatin1(macroBytes));
-                while(regExpIter.hasNext() == true) {
-                    QRegularExpressionMatch match = regExpIter.next();
-                    QString tokenString = match.captured(0);
-                    int capStart = match.capturedStart(0);
-                    /* Check if the literal starts on the next line from the current one */
-                    while(capStart > lineBreak) {
-                        /* Increase the line number and reset the column offset */
-                        ++line;
-                        colOffset = lineBreak;
-                        lineBreak = lineIndexes.front();
-                        lineIndexes.pop_front();
+                    /* Use a regular expression to get all string literals from the macro and its arguments. */
+                    QRegularExpression regExp(QLatin1String("\"([^\"\\\\]|\\\\.)*\""));
+                    QRegularExpressionMatchIterator regExpIter = regExp.globalMatch(QString::fromLatin1(macroBytes));
+                    while(regExpIter.hasNext() == true) {
+                        QRegularExpressionMatch match = regExpIter.next();
+                        QString tokenString = match.captured(0);
+                        int capStart = match.capturedStart(0);
+                        /* Check if the literal starts on the next line from the current one */
+                        while(capStart > lineBreak) {
+                            /* Increase the line number and reset the column offset */
+                            ++line;
+                            colOffset = lineBreak;
+                            lineBreak = lineIndexes.front();
+                            lineIndexes.pop_front();
+                        }
+                        WordList words;
+                        /* Get the words from the extracted literal */
+                        tokenizeWords(docPtr->fileName(), tokenString, 0, trUnit, words, false);
+                        for(Word& word: words) {
+                            /* Apply the offsets to the words */
+                            word.columnNumber += capStart - colOffset;
+                            word.lineNumber = line;
+                        }
+                        /* Apply settings */
+                        applySettingsToWords(tokenString, words, false, wordsInSource);
+                        /* The resulting words can be checked for spelling mistakes. */
+                        parsedWords.append(words);
                     }
-                    WordList words;
-                    /* Get the words from the extracted literal */
-                    tokenizeWords(docPtr->fileName(), tokenString, 0, trUnit, words, false);
-                    for(Word& word: words) {
-                        /* Apply the offsets to the words */
-                        word.columnNumber += capStart - colOffset;
-                        word.lineNumber = line;
-                    }
-                    /* Apply settings */
-                    applySettingsToWords(tokenString, words, false, wordsInSource);
-                    /* The resulting words can be checked for spelling mistakes. */
-                    parsedWords.append(words);
                 }
             }
         }
