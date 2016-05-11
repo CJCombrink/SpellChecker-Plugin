@@ -100,7 +100,7 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
     connect(d->buttonSuggest, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::giveSuggestionsForWordUnderCursor);
 
     d->buttonIgnore = new QToolButton();
-    d->buttonAdd->setIcon(Core::Icons::MINUS.icon());
+    d->buttonIgnore->setIcon(Core::Icons::MINUS.icon());
     d->buttonIgnore->setToolTip(tr("Ignore the word"));
     d->toolbarWidgets.push_back(d->buttonIgnore);
     connect(d->buttonIgnore, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::ignoreWordUnderCursor);
