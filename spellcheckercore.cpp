@@ -339,7 +339,7 @@ void SpellCheckerCore::spellcheckWordsFromParser(const QString& fileName, const 
          * the words. */
         connect(watcher, &QFutureWatcher<WordList>::finished, processor, &SpellCheckProcessor::deleteLater);
         /* Run the processor in the background and set a watcher to monitor the progress. */
-        QFuture<WordList> future = QtConcurrent::run(&SpellCheckProcessor::process, processor);
+        QFuture<WordList> future = Utils::runAsync(&SpellCheckProcessor::process, processor);
         watcher->setFuture(future);
     }
 }
@@ -655,7 +655,7 @@ void SpellCheckerCore::startupProjectChanged(ProjectExplorer::Project *startupPr
     if(startupProject != NULL) {
         /* Check if the current project is not set to be ignored by the settings. */
         if(d->settings->projectsToIgnore.contains(startupProject->displayName()) == false) {
-            d->filesInStartupProject = startupProject->files(ProjectExplorer::Project::ExcludeGeneratedFiles);
+            d->filesInStartupProject = startupProject->files(ProjectExplorer::Project::SourceFiles);
         } else {
             /* The Project should be ignored and not be spell checked. */
             d->startupProject = NULL;
