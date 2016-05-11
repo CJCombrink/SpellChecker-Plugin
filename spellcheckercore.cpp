@@ -339,7 +339,7 @@ void SpellCheckerCore::spellcheckWordsFromParser(const QString& fileName, const 
          * the words. */
         connect(watcher, &QFutureWatcher<WordList>::finished, processor, &SpellCheckProcessor::deleteLater);
         /* Run the processor in the background and set a watcher to monitor the progress. */
-        QFuture<WordList> future = Utils::runAsync(&SpellCheckProcessor::process, processor);
+        QFuture<WordList> future = Utils::runAsync(QThreadPool::globalInstance(), &SpellCheckProcessor::process, processor);
         watcher->setFuture(future);
     }
 }
@@ -757,3 +757,4 @@ void SpellCheckerCore::updateContextMenu()
     }
 }
 //--------------------------------------------------
+
