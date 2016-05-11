@@ -23,6 +23,7 @@
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/idocument.h>
+#include <coreplugin/coreicons.h>
 
 #include <QHeaderView>
 #include <QPainter>
@@ -226,7 +227,7 @@ Core::NavigationView NavigationWidgetFactory::createWidget()
     view.widget = widget;
 
     QToolButton* sortButton = new QToolButton(widget);
-    sortButton->setIcon(QIcon(QLatin1String(":/core/images/arrowdown.png")));
+    sortButton->setIcon(Core::Icons::ARROW_DOWN.icon());
     sortButton->setToolTip(tr("Sort"));
     sortButton->setPopupMode(QToolButton::InstantPopup);
 

@@ -24,6 +24,7 @@
 #include "spellcheckerconstants.h"
 
 #include <coreplugin/icore.h>
+#include <coreplugin/coreicons.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 
@@ -99,13 +100,13 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
     connect(d->buttonSuggest, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::giveSuggestionsForWordUnderCursor);
 
     d->buttonIgnore = new QToolButton();
-    d->buttonIgnore->setText(tr("-"));
+    d->buttonAdd->setIcon(Core::Icons::MINUS.icon());
     d->buttonIgnore->setToolTip(tr("Ignore the word"));
     d->toolbarWidgets.push_back(d->buttonIgnore);
     connect(d->buttonIgnore, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::ignoreWordUnderCursor);
 
     d->buttonAdd = new QToolButton();
-    d->buttonAdd->setText(tr("+"));
+    d->buttonAdd->setIcon(Core::Icons::PLUS.icon());
     d->buttonAdd->setToolTip(tr("Add the word to the user dictionary"));
     d->toolbarWidgets.push_back(d->buttonAdd);
     connect(d->buttonAdd, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::addWordUnderCursor);
