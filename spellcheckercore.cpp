@@ -130,7 +130,6 @@ SpellCheckerCore::SpellCheckerCore(QObject *parent) :
     Q_ASSERT(d->contextMenu != NULL);
     connect(d->contextMenu->menu(), &QMenu::aboutToShow, this, &SpellCheckerCore::updateContextMenu);
     connect(qApp, &QCoreApplication::aboutToQuit, this, &SpellCheckerCore::cancelFutures, Qt::DirectConnection);
-
 }
 //--------------------------------------------------
 
