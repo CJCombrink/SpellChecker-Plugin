@@ -37,7 +37,7 @@ HunspellOptionsWidget::HunspellOptionsWidget(const QString &dictionary, const QS
                                           "A *.aff file with the same name as the selected dictionary file must be in the selected folder. \n"
                                           "On most Unix/ Linux based system some will already be installed and can be re-used. \n"
                                           "On other systems one might need to download one manually."));
-    ui->lineEditUserDictionary->setToolTip(tr("The User Dictionary is a custom user dictionary that the Hunspel Spellchecker \n"
+    ui->lineEditUserDictionary->setToolTip(tr("The User Dictionary is a custom user dictionary that the Hunspell Spellchecker \n"
                                               "will use to remember words that get added to the dictionary. \n"
                                               "If such a file does not already exist, it will get created with the given information. "));
 
