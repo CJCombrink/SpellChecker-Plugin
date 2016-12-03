@@ -24,6 +24,8 @@
 
 #include <QDir>
 
+#include <algorithm>
+
 using namespace SpellChecker;
 using namespace SpellChecker::Internal;
 
@@ -229,7 +231,7 @@ void SpellingMistakesModel::sort(int column, Qt::SortOrder order)
     d->sortColumn = Constants::MistakesModelColumn(column);
     d->sortOrder = order;
     SpellingMistakesPredicate predicate(d->sortColumn, d->sortOrder);
-    qSort(d->wordList.begin(), d->wordList.end(), predicate);
+    std::sort(d->wordList.begin(), d->wordList.end(), predicate);
     endResetModel();
     emit layoutChanged();
     emit mistakesUpdated();
