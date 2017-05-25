@@ -24,6 +24,8 @@
 #include "spellcheckercore.h"
 #include "ISpellChecker.h"
 
+#include <utils/utilsicons.h>
+
 using namespace SpellChecker::Internal;
 
 SpellCheckerCoreOptionsWidget::SpellCheckerCoreOptionsWidget(const SpellChecker::Internal::SpellCheckerCoreSettings * const settings, QWidget *parent) :
@@ -33,8 +35,14 @@ SpellCheckerCoreOptionsWidget::SpellCheckerCoreOptionsWidget(const SpellChecker:
     ui->setupUi(this);
     /* Hide the error widget by default, since there should not be errors. */
     ui->widgetErrorOutput->setVisible(false);
-    ui->toolButtonAddProject->setIcon(QIcon(QStringLiteral(":/core/images/plus.png")));
-    ui->toolButtonRemoveProject->setIcon(QIcon(QStringLiteral(":/core/images/minus.png")));
+    ui->toolButtonAddProject->setIcon(Utils::Icons::PLUS.icon());
+    /* Manually create the correct Minus icon in the same way that the Icon
+     * Utils creates the PLUS icon. The reason for this is that the PLUS
+     * icon also has a PLUS_TOOLBAR icon for toolbars, but the Minus icon
+     * does not have these two icons, it only has the one, and that one
+     * is for the toolbar since nowhere else is a normal one needed. */
+    ui->toolButtonRemoveProject->setIcon(Utils::Icon({{QLatin1String(":/utils/images/minus.png")
+                                                       , Utils::Theme::PaletteText}}, Utils::Icon::Tint).icon());
 
     ui->comboBoxSpellChecker->addItem(QLatin1String(""));
     QMap<QString, ISpellChecker*> availableSpellCheckers = SpellCheckerCore::instance()->addedSpellCheckers();
@@ -100,10 +108,6 @@ void SpellCheckerCoreOptionsWidget::updateWithSettings(const SpellCheckerCoreSet
 
 void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_comboBoxSpellChecker_currentIndexChanged(const QString &arg1)
 {
-    delete ui->spellCheckerOptionsWidgetHolder->layout();
-    QVBoxLayout* layout = new QVBoxLayout(ui->spellCheckerOptionsWidgetHolder);
-    layout->setMargin(0);
-
     if(arg1.isEmpty() == true) {
         return;
     }
@@ -113,7 +117,7 @@ void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_comboBoxSpellChec
         return;
     }
     QWidget* widget = availableSpellCheckers[arg1]->optionsWidget();
-    layout->addWidget(widget);
+    ui->spellCheckerOptionsWidgetLayout->addWidget(widget);
     connect(this, SIGNAL(applyCurrentSetSettings()), widget, SLOT(applySettings()));
     connect(widget, SIGNAL(optionsError(QString,QString)), this, SLOT(optionsPageError(QString,QString)));
 }

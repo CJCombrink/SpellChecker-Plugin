@@ -73,7 +73,7 @@ const char MISTAKES_MODEL_COLUMN_NAMES[][20] = {
 
 /* Image resource paths */
 const char ICON_SPELLCHECKERPLUGIN_OPTIONS[] = ":/spellcheckerplugin/Resources/images/optionspageicon.png";
-const char ICON_OUTPUTPANE_LUKCY_BUTTON[]    = ":/spellcheckerplugin/Resources/images/clover.png";
+const char ICON_OUTPUTPANE_LUCKY_BUTTON[]    = ":/spellcheckerplugin/Resources/images/clover.png";
 
 } // namespace SpellChecker
 } // namespace Constants

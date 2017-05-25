@@ -1,7 +1,7 @@
 {
     \"Name\" : \"SpellChecker\",
-    \"Version\" : \"0.12.0\",
-    \"CompatVersion\" : \"0.12.0\",
+    \"Version\" : \"0.13.0\",
+    \"CompatVersion\" : \"0.13.0\",
     \"Experimental\" : true,
     \"Vendor\" : \"Carel Combrink\",
     \"Copyright\" : \"(C) 2015 - 2017 Carel Combrink\",

@@ -93,7 +93,14 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
 
     /* Create the toolbar buttons */
     d->buttonSuggest = new QToolButton();
-    d->buttonSuggest->setIcon(QIcon(QLatin1String(":/texteditor/images/refactormarker.png")));
+    /* Create the icon for the suggestion ToolButton.
+     * This code was copied directly from {QtC}/src/plugins/texteditor/refactoroverlay.cpp
+     * An icon is created with the 2 parts with specific colors for each. */
+    d->buttonSuggest->setIcon(
+          Utils::Icon({
+                       {QLatin1String(":/texteditor/images/lightbulbcap.png"), Utils::Theme::PanelTextColorMid},
+                       {QLatin1String(":/texteditor/images/lightbulb.png"), Utils::Theme::IconsWarningColor}}
+                      , Utils::Icon::Tint).icon());
     d->buttonSuggest->setText(tr("Give Suggestions"));
     d->buttonSuggest->setToolTip(tr("Give suggestions for the word"));
     d->toolbarWidgets.push_back(d->buttonSuggest);
@@ -106,13 +113,13 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
     connect(d->buttonIgnore, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::ignoreWordUnderCursor);
 
     d->buttonAdd = new QToolButton();
-    d->buttonAdd->setIcon(Utils::Icons::PLUS.icon());
+    d->buttonAdd->setIcon(Utils::Icons::PLUS_TOOLBAR.icon());
     d->buttonAdd->setToolTip(tr("Add the word to the user dictionary"));
     d->toolbarWidgets.push_back(d->buttonAdd);
     connect(d->buttonAdd, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::addWordUnderCursor);
 
     d->buttonLucky = new QToolButton();
-    d->buttonLucky->setIcon(QIcon(QLatin1String(Constants::ICON_OUTPUTPANE_LUKCY_BUTTON)));
+    d->buttonLucky->setIcon(QIcon(QLatin1String(Constants::ICON_OUTPUTPANE_LUCKY_BUTTON)));
     d->buttonLucky->setText(tr("Feeling Lucky"));
     d->buttonLucky->setToolTip(tr("Replace the word with the first suggestion"));
     d->toolbarWidgets.push_back(d->buttonLucky);
