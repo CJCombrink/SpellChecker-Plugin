@@ -387,6 +387,7 @@ QWidget *OutputPaneDelegate::createEditor(QWidget *parent, const QStyleOptionVie
         QWidget* widget = new QWidget(parent);
         QHBoxLayout* layout = new QHBoxLayout();
         widget->setLayout(layout);
+        widget->setStyleSheet("background-color:palette(highlight)");
         layout->setMargin(0);
         Word word = d->wordSelected;
         QStringList suggestions = index.data().toString().split(QLatin1String(", "));
