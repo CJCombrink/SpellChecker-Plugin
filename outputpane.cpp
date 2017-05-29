@@ -387,7 +387,15 @@ QWidget *OutputPaneDelegate::createEditor(QWidget *parent, const QStyleOptionVie
         QWidget* widget = new QWidget(parent);
         QHBoxLayout* layout = new QHBoxLayout();
         widget->setLayout(layout);
-        widget->setStyleSheet("background-color:palette(highlight)");
+        /* Set the background of the widget based on the OS. For some
+         * reason Windows uses the button color to highlight the selected
+         * row, but on Linux the highlight color is used. Not sure what
+         * MacOS uses but this will also use the highlight color. */
+#ifdef _WIN32
+        widget->setStyleSheet(QStringLiteral("background-color:palette(button)"));
+#else
+        widget->setStyleSheet(QStringLiteral("background-color:palette(highlight)"));
+#endif /* WIN 32 */
         layout->setMargin(0);
         Word word = d->wordSelected;
         QStringList suggestions = index.data().toString().split(QLatin1String(", "));
