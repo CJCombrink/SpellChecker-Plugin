@@ -84,7 +84,7 @@ public:
         activeProject(NULL),
         currentEditorFileName(),
         filesInStartupProject(),
-        cppRegExp(QLatin1String("") + QLatin1String(SpellChecker::Parsers::CppParser::Constants::CPP_SOURCE_FILES_REGEXP_PATTERN), QRegularExpression::CaseInsensitiveOption)
+        cppRegExp(QLatin1String(SpellChecker::Parsers::CppParser::Constants::CPP_SOURCE_FILES_REGEXP_PATTERN), QRegularExpression::CaseInsensitiveOption)
     {}
 };
 //--------------------------------------------------
@@ -791,11 +791,11 @@ void CppDocumentParser::getListOfWordsFromSourceRecursive(QSet<QString> &words, 
 
 void CppDocumentParser::getPossibleNamesFromString(QSet<QString> &words, const QString& string)
 {
-    QRegExp nameRegExp(QLatin1String("(\\w+)"));
-    int pos = 0;
-    while ((pos = nameRegExp.indexIn(string, pos)) != -1) {
-        words << nameRegExp.cap(1);
-        pos += nameRegExp.matchedLength();
+    static const QRegularExpression nameRegExp(QStringLiteral("(\\w+)"));
+    QRegularExpressionMatchIterator i = nameRegExp.globalMatch(string);
+    while (i.hasNext()) {
+        QRegularExpressionMatch match = i.next();
+        words << match.captured(1);
     }
 }
 //--------------------------------------------------
@@ -821,7 +821,7 @@ void CppDocumentParser::removeWordsThatAppearInSource(const QSet<QString> &words
      * will be performed in future. */
 #ifdef USE_MULTI_HASH
     WordList::Iterator iter = words.begin();
-    QString lastWordRemoved(QLatin1String(""));
+    QString lastWordRemoved;
     while(iter != words.end()) {
         if(iter.key() == lastWordRemoved) {
             iter = words.erase(iter);
@@ -886,9 +886,9 @@ bool CppDocumentParser::isEndOfCurrentWord(const QString &comment, int currentPo
         if((currentPos == 0) || (currentPos == (comment.length() - 1))) {
             return true;
         }
-        QRegExp wordChars(QLatin1String("\\w"));
-        if((wordChars.indexIn(comment.at(currentPos + 1)) != -1)
-                &&(wordChars.indexIn(comment.at(currentPos - 1)) != -1)) {
+        static const QRegularExpression wordChars(QStringLiteral("\\w"));
+        if((wordChars.match(comment.at(currentPos + 1)).hasMatch())
+                &&(wordChars.match(comment.at(currentPos - 1)).hasMatch())) {
             return false;
         }
     }
@@ -898,9 +898,9 @@ bool CppDocumentParser::isEndOfCurrentWord(const QString &comment, int currentPo
         if((currentPos == 0) || (currentPos == (comment.length() - 1))) {
             return true;
         }
-        QRegExp wordChars(QLatin1String("\\w"));
-        if((wordChars.indexIn(comment.at(currentPos + 1)) != -1)
-                &&(wordChars.indexIn(comment.at(currentPos - 1)) != -1)) {
+        static const QRegularExpression wordChars(QStringLiteral("\\w"));
+        if((wordChars.match(comment.at(currentPos + 1)).hasMatch())
+                &&(wordChars.match(comment.at(currentPos - 1)).hasMatch())) {
             return false;
         }
     }
@@ -911,7 +911,7 @@ bool CppDocumentParser::isEndOfCurrentWord(const QString &comment, int currentPo
      * that are not always desired.
      * This setting might require some rework in the future. */
     if(d->settings->removeWebsites == true) {
-        QRegularExpression websiteChars(QLatin1String("\\/|:|\\?|\\=|#|%|\\w|\\-"));
+        static const QRegularExpression websiteChars(QStringLiteral("\\/|:|\\?|\\=|#|%|\\w|\\-"));
         if(websiteChars.match(currentChar).hasMatch() == true) {
             if((currentPos == 0) || (currentPos == (comment.length() - 1))) {
                 return true;
