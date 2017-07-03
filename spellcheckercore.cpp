@@ -53,6 +53,7 @@
 #include <QFuture>
 #include <QFutureWatcher>
 #include <QMutex>
+#include <QTextBlock>
 
 typedef QMap<QFutureWatcher<SpellChecker::WordList>*, QString> FutureWatcherMap;
 typedef FutureWatcherMap::Iterator FutureWatcherMapIter;
@@ -204,18 +205,25 @@ void SpellCheckerCore::addMisspelledWords(const QString &fileName, const WordLis
     if(editorWidget == NULL) {
         return;
     }
+    QTextDocument* document = editorWidget->document();
+    if(document == NULL) {
+        return;
+    }
     QList<QTextEdit::ExtraSelection> selections;
+    selections.reserve(words.size());
     foreach(const Word& word, words.values()) {
-        QTextCursor cursor(editorWidget->document());
         /* Walk to the correct position using the line and column number since the
          * absolute position is not available and I do not know of a way to get/
          * calculate the absolute position from that information.
          *
          * One would think that the position from the CppDocumentParser::tokenizeWords()
          * function can be used if stored in the Word, but it is not the correct position. */
-        cursor.setPosition(0);
-        cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, word.lineNumber - 1);
-        cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, word.columnNumber - 1);
+        const QTextBlock& block = document->findBlockByNumber(word.lineNumber - 1);
+        if (!block.isValid() || block.length() < word.columnNumber - 1 + word.length)
+            continue;
+
+        QTextCursor cursor(block);
+        cursor.setPosition(cursor.position() + word.columnNumber - 1);
         cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, word.length);
 
         /* Get the current format from the cursor, this is to make sure that the text font
@@ -224,8 +232,8 @@ void SpellCheckerCore::addMisspelledWords(const QString &fileName, const WordLis
         format.setFontUnderline(true);
         format.setUnderlineColor(QColor(Qt::red));
         format.setUnderlineStyle(QTextCharFormat::WaveUnderline);
-        format.setToolTip(word.suggestions.isEmpty() ? QLatin1String("Incorrect spelling")
-                                                     : QString(QLatin1String("Incorrect spelling, did you mean '%1' ?")).arg(word.suggestions.first()));
+        format.setToolTip(word.suggestions.isEmpty() ? QStringLiteral("Incorrect spelling")
+                                                     : QStringLiteral("Incorrect spelling, did you mean '%1' ?").arg(word.suggestions.first()));
         QTextEdit::ExtraSelection selection;
         selection.cursor = cursor;
         selection.format = format;
