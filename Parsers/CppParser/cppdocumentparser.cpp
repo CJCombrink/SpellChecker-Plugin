@@ -338,7 +338,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
                     int colOffset = 0;
 
                     /* Use a regular expression to get all string literals from the macro and its arguments. */
-                    QRegularExpression regExp(QLatin1String("\"([^\"\\\\]|\\\\.)*\""));
+                    static const QRegularExpression regExp(QStringLiteral("\"([^\"\\\\]|\\\\.)*\""));
                     QRegularExpressionMatchIterator regExpIter = regExp.globalMatch(QString::fromLatin1(macroBytes));
                     while(regExpIter.hasNext() == true) {
                         QRegularExpressionMatch match = regExpIter.next();
@@ -419,7 +419,8 @@ void CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusP
      * token is not in the hash, it is a new token and must be
      * parsed to get the words from the token. */
     HashWords::const_iterator iter = hashIn.constFind(hash);
-    if(iter != hashIn.constEnd()) {
+    const HashWords::const_iterator iterEnd = hashIn.constEnd();
+    if(iter != iterEnd) {
         /* The token was parsed in a previous iteration.
          * Now check if the token moved due to lines being
          * added or removed. It it did not move, use the
@@ -608,13 +609,15 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
         if((d->settings->wordsWithNumberOption != CppParserSettings::LeaveWordsWithNumbers) && (removeCurrentWord == false)) {
             /* Before doing anything, check if the word contains any numbers. If it does then we can go to the
              * settings to handle the word differently */
-            if(currentWord.contains(QRegularExpression(QLatin1String("[0-9]"))) == true) {
+            static const QRegularExpression numberContainRe(QLatin1String("[0-9]"));
+            static const QRegularExpression numberSplitRe(QLatin1String("[0-9]+"));
+            if(currentWord.contains(numberContainRe) == true) {
                 /* Handle words with numbers based on the setting that is set for them */
                 if(d->settings->wordsWithNumberOption == CppParserSettings::RemoveWordsWithNumbers) {
                     removeCurrentWord = true;
                 } else if(d->settings->wordsWithNumberOption == CppParserSettings::SplitWordsOnNumbers) {
                     removeCurrentWord = true;
-                    QStringList wordsSplitOnNumbers = currentWord.split(QRegularExpression(QLatin1String("[0-9]+")), QString::SkipEmptyParts);
+                    QStringList wordsSplitOnNumbers = currentWord.split(numberSplitRe, QString::SkipEmptyParts);
                     WordList wordsFromSplit;
                     IDocumentParser::getWordsFromSplitString(wordsSplitOnNumbers, (*iter), wordsFromSplit);
                     /* Apply the settings to the words that came from the split to filter out words that does
@@ -635,7 +638,8 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     removeCurrentWord = true;
                 } else if(d->settings->wordsWithUnderscoresOption == CppParserSettings::SplitWordsOnUnderscores) {
                     removeCurrentWord = true;
-                    QStringList wordsSplitOnUnderScores = currentWord.split(QRegularExpression(QLatin1String("_+")), QString::SkipEmptyParts);
+                    static const QRegularExpression underscoreSplitRe(QLatin1String("_+"));
+                    QStringList wordsSplitOnUnderScores = currentWord.split(underscoreSplitRe, QString::SkipEmptyParts);
                     WordList wordsFromSplit;
                     IDocumentParser::getWordsFromSplitString(wordsSplitOnUnderScores, (*iter), wordsFromSplit);
                     /* Apply the settings to the words that came from the split to filter out words that does
@@ -655,7 +659,9 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
             /* The check is not precise and accurate science, but a rough estimation of the word is in camelCase. This
              * will probably be updated as this gets tested. The current check checks for one or more lower case letters,
              * followed by one or more upper-case letter, followed by a lower case letter */
-            if(currentWord.contains(QRegularExpression(QLatin1String("[a-z]{1,}[A-Z]{1,}[a-z]{1,}"))) == true ) {
+            static const QRegularExpression camelCaseContainsRe(QLatin1String("[a-z]{1,}[A-Z]{1,}[a-z]{1,}"));
+            static const QRegularExpression camelCaseIndexRe(QLatin1String("[a-z][A-Z]"));
+            if(currentWord.contains(camelCaseContainsRe) == true ) {
                 if(d->settings->camelCaseWordOption == CppParserSettings::RemoveWordsInCamelCase) {
                     removeCurrentWord = true;
                 } else if(d->settings->camelCaseWordOption == CppParserSettings::SplitWordsOnCamelCase) {
@@ -671,7 +677,7 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     int lastIdx = 0;
                     bool finished = false;
                     while(finished == false) {
-                        currentIdx = currentWord.indexOf(QRegularExpression(QLatin1String("[a-z][A-Z]")), lastIdx);
+                        currentIdx = currentWord.indexOf(camelCaseIndexRe, lastIdx);
                         if(currentIdx == -1) {
                             finished = true;
                             indexes << currentWord.length();
@@ -710,7 +716,8 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     removeCurrentWord = true;
                 } else if(d->settings->wordsWithDotsOption == CppParserSettings::SplitWordsOnDots) {
                     removeCurrentWord = true;
-                    QStringList wordsSplitOnDots = currentWord.split(QRegularExpression(QLatin1String("\\.+")), QString::SkipEmptyParts);
+                    static const QRegularExpression dotsSplitRe(QLatin1String("\\.+"));
+                    QStringList wordsSplitOnDots = currentWord.split(dotsSplitRe, QString::SkipEmptyParts);
                     WordList wordsFromSplit;
                     IDocumentParser::getWordsFromSplitString(wordsSplitOnDots, (*iter), wordsFromSplit);
                     /* Apply the settings to the words that came from the split to filter out words that does

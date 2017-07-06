@@ -211,26 +211,35 @@ void SpellCheckerCore::addMisspelledWords(const QString &fileName, const WordLis
     }
     QList<QTextEdit::ExtraSelection> selections;
     selections.reserve(words.size());
-    foreach(const Word& word, words.values()) {
-        /* Walk to the correct position using the line and column number since the
-         * absolute position is not available and I do not know of a way to get/
-         * calculate the absolute position from that information.
-         *
-         * One would think that the position from the CppDocumentParser::tokenizeWords()
-         * function can be used if stored in the Word, but it is not the correct position. */
+    const WordList::ConstIterator wordsEnd = words.constEnd();
+    for(WordList::ConstIterator wordIter = words.constBegin(); wordIter != wordsEnd; ++wordIter) {
+        const Word& word = wordIter.value();
+        /* Get the QTextBlock for the line that the misspelled word is on.
+         * The QTextDocument manages lines as blocks (in most cases).
+         * The lineNumber of the misspelled word is 1 based (seen in the editor)
+         * but the blocks on the QTextDocument are 0 based, thus minus one
+         * from the line number to get the correct line.
+         * If the block is valid, and the word is not longer than the number of
+         * characters in the block (which should normally not be the case)
+         * then the cursor is moved to the correct column, and the word is
+         * underlined.
+         * Again the Columns on the misspelled word is 1 based but
+         * the blocks and cursor are 0 based. */
         const QTextBlock& block = document->findBlockByNumber(word.lineNumber - 1);
-        if (!block.isValid() || block.length() < word.columnNumber - 1 + word.length)
+        if ((block.isValid() == false)
+            || (uint32_t(block.length()) < (word.columnNumber - 1 + word.length))) {
             continue;
+        }
 
         QTextCursor cursor(block);
         cursor.setPosition(cursor.position() + word.columnNumber - 1);
         cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, word.length);
-
         /* Get the current format from the cursor, this is to make sure that the text font
          * and color stays the same, we just want to underline the mistake. */
         QTextCharFormat format = cursor.charFormat();
         format.setFontUnderline(true);
-        format.setUnderlineColor(QColor(Qt::red));
+        static const QColor underLineColor = QColor(Qt::red);
+        format.setUnderlineColor(underLineColor);
         format.setUnderlineStyle(QTextCharFormat::WaveUnderline);
         format.setToolTip(word.suggestions.isEmpty() ? QStringLiteral("Incorrect spelling")
                                                      : QStringLiteral("Incorrect spelling, did you mean '%1' ?").arg(word.suggestions.first()));
@@ -449,7 +458,8 @@ bool SpellCheckerCore::isWordUnderCursorMistake(Word& word) const
         return false;
     }
     WordList::ConstIterator iter = wl.constBegin();
-    while(iter != wl.constEnd()) {
+    const WordList::ConstIterator iterEnd = wl.constEnd();
+    while(iter != iterEnd) {
         const Word& currentWord = iter.value();
         if((currentWord.lineNumber == line)
                 && ((currentWord.columnNumber <= column)
