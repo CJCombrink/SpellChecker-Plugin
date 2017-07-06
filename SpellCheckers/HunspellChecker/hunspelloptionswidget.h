@@ -18,8 +18,7 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifndef SPELLCHECKER_CHECKER_HUNSPELL_HUNSPELLOPTIONSWIDGET_H
-#define SPELLCHECKER_CHECKER_HUNSPELL_HUNSPELLOPTIONSWIDGET_H
+#pragma once
 
 #include <QWidget>
 
@@ -61,4 +60,3 @@ private:
 } // namespace Hunspell
 } // namespace Checker
 } // namespace SpellChecker
-#endif // SPELLCHECKER_CHECKER_HUNSPELL_HUNSPELLOPTIONSWIDGET_H

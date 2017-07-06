@@ -18,8 +18,7 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifndef SPELLCHECKER_CPPSPELLCHECKER_INTERNAL_CPPPARSERSETTINGS_H
-#define SPELLCHECKER_CPPSPELLCHECKER_INTERNAL_CPPPARSERSETTINGS_H
+#pragma once
 
 #include <QObject>
 #include <QSettings>
@@ -129,5 +128,3 @@ protected:
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(SpellChecker::CppSpellChecker::Internal::CppParserSettings::WhatToCheckOptions)
 Q_DECLARE_OPERATORS_FOR_FLAGS(SpellChecker::CppSpellChecker::Internal::CppParserSettings::CommentsToCheckOptions)
-
-#endif // SPELLCHECKER_CPPSPELLCHECKER_INTERNAL_CPPPARSERSETTINGS_H

@@ -4,28 +4,26 @@
 **
 ** This file is part of the SpellChecker Plugin, a Qt Creator plugin.
 **
-** The SpellChecker Plugin is free software: you can redistribute it and/or 
-** modify it under the terms of the GNU Lesser General Public License as 
-** published by the Free Software Foundation, either version 3 of the 
+** The SpellChecker Plugin is free software: you can redistribute it and/or
+** modify it under the terms of the GNU Lesser General Public License as
+** published by the Free Software Foundation, either version 3 of the
 ** License, or (at your option) any later version.
-** 
+**
 ** The SpellChecker Plugin is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU Lesser General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU Lesser General Public License
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifndef WORD_H
-#define WORD_H
+#pragma once
 
 #include <QString>
 #include <QMultiHash>
 #include <QDebug>
 #include <QStringList>
-
 
 namespace SpellChecker {
 
@@ -73,7 +71,7 @@ public:
     inline WordList() {}
     void append(const Word& t) { this->insert(t.text, t); }
     void append(const WordList& l)
-    { foreach(const Word& t, l) { append(t); } }
+    { for(const Word& t: l) { append(t); } }
     const Word& at(int i) const
     { return values().at(i); }
 };
@@ -90,8 +88,7 @@ typedef QHash<QString /* File name */, WordList> FileWordList;
 
 inline QDebug operator<<(QDebug debug, const SpellChecker::Word& word)
 {
+    QDebugStateSaver saver(debug);
     debug.nospace() << word.text << "(" << word.lineNumber << ":" << word.columnNumber << ")";
-    return debug.space();
+    return debug;
 }
-
-#endif // WORD_H

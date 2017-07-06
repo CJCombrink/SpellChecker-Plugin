@@ -18,8 +18,7 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifndef SPELLCHECKER_INTERNAL_PROJECTMISTAKESMODEL_H
-#define SPELLCHECKER_INTERNAL_PROJECTMISTAKESMODEL_H
+#pragma once
 
 #include "Word.h"
 
@@ -107,5 +106,3 @@ private:
 
 } // namespace Internal
 } // namespace SpellChecker
-
-#endif // SPELLCHECKER_INTERNAL_PROJECTMISTAKESMODEL_H

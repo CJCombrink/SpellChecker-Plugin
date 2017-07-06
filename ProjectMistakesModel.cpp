@@ -159,7 +159,7 @@ void ProjectMistakesModel::fileSelected(const QModelIndex &index)
     if(QFileInfo(fileName).exists() == true) {
         Core::IEditor* editor = Core::EditorManager::openEditor(fileName);
         emit editorOpened();
-        Q_ASSERT(editor != NULL);
+        Q_ASSERT(editor != nullptr);
         Q_ASSERT(d->spellingMistakes.value(fileName).first.isEmpty() == false);
         /* Go to the first misspelled word in the editor. */
         Word word = d->spellingMistakes.value(fileName).first.at(0);

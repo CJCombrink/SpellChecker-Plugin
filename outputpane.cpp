@@ -4,16 +4,16 @@
 **
 ** This file is part of the SpellChecker Plugin, a Qt Creator plugin.
 **
-** The SpellChecker Plugin is free software: you can redistribute it and/or 
-** modify it under the terms of the GNU Lesser General Public License as 
-** published by the Free Software Foundation, either version 3 of the 
+** The SpellChecker Plugin is free software: you can redistribute it and/or
+** modify it under the terms of the GNU Lesser General Public License as
+** published by the Free Software Foundation, either version 3 of the
 ** License, or (at your option) any later version.
-** 
+**
 ** The SpellChecker Plugin is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU Lesser General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU Lesser General Public License
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
@@ -64,7 +64,7 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
     IOutputPane(parent),
     d(new OutputPanePrivate())
 {
-    Q_ASSERT(model != NULL);
+    Q_ASSERT(model != nullptr);
     d->model = model;
 
     /* Create the tree view for the model */
@@ -136,11 +136,11 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
 OutputPane::~OutputPane()
 {
     delete d->treeView;
-    foreach(QWidget* widget, d->toolbarWidgets) {
+    for(QWidget* widget: d->toolbarWidgets) {
         delete widget;
     }
 
-    d->model = NULL;
+    d->model = nullptr;
     delete d;
 }
 //--------------------------------------------------
@@ -290,8 +290,8 @@ void OutputPane::mistakeSelected(const QModelIndex &index)
     int line = index.sibling(row, Constants::MISTAKE_COLUMN_LINE).data().toInt();
     int column = index.sibling(row, Constants::MISTAKE_COLUMN_COLUMN).data().toInt();
     Core::IEditor *editor = Core::EditorManager::currentEditor();
-    if(editor == NULL) {
-        Q_ASSERT(editor != NULL);
+    if(editor == nullptr) {
+        Q_ASSERT(editor != nullptr);
         return;
     }
     editor->gotoLine(line, column - 1);

@@ -24,7 +24,7 @@
 using namespace SpellChecker::Internal;
 
 SpellCheckerCoreSettings::SpellCheckerCoreSettings() :
-    QObject(NULL),
+    QObject(nullptr),
     activeSpellChecker(),
     onlyParseCurrentFile(true),
     checkExternalFiles(false),

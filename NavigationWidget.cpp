@@ -122,7 +122,7 @@ NavigationWidget::~NavigationWidget()
 
 void NavigationWidget::updateCurrentItem(Core::IEditor *editor)
 {
-    if(editor == NULL) {
+    if(editor == nullptr) {
         clearSelection();
         return;
     }

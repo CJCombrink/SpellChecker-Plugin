@@ -240,7 +240,7 @@ void SpellingMistakesModel::sort(int column, Qt::SortOrder order)
 
 void SpellingMistakesModel::setActiveProject(ProjectExplorer::Project *activeProject)
 {
-    if(activeProject == NULL) {
+    if(activeProject == nullptr) {
         /* Clear the directory path. This would mean that the
          * directory will point to the current application directory
          * but this should not be a problem. */

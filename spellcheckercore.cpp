@@ -4,16 +4,16 @@
 **
 ** This file is part of the SpellChecker Plugin, a Qt Creator plugin.
 **
-** The SpellChecker Plugin is free software: you can redistribute it and/or 
-** modify it under the terms of the GNU Lesser General Public License as 
-** published by the Free Software Foundation, either version 3 of the 
+** The SpellChecker Plugin is free software: you can redistribute it and/or
+** modify it under the terms of the GNU Lesser General Public License as
+** published by the Free Software Foundation, either version 3 of the
 ** License, or (at your option) any later version.
-** 
+**
 ** The SpellChecker Plugin is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU Lesser General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU Lesser General Public License
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
@@ -81,10 +81,10 @@ public:
     QHash<QString, WordList> filesWaitingForProcess;
 
     SpellCheckerCorePrivate() :
-        spellChecker(NULL),
-        currentEditor(NULL),
+        spellChecker(nullptr),
+        currentEditor(nullptr),
         currentFilePath(),
-        startupProject(NULL),
+        startupProject(nullptr),
         filesInStartupProject()
     {}
     ~SpellCheckerCorePrivate() {}
@@ -102,7 +102,7 @@ SpellCheckerCore::SpellCheckerCore(QObject *parent) :
     QObject(parent),
     d(new Internal::SpellCheckerCorePrivate())
 {
-    Q_ASSERT(g_instance == NULL);
+    Q_ASSERT(g_instance == nullptr);
     g_instance = this;
 
     d->settings = new SpellCheckerCoreSettings();
@@ -128,7 +128,7 @@ SpellCheckerCore::SpellCheckerCore(QObject *parent) :
     connect(ProjectExplorer::ProjectExplorerPlugin::instance(), &ProjectExplorer::ProjectExplorerPlugin::fileListChanged, this, &SpellCheckerCore::projectsFilesChanged);
 
     d->contextMenu = Core::ActionManager::createMenu(Constants::CONTEXT_MENU_ID);
-    Q_ASSERT(d->contextMenu != NULL);
+    Q_ASSERT(d->contextMenu != nullptr);
     connect(d->contextMenu->menu(), &QMenu::aboutToShow, this, &SpellCheckerCore::updateContextMenu);
     connect(qApp, &QCoreApplication::aboutToQuit, this, &SpellCheckerCore::cancelFutures, Qt::DirectConnection);
 }
@@ -139,7 +139,7 @@ SpellCheckerCore::~SpellCheckerCore()
     d->settings->saveToSettings(Core::ICore::settings());
     delete d->settings;
 
-    g_instance = NULL;
+    g_instance = nullptr;
     delete d;
 }
 //--------------------------------------------------
@@ -168,7 +168,7 @@ bool SpellCheckerCore::addDocumentParser(IDocumentParser *parser)
 
 void SpellCheckerCore::removeDocumentParser(IDocumentParser *parser)
 {
-    if(parser == NULL) {
+    if(parser == nullptr) {
         return;
     }
     /* Disconnect all signals between the parser and the core. */
@@ -198,15 +198,15 @@ void SpellCheckerCore::addMisspelledWords(const QString &fileName, const WordLis
         return;
     }
     TextEditor::BaseTextEditor* baseEditor = qobject_cast<TextEditor::BaseTextEditor*>(d->currentEditor);
-    if(baseEditor == NULL) {
+    if(baseEditor == nullptr) {
         return;
     }
     TextEditor::TextEditorWidget* editorWidget = baseEditor->editorWidget();
-    if(editorWidget == NULL) {
+    if(editorWidget == nullptr) {
         return;
     }
     QTextDocument* document = editorWidget->document();
-    if(document == NULL) {
+    if(document == nullptr) {
         return;
     }
     QList<QTextEdit::ExtraSelection> selections;
@@ -266,7 +266,7 @@ OutputPane *SpellCheckerCore::outputPane() const
 
 ISpellChecker *SpellCheckerCore::spellChecker() const
 {
-    Q_ASSERT(d->spellChecker != NULL);
+    Q_ASSERT(d->spellChecker != nullptr);
     return d->spellChecker;
 }
 //--------------------------------------------------
@@ -279,7 +279,7 @@ QMap<QString, ISpellChecker *> SpellCheckerCore::addedSpellCheckers() const
 
 void SpellCheckerCore::addSpellChecker(ISpellChecker *spellChecker)
 {
-    if(spellChecker == NULL) {
+    if(spellChecker == nullptr) {
         return;
     }
 
@@ -290,7 +290,7 @@ void SpellCheckerCore::addSpellChecker(ISpellChecker *spellChecker)
     d->addedSpellCheckers.insert(spellChecker->name(), spellChecker);
 
     /* If none is set, set it to the one added */
-    if(d->spellChecker == NULL) {
+    if(d->spellChecker == nullptr) {
         setSpellChecker(spellChecker);
     }
 }
@@ -298,7 +298,7 @@ void SpellCheckerCore::addSpellChecker(ISpellChecker *spellChecker)
 
 void SpellCheckerCore::setSpellChecker(ISpellChecker *spellChecker)
 {
-    if(spellChecker == NULL) {
+    if(spellChecker == nullptr) {
         return;
     }
 
@@ -579,7 +579,7 @@ void SpellCheckerCore::removeWordUnderCursor(RemoveAction action)
     if(d->currentEditor.isNull() == true) {
         return;
     }
-    if(d->spellChecker == NULL) {
+    if(d->spellChecker == nullptr) {
         return;
     }
     QString currentFileName = d->currentEditor->document()->filePath().toString();
@@ -628,19 +628,19 @@ void SpellCheckerCore::replaceWordsInCurrentEditor(const WordList &wordsToReplac
         Q_ASSERT(wordsToReplace.count() != 0);
         return;
     }
-    if(d->currentEditor == NULL) {
-        Q_ASSERT(d->currentEditor != NULL);
+    if(d->currentEditor == nullptr) {
+        Q_ASSERT(d->currentEditor != nullptr);
         return;
     }
     TextEditor::TextEditorWidget* editorWidget = qobject_cast<TextEditor::TextEditorWidget*>(d->currentEditor->widget());
-    if(editorWidget == NULL) {
-        Q_ASSERT(editorWidget != NULL);
+    if(editorWidget == nullptr) {
+        Q_ASSERT(editorWidget != nullptr);
         return;
     }
 
     QTextCursor cursor = editorWidget->textCursor();
     /* Iterate the words and replace all one by one */
-    foreach(const Word& wordToReplace, wordsToReplace) {
+    for(const Word& wordToReplace: wordsToReplace) {
         editorWidget->gotoLine(wordToReplace.lineNumber, wordToReplace.columnNumber - 1);
         int wordStartPos = editorWidget->textCursor().position();
         editorWidget->gotoLine(wordToReplace.lineNumber, wordToReplace.columnNumber + wordToReplace.length - 1);
@@ -669,13 +669,13 @@ void SpellCheckerCore::startupProjectChanged(ProjectExplorer::Project *startupPr
     d->spellingMistakesModel->clearAllSpellingMistakes();
     d->filesInStartupProject.clear();
     d->startupProject = startupProject;
-    if(startupProject != NULL) {
+    if(startupProject != nullptr) {
         /* Check if the current project is not set to be ignored by the settings. */
         if(d->settings->projectsToIgnore.contains(startupProject->displayName()) == false) {
             d->filesInStartupProject = startupProject->files(ProjectExplorer::Project::SourceFiles);
         } else {
             /* The Project should be ignored and not be spell checked. */
-            d->startupProject = NULL;
+            d->startupProject = nullptr;
         }
     }
     emit activeProjectChanged(startupProject);
@@ -692,7 +692,7 @@ void SpellCheckerCore::mangerEditorChanged(Core::IEditor *editor)
 {
     d->currentFilePath = QLatin1String("");
     d->currentEditor = editor;
-    if(editor != NULL) {
+    if(editor != nullptr) {
         d->currentFilePath = editor->document()->filePath().toString();
     }
 
@@ -708,7 +708,7 @@ void SpellCheckerCore::mangerEditorChanged(Core::IEditor *editor)
 
 void SpellCheckerCore::editorOpened(Core::IEditor *editor)
 {
-    if(editor == NULL) {
+    if(editor == nullptr) {
         return;
     }
     connect(qobject_cast<QPlainTextEdit*>(editor->widget()), &QPlainTextEdit::cursorPositionChanged, this, &SpellCheckerCore::cursorPositionChanged);
@@ -717,7 +717,7 @@ void SpellCheckerCore::editorOpened(Core::IEditor *editor)
 
 void SpellCheckerCore::editorAboutToClose(Core::IEditor *editor)
 {
-    if(editor == NULL) {
+    if(editor == nullptr) {
         return;
     }
     disconnect(qobject_cast<QPlainTextEdit*>(editor->widget()), &QPlainTextEdit::cursorPositionChanged, this, &SpellCheckerCore::cursorPositionChanged);

@@ -18,8 +18,7 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifndef ISPELLCHECKER_H
-#define ISPELLCHECKER_H
+#pragma once
 
 #include "Word.h"
 
@@ -122,5 +121,3 @@ protected:
 };
 
 }
-
-#endif // ISPELLCHECKER_H

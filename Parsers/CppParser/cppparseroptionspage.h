@@ -18,8 +18,7 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifndef SPELLCHECKER_CPPSPELLCHECKER_INTERNAL_CPPPARSEROPTIONSPAGE_H
-#define SPELLCHECKER_CPPSPELLCHECKER_INTERNAL_CPPPARSEROPTIONSPAGE_H
+#pragma once
 
 #include <coreplugin/dialogs/ioptionspage.h>
 
@@ -55,5 +54,3 @@ private:
 } // namespace Internal
 } // namespace CppSpellChecker
 } // namespace SpellChecker
-
-#endif // SPELLCHECKER_CPPSPELLCHECKER_INTERNAL_CPPPARSEROPTIONSPAGE_H

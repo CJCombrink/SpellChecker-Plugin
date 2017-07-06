@@ -81,7 +81,7 @@ public:
     HashWords tokenHashes;
 
     CppDocumentParserPrivate() :
-        activeProject(NULL),
+        activeProject(nullptr),
         currentEditorFileName(),
         filesInStartupProject(),
         cppRegExp(QLatin1String(SpellChecker::Parsers::CppParser::Constants::CPP_SOURCE_FILES_REGEXP_PATTERN), QRegularExpression::CaseInsensitiveOption)
@@ -138,7 +138,7 @@ void CppDocumentParser::setActiveProject(ProjectExplorer::Project *activeProject
 {
     d->activeProject = activeProject;
     d->filesInStartupProject.clear();
-    if(d->activeProject == NULL) {
+    if(d->activeProject == nullptr) {
         return;
     }
     reparseProject();
@@ -180,7 +180,7 @@ void CppDocumentParser::settingsChanged()
 void CppDocumentParser::reparseProject()
 {
     d->filesInStartupProject.clear();
-    if(d->activeProject == NULL) {
+    if(d->activeProject == nullptr) {
         return;
     }
     CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
@@ -220,7 +220,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
      * iterate the tokens to get the string literals as well as the
      * comments. */
     CPlusPlus::TranslationUnit *trUnit = docPtr->translationUnit();
-    if(trUnit == NULL) {
+    if(trUnit == nullptr) {
         return WordList();
     }
 
@@ -758,8 +758,8 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
 
 void CppDocumentParser::getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr, QSet<QString> &wordsInSource)
 {
-    if(docPtr == NULL) {
-        Q_ASSERT(docPtr != NULL);
+    if(docPtr == nullptr) {
+        Q_ASSERT(docPtr != nullptr);
         return;
     }
     unsigned total = docPtr->globalSymbolCount();
@@ -782,7 +782,7 @@ void CppDocumentParser::getListOfWordsFromSourceRecursive(QSet<QString> &words, 
 
     /* Go to the next level into the scope of the symbol and get the words from that level as well*/
     const CPlusPlus::Scope *scope = symbol->asScope();
-    if (scope != NULL) {
+    if (scope != nullptr) {
         CPlusPlus::Scope::iterator cur = scope->memberBegin();
         while (cur != scope->memberEnd()) {
             const CPlusPlus::Symbol *curSymbol = *cur;
