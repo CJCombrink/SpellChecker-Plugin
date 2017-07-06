@@ -186,6 +186,7 @@ void HunspellChecker::getSuggestionsForWord(const QString &word, QStringList &su
     HunspellPtr hunspell = d->hunspell;
     char ** suggestions;
     int numSuggestions = hunspell->suggest(&suggestions, d->encode(word));
+    suggestionsList.reserve(numSuggestions);
     for (int i = 0; i < numSuggestions; ++i) {
         suggestionsList << d->decode(suggestions[i]);
     }
