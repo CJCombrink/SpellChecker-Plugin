@@ -23,7 +23,7 @@
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/idocument.h>
-#include <coreplugin/coreicons.h>
+#include <utils/utilsicons.h>
 
 #include <QHeaderView>
 #include <QPainter>
@@ -54,7 +54,7 @@ SpellingMistakeDelegate::SpellingMistakeDelegate(QObject *parent)
 
 void SpellingMistakeDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QStyleOptionViewItemV4 opt = option;
+    QStyleOptionViewItem opt = option;
     initStyleOption(&opt, index);
     QStyledItemDelegate::paint(painter, option, index);
     QFontMetrics fm(opt.font);
@@ -122,7 +122,7 @@ NavigationWidget::~NavigationWidget()
 
 void NavigationWidget::updateCurrentItem(Core::IEditor *editor)
 {
-    if(editor == NULL) {
+    if(editor == nullptr) {
         clearSelection();
         return;
     }
@@ -227,7 +227,7 @@ Core::NavigationView NavigationWidgetFactory::createWidget()
     view.widget = widget;
 
     QToolButton* sortButton = new QToolButton(widget);
-    sortButton->setIcon(Core::Icons::ARROW_DOWN.icon());
+    sortButton->setIcon(Utils::Icons::ARROW_DOWN.icon());
     sortButton->setToolTip(tr("Sort"));
     sortButton->setPopupMode(QToolButton::InstantPopup);
 

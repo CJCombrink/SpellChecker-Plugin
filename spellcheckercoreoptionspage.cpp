@@ -33,7 +33,7 @@ SpellCheckerCoreOptionsPage::SpellCheckerCoreOptionsPage(SpellCheckerCoreSetting
     setDisplayName(tr("SpellChecker"));
     setCategory("SpellChecker");
     setDisplayCategory(tr("Spell Checker"));
-    setCategoryIcon(QLatin1String(Constants::ICON_SPELLCHECKERPLUGIN_OPTIONS));
+    setCategoryIcon(Utils::Icon(QLatin1String(Constants::ICON_SPELLCHECKERPLUGIN_OPTIONS)));
 }
 //--------------------------------------------------
 
@@ -50,7 +50,7 @@ bool SpellCheckerCoreOptionsPage::matches(const QString &searchKeyWord) const
 
 QWidget *SpellCheckerCoreOptionsPage::widget()
 {
-    if(m_widget == NULL) {
+    if(m_widget == nullptr) {
         m_widget = new SpellCheckerCoreOptionsWidget(m_settings);
     }
     return m_widget;
@@ -59,7 +59,7 @@ QWidget *SpellCheckerCoreOptionsPage::widget()
 
 void SpellCheckerCoreOptionsPage::apply()
 {
-    Q_ASSERT(m_widget != NULL);
+    Q_ASSERT(m_widget != nullptr);
     m_widget->applySettings();
     *m_settings = m_widget->settings();
 }

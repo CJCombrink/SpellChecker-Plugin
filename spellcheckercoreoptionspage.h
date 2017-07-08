@@ -4,22 +4,21 @@
 **
 ** This file is part of the SpellChecker Plugin, a Qt Creator plugin.
 **
-** The SpellChecker Plugin is free software: you can redistribute it and/or 
-** modify it under the terms of the GNU Lesser General Public License as 
-** published by the Free Software Foundation, either version 3 of the 
+** The SpellChecker Plugin is free software: you can redistribute it and/or
+** modify it under the terms of the GNU Lesser General Public License as
+** published by the Free Software Foundation, either version 3 of the
 ** License, or (at your option) any later version.
-** 
+**
 ** The SpellChecker Plugin is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU Lesser General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU Lesser General Public License
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifndef SPELLCHECKER_INTERNAL_SPELLCHECKERCOREOPTIONSPAGE_H
-#define SPELLCHECKER_INTERNAL_SPELLCHECKERCOREOPTIONSPAGE_H
+#pragma once
 
 #include <coreplugin/dialogs/ioptionspage.h>
 
@@ -52,6 +51,3 @@ private:
 
 } // namespace Internal
 } // namespace SpellChecker
-
-
-#endif // SPELLCHECKER_INTERNAL_SPELLCHECKERCOREOPTIONSPAGE_H

@@ -18,8 +18,7 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifndef SPELLCHECKER_CPPSPELLCHECKER_CPPDOCUMENTPARSER_H
-#define SPELLCHECKER_CPPSPELLCHECKER_CPPDOCUMENTPARSER_H
+#pragma once
 
 #include "../../idocumentparser.h"
 
@@ -134,5 +133,3 @@ private:
 } // namespace Internal
 } // namespace CppSpellChecker
 } // namespace SpellChecker
-
-#endif // SPELLCHECKER_CPPSPELLCHECKER_CPPDOCUMENTPARSER_H

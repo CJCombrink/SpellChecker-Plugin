@@ -4,16 +4,16 @@
 **
 ** This file is part of the SpellChecker Plugin, a Qt Creator plugin.
 **
-** The SpellChecker Plugin is free software: you can redistribute it and/or 
-** modify it under the terms of the GNU Lesser General Public License as 
-** published by the Free Software Foundation, either version 3 of the 
+** The SpellChecker Plugin is free software: you can redistribute it and/or
+** modify it under the terms of the GNU Lesser General Public License as
+** published by the Free Software Foundation, either version 3 of the
 ** License, or (at your option) any later version.
-** 
+**
 ** The SpellChecker Plugin is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU Lesser General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU Lesser General Public License
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
@@ -24,6 +24,8 @@
 #include "spellcheckercore.h"
 #include "ISpellChecker.h"
 
+#include <utils/utilsicons.h>
+
 using namespace SpellChecker::Internal;
 
 SpellCheckerCoreOptionsWidget::SpellCheckerCoreOptionsWidget(const SpellChecker::Internal::SpellCheckerCoreSettings * const settings, QWidget *parent) :
@@ -33,12 +35,18 @@ SpellCheckerCoreOptionsWidget::SpellCheckerCoreOptionsWidget(const SpellChecker:
     ui->setupUi(this);
     /* Hide the error widget by default, since there should not be errors. */
     ui->widgetErrorOutput->setVisible(false);
-    ui->toolButtonAddProject->setIcon(QIcon(QStringLiteral(":/core/images/plus.png")));
-    ui->toolButtonRemoveProject->setIcon(QIcon(QStringLiteral(":/core/images/minus.png")));
+    ui->toolButtonAddProject->setIcon(Utils::Icons::PLUS.icon());
+    /* Manually create the correct Minus icon in the same way that the Icon
+     * Utils creates the PLUS icon. The reason for this is that the PLUS
+     * icon also has a PLUS_TOOLBAR icon for toolbars, but the Minus icon
+     * does not have these two icons, it only has the one, and that one
+     * is for the toolbar since nowhere else is a normal one needed. */
+    ui->toolButtonRemoveProject->setIcon(Utils::Icon({{QLatin1String(":/utils/images/minus.png")
+                                                       , Utils::Theme::PaletteText}}, Utils::Icon::Tint).icon());
 
     ui->comboBoxSpellChecker->addItem(QLatin1String(""));
     QMap<QString, ISpellChecker*> availableSpellCheckers = SpellCheckerCore::instance()->addedSpellCheckers();
-    foreach(const QString& name, availableSpellCheckers.keys()) {
+    for(const QString& name: availableSpellCheckers.keys()) {
         ui->comboBoxSpellChecker->addItem(name);
     }
 
@@ -100,10 +108,6 @@ void SpellCheckerCoreOptionsWidget::updateWithSettings(const SpellCheckerCoreSet
 
 void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_comboBoxSpellChecker_currentIndexChanged(const QString &arg1)
 {
-    delete ui->spellCheckerOptionsWidgetHolder->layout();
-    QVBoxLayout* layout = new QVBoxLayout(ui->spellCheckerOptionsWidgetHolder);
-    layout->setMargin(0);
-
     if(arg1.isEmpty() == true) {
         return;
     }
@@ -113,7 +117,7 @@ void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_comboBoxSpellChec
         return;
     }
     QWidget* widget = availableSpellCheckers[arg1]->optionsWidget();
-    layout->addWidget(widget);
+    ui->spellCheckerOptionsWidgetLayout->addWidget(widget);
     connect(this, SIGNAL(applyCurrentSetSettings()), widget, SLOT(applySettings()));
     connect(widget, SIGNAL(optionsError(QString,QString)), this, SLOT(optionsPageError(QString,QString)));
 }
@@ -149,7 +153,7 @@ void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_toolButtonRemoveP
 void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::listWidgetItemChanged(QListWidgetItem *item)
 {
     disconnect(ui->listWidget, &QListWidget::itemChanged, this, &SpellCheckerCoreOptionsWidget::listWidgetItemChanged);
-    if(item == NULL) {
+    if(item == nullptr) {
         return;
     }
     QString newProjectName = item->data(Qt::EditRole).toString();

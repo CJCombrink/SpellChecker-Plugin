@@ -24,6 +24,8 @@
 
 #include <QDir>
 
+#include <algorithm>
+
 using namespace SpellChecker;
 using namespace SpellChecker::Internal;
 
@@ -229,7 +231,7 @@ void SpellingMistakesModel::sort(int column, Qt::SortOrder order)
     d->sortColumn = Constants::MistakesModelColumn(column);
     d->sortOrder = order;
     SpellingMistakesPredicate predicate(d->sortColumn, d->sortOrder);
-    qSort(d->wordList.begin(), d->wordList.end(), predicate);
+    std::sort(d->wordList.begin(), d->wordList.end(), predicate);
     endResetModel();
     emit layoutChanged();
     emit mistakesUpdated();
@@ -238,7 +240,7 @@ void SpellingMistakesModel::sort(int column, Qt::SortOrder order)
 
 void SpellingMistakesModel::setActiveProject(ProjectExplorer::Project *activeProject)
 {
-    if(activeProject == NULL) {
+    if(activeProject == nullptr) {
         /* Clear the directory path. This would mean that the
          * directory will point to the current application directory
          * but this should not be a problem. */

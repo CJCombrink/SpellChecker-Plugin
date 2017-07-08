@@ -4,16 +4,16 @@
 **
 ** This file is part of the SpellChecker Plugin, a Qt Creator plugin.
 **
-** The SpellChecker Plugin is free software: you can redistribute it and/or 
-** modify it under the terms of the GNU Lesser General Public License as 
-** published by the Free Software Foundation, either version 3 of the 
+** The SpellChecker Plugin is free software: you can redistribute it and/or
+** modify it under the terms of the GNU Lesser General Public License as
+** published by the Free Software Foundation, either version 3 of the
 ** License, or (at your option) any later version.
-** 
+**
 ** The SpellChecker Plugin is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU Lesser General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU Lesser General Public License
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
@@ -24,9 +24,9 @@
 #include "spellcheckerconstants.h"
 
 #include <coreplugin/icore.h>
-#include <coreplugin/coreicons.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
+#include <utils/utilsicons.h>
 
 #include <QTreeView>
 #include <QHeaderView>
@@ -64,7 +64,7 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
     IOutputPane(parent),
     d(new OutputPanePrivate())
 {
-    Q_ASSERT(model != NULL);
+    Q_ASSERT(model != nullptr);
     d->model = model;
 
     /* Create the tree view for the model */
@@ -93,26 +93,33 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
 
     /* Create the toolbar buttons */
     d->buttonSuggest = new QToolButton();
-    d->buttonSuggest->setIcon(QIcon(QLatin1String(":/texteditor/images/refactormarker.png")));
+    /* Create the icon for the suggestion ToolButton.
+     * This code was copied directly from {QtC}/src/plugins/texteditor/refactoroverlay.cpp
+     * An icon is created with the 2 parts with specific colors for each. */
+    d->buttonSuggest->setIcon(
+          Utils::Icon({
+                       {QLatin1String(":/texteditor/images/lightbulbcap.png"), Utils::Theme::PanelTextColorMid},
+                       {QLatin1String(":/texteditor/images/lightbulb.png"), Utils::Theme::IconsWarningColor}}
+                      , Utils::Icon::Tint).icon());
     d->buttonSuggest->setText(tr("Give Suggestions"));
     d->buttonSuggest->setToolTip(tr("Give suggestions for the word"));
     d->toolbarWidgets.push_back(d->buttonSuggest);
     connect(d->buttonSuggest, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::giveSuggestionsForWordUnderCursor);
 
     d->buttonIgnore = new QToolButton();
-    d->buttonIgnore->setIcon(Core::Icons::MINUS.icon());
+    d->buttonIgnore->setIcon(Utils::Icons::MINUS.icon());
     d->buttonIgnore->setToolTip(tr("Ignore the word"));
     d->toolbarWidgets.push_back(d->buttonIgnore);
     connect(d->buttonIgnore, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::ignoreWordUnderCursor);
 
     d->buttonAdd = new QToolButton();
-    d->buttonAdd->setIcon(Core::Icons::PLUS.icon());
+    d->buttonAdd->setIcon(Utils::Icons::PLUS_TOOLBAR.icon());
     d->buttonAdd->setToolTip(tr("Add the word to the user dictionary"));
     d->toolbarWidgets.push_back(d->buttonAdd);
     connect(d->buttonAdd, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::addWordUnderCursor);
 
     d->buttonLucky = new QToolButton();
-    d->buttonLucky->setIcon(QIcon(QLatin1String(Constants::ICON_OUTPUTPANE_LUKCY_BUTTON)));
+    d->buttonLucky->setIcon(QIcon(QLatin1String(Constants::ICON_OUTPUTPANE_LUCKY_BUTTON)));
     d->buttonLucky->setText(tr("Feeling Lucky"));
     d->buttonLucky->setToolTip(tr("Replace the word with the first suggestion"));
     d->toolbarWidgets.push_back(d->buttonLucky);
@@ -129,11 +136,11 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
 OutputPane::~OutputPane()
 {
     delete d->treeView;
-    foreach(QWidget* widget, d->toolbarWidgets) {
+    for(QWidget* widget: d->toolbarWidgets) {
         delete widget;
     }
 
-    d->model = NULL;
+    d->model = nullptr;
     delete d;
 }
 //--------------------------------------------------
@@ -283,8 +290,8 @@ void OutputPane::mistakeSelected(const QModelIndex &index)
     int line = index.sibling(row, Constants::MISTAKE_COLUMN_LINE).data().toInt();
     int column = index.sibling(row, Constants::MISTAKE_COLUMN_COLUMN).data().toInt();
     Core::IEditor *editor = Core::EditorManager::currentEditor();
-    if(editor == NULL) {
-        Q_ASSERT(editor != NULL);
+    if(editor == nullptr) {
+        Q_ASSERT(editor != nullptr);
         return;
     }
     editor->gotoLine(line, column - 1);
@@ -380,6 +387,15 @@ QWidget *OutputPaneDelegate::createEditor(QWidget *parent, const QStyleOptionVie
         QWidget* widget = new QWidget(parent);
         QHBoxLayout* layout = new QHBoxLayout();
         widget->setLayout(layout);
+        /* Set the background of the widget based on the OS. For some
+         * reason Windows uses the button color to highlight the selected
+         * row, but on Linux the highlight color is used. Not sure what
+         * MacOS uses but this will also use the highlight color. */
+#ifdef _WIN32
+        widget->setStyleSheet(QStringLiteral("background-color:palette(button)"));
+#else
+        widget->setStyleSheet(QStringLiteral("background-color:palette(highlight)"));
+#endif /* WIN 32 */
         layout->setMargin(0);
         Word word = d->wordSelected;
         QStringList suggestions = index.data().toString().split(QLatin1String(", "));

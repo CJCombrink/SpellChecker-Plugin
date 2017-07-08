@@ -18,8 +18,7 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifndef SPELLCHECKER_CPPSPELLCHECKER_INTERNAL_CPPPARSEROPTIONSWIDGET_H
-#define SPELLCHECKER_CPPSPELLCHECKER_INTERNAL_CPPPARSEROPTIONSWIDGET_H
+#pragma once
 
 #include "cppparsersettings.h"
 #include <QWidget>
@@ -62,4 +61,3 @@ private:
 } // namespace Internal
 } // namespace CppSpellChecker
 } // namespace SpellChecker
-#endif // SPELLCHECKER_CPPSPELLCHECKER_INTERNAL_CPPPARSEROPTIONSWIDGET_H

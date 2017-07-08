@@ -18,8 +18,7 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifndef CPP_PARSER_CONSTANTS_H
-#define CPP_PARSER_CONSTANTS_H
+#pragma once
 
 namespace SpellChecker {
 namespace Parsers {
@@ -52,5 +51,3 @@ const char REMOVE_WEBSITES[]        = "removeWebsites";
 } // namespace CppParser
 } // namespace Parsers
 } // namespace SpellChecker
-
-#endif // CPP_PARSER_CONSTANTS_H

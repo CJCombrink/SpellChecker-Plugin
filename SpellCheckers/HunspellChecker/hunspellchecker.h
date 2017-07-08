@@ -18,8 +18,7 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifndef SPELLCHECKER_INTERNAL_HUNSPELLCHECKER_H
-#define SPELLCHECKER_INTERNAL_HUNSPELLCHECKER_H
+#pragma once
 
 #include "../../ISpellChecker.h"
 
@@ -62,5 +61,3 @@ private:
 } // namespace Hunspell
 } // namespace Checker
 } // namespace SpellChecker
-
-#endif // SPELLCHECKER_INTERNAL_HUNSPELLCHECKER_H

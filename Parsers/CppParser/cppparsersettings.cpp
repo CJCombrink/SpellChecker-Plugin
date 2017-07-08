@@ -28,14 +28,14 @@ using namespace SpellChecker::CppSpellChecker::Internal;
 using namespace SpellChecker::CppSpellChecker;
 
 CppParserSettings::CppParserSettings() :
-    QObject(NULL)
+    QObject(nullptr)
 {
     setDefaults();
 }
 //--------------------------------------------------
 
 CppParserSettings::CppParserSettings(const CppParserSettings &settings) :
-    QObject(NULL)
+    QObject(nullptr)
 {
     whatToCheck                   = settings.whatToCheck;
     commentsToCheck               = settings.commentsToCheck;

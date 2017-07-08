@@ -153,9 +153,9 @@ void CppParserOptionsWidget::updateWithSettings(const CppParserSettings *const s
     ui->checkBoxRemoveEmailAddresses->setChecked(settings->removeEmailAddresses);
     ui->checkBoxIgnoreKeywords->setChecked(!settings->checkQtKeywords);
     ui->checkBoxIgnoreCaps->setChecked(!settings->checkAllCapsWords);
-    QRadioButton* whatButtons[] = {NULL, ui->radioButtonWhatComments, ui->radioButtonWhatLiterals, ui->radioButtonWhatBoth};
+    QRadioButton* whatButtons[] = {nullptr, ui->radioButtonWhatComments, ui->radioButtonWhatLiterals, ui->radioButtonWhatBoth};
     whatButtons[settings->whatToCheck]->setChecked(true);
-    QRadioButton* commentButtons[] = {NULL, ui->radioButtonCommentsC, ui->radioButtonCommentsCpp, ui->radioButtonCommentsBoth};
+    QRadioButton* commentButtons[] = {nullptr, ui->radioButtonCommentsC, ui->radioButtonCommentsCpp, ui->radioButtonCommentsBoth};
     commentButtons[settings->commentsToCheck]->setChecked(true);
     QRadioButton* numberButtons[] = {ui->radioButtonNumbersRemove, ui->radioButtonNumbersSplit, ui->radioButtonNumbersLeave};
     numberButtons[settings->wordsWithNumberOption]->setChecked(true);

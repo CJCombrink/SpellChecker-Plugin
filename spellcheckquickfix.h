@@ -18,8 +18,7 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifndef SPELLCHECKER_SPELLCHECKQUICKFIX_H
-#define SPELLCHECKER_SPELLCHECKQUICKFIX_H
+#pragma once
 
 #include <cppeditor/cppquickfix.h>
 
@@ -37,5 +36,3 @@ public:
 };
 
 } // namespace SpellChecker
-
-#endif // SPELLCHECKER_SPELLCHECKQUICKFIX_H

@@ -117,7 +117,7 @@ void SpellCheckCppQuickFixFactory::match(const CppEditor::Internal::CppQuickFixI
      * appear first in the list of fixes, with the spelling mistakes last. */
     priority -= 30;
     /* Iterate the suggestions and add them to the list of fixes. */
-    foreach(const QString &suggestion, word.suggestions) {
+    for(const QString &suggestion: word.suggestions) {
         TextEditor::QuickFixOperation::Ptr quickFix(new Internal::SpellCheckReplaceWordOperation(words, suggestion));
         quickFix->setPriority(--priority);
         result.append(TextEditor::QuickFixOperation::Ptr(quickFix));

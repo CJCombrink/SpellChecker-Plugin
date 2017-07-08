@@ -18,8 +18,7 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifndef SPELLCHECKER_INTERNAL_NAVIGATIONWIDGET_H
-#define SPELLCHECKER_INTERNAL_NAVIGATIONWIDGET_H
+#pragma once
 
 #include "ProjectMistakesModel.h"
 
@@ -98,5 +97,3 @@ private:
 
 } // namespace Internal
 } // namespace SpellChecker
-
-#endif // SPELLCHECKER_INTERNAL_NAVIGATIONWIDGET_H
