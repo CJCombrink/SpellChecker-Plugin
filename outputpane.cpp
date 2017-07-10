@@ -85,16 +85,13 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
     QHeaderView::ResizeMode resizeMode = QHeaderView::Interactive;
     header->setSectionHidden(Constants::MISTAKE_COLUMN_IDX, true);
     header->setSectionResizeMode(Constants::MISTAKE_COLUMN_WORD, resizeMode);
-    d->treeView->setColumnWidth(Constants::MISTAKE_COLUMN_WORD, 200);
     header->setSectionResizeMode(Constants::MISTAKE_COLUMN_SUGGESTIONS, QHeaderView::Stretch);
     header->setSectionResizeMode(Constants::MISTAKE_COLUMN_LITERAL, resizeMode);
-    d->treeView->setColumnWidth(Constants::MISTAKE_COLUMN_LITERAL, 30);
     header->setSectionResizeMode(Constants::MISTAKE_COLUMN_LINE, resizeMode);
-    d->treeView->setColumnWidth(Constants::MISTAKE_COLUMN_LINE, 60);
     header->setSectionResizeMode(Constants::MISTAKE_COLUMN_COLUMN, resizeMode);
-    d->treeView->setColumnWidth(Constants::MISTAKE_COLUMN_COLUMN, 60);
     header->setStretchLastSection(false);
     header->setSectionsMovable(false);
+    loadColumnSizes();
 
     /* Create the toolbar buttons */
     d->buttonSuggest = new QToolButton();
@@ -140,6 +137,8 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
 
 OutputPane::~OutputPane()
 {
+    saveColumnSizes();
+
     delete d->treeView;
     for(QWidget* widget: d->toolbarWidgets) {
         delete widget;
@@ -254,6 +253,47 @@ void OutputPane::goToPrev()
 
     d->treeView->selectionModel()->select(previousIndex, QItemSelectionModel::SelectCurrent);
     mistakeSelected(previousIndex);
+}
+// ----------------------------------------------------------------------------
+
+void OutputPane::loadColumnSizes()
+{
+  /* Sensible default values for the column sizes. */
+  int colWord    = 200;
+  int colLiteral = 45;
+  int colLine    = 40;
+  int colColumn  = 40;
+
+  QSettings* settings = Core::ICore::settings();
+  settings->beginGroup(QLatin1String(Constants::CORE_SETTINGS_GROUP));
+  settings->beginGroup(QLatin1String(Constants::CORE_SETTINGS_OP_GROUP));
+  colWord    = settings->value(QLatin1String(Constants::SETTINGS_OUTPUT_PANE_COL_WORD)   , colWord).toInt();
+  colLiteral = settings->value(QLatin1String(Constants::SETTINGS_OUTPUT_PANE_COL_LITERAL), colLiteral).toInt();
+  colLine    = settings->value(QLatin1String(Constants::SETTINGS_OUTPUT_PANE_COL_LINE   ), colLine).toInt();
+  colColumn  = settings->value(QLatin1String(Constants::SETTINGS_OUTPUT_PANE_COL_COLUMN ), colColumn).toInt();
+  settings->endGroup(); /* CORE_SETTINGS_OP_GROUP */
+  settings->endGroup(); /* CORE_SETTINGS_GROUP */
+
+  d->treeView->setColumnWidth(Constants::MISTAKE_COLUMN_WORD   , colWord);
+  d->treeView->setColumnWidth(Constants::MISTAKE_COLUMN_LITERAL, colLiteral);
+  d->treeView->setColumnWidth(Constants::MISTAKE_COLUMN_LINE   , colLine);
+  d->treeView->setColumnWidth(Constants::MISTAKE_COLUMN_COLUMN , colColumn);
+}
+// ----------------------------------------------------------------------------
+
+void OutputPane::saveColumnSizes()
+{
+  /* Save the table sizes to the settings file. */
+  QSettings* settings = Core::ICore::settings();
+  settings->beginGroup(QLatin1String(Constants::CORE_SETTINGS_GROUP));
+  settings->beginGroup(QLatin1String(Constants::CORE_SETTINGS_OP_GROUP));
+  settings->setValue(QLatin1String(Constants::SETTINGS_OUTPUT_PANE_COL_WORD   ), d->treeView->columnWidth(Constants::MISTAKE_COLUMN_WORD));
+  settings->setValue(QLatin1String(Constants::SETTINGS_OUTPUT_PANE_COL_LITERAL), d->treeView->columnWidth(Constants::MISTAKE_COLUMN_LITERAL));
+  settings->setValue(QLatin1String(Constants::SETTINGS_OUTPUT_PANE_COL_LINE   ), d->treeView->columnWidth(Constants::MISTAKE_COLUMN_LINE));
+  settings->setValue(QLatin1String(Constants::SETTINGS_OUTPUT_PANE_COL_COLUMN ), d->treeView->columnWidth(Constants::MISTAKE_COLUMN_COLUMN));
+  settings->endGroup(); /* CORE_SETTINGS_OP_GROUP */
+  settings->endGroup(); /* CORE_SETTINGS_GROUP */
+  settings->sync();
 }
 //--------------------------------------------------
 
@@ -393,7 +433,7 @@ QWidget *OutputPaneDelegate::createEditor(QWidget *parent, const QStyleOptionVie
         layout->setMargin(1);
         layout->setSpacing(2);
         Word word = d->wordSelected;
-        QStringList suggestions = index.data().toString().split(QLatin1String(", "));
+        QStringList suggestions = index.data().toString().split(QStringLiteral(", "));
         for(const QString& suggestion: suggestions) {
             QPushButton* button = new QPushButton();
             button->setStyleSheet(d->buttonStylesheet);

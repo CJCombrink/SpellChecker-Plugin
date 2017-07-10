@@ -26,6 +26,8 @@
 
 #include <algorithm>
 
+#include <utils/utilsicons.h>
+
 using namespace SpellChecker;
 using namespace SpellChecker::Internal;
 
@@ -37,10 +39,11 @@ public:
 
     inline bool operator()(const Word &word1, const Word &word2)
     {
-        if (m_order == Qt::AscendingOrder)
+        if (m_order == Qt::AscendingOrder) {
             return lessThan(word1, word2);
-        else
+        } else {
             return lessThan(word2, word1);
+        }
     }
 
     inline bool lessThan(const Word &word1, const Word &word2)
@@ -160,28 +163,48 @@ int SpellingMistakesModel::columnCount(const QModelIndex &parent) const
 
 QVariant SpellingMistakesModel::data(const QModelIndex &index, int role) const
 {
+    const int column = index.column();
+    const int row    = index.row();
+    /* The decoration role on the Literal column is a check icon. */
     if((role == Qt::DecorationRole)
-        && (index.column() == Constants::MISTAKE_COLUMN_LITERAL)) {
+        && (column == Constants::MISTAKE_COLUMN_LITERAL)) {
         /* Display the icon if the word is a string literal. */
-        Word currentWord = d->wordList.at(index.row());
+        Word currentWord = d->wordList.at(row);
         if(currentWord.inComment == false) {
-            return QIcon(QLatin1String(":/extensionsystem/images/ok.png"));
+            /* Create and store the icon in a static QIcon variable. It is made
+             * static so that there is no need to construct the icon on each
+             * call to this code. The downside is that it might need an IDE restart
+             * if the theme changes and the resulting icon changed. */
+            static const QIcon icon = Utils::Icons::OK.icon();
+            Q_ASSERT(icon.isNull() == false);
+            return icon;
         } else {
             return QVariant();
         }
     }
-    if((index.isValid() == false)
-            || (role != Qt::DisplayRole))
-        return QVariant();
 
-    Word currentWord = d->wordList.at(index.row());
-    switch(index.column()) {
+    /* The line and column number columns are right aligned */
+    if((role == Qt::TextAlignmentRole)
+        && ((column == Constants::MISTAKE_COLUMN_LINE)
+             || (column == Constants::MISTAKE_COLUMN_COLUMN))) {
+       return Qt::AlignRight;
+     }
+
+    /* Any other role except the display role is invalid. */
+    if((index.isValid() == false)
+            || (role != Qt::DisplayRole)) {
+        return QVariant();
+    }
+
+    /* Get the display role. */
+    Word currentWord = d->wordList.at(row);
+    switch(column) {
     case Constants::MISTAKE_COLUMN_IDX:
-        return index.row() + 1;
+        return row + 1;
     case Constants::MISTAKE_COLUMN_WORD:
         return currentWord.text;
     case Constants::MISTAKE_COLUMN_SUGGESTIONS:
-        return currentWord.suggestions.join(QLatin1String(", "));
+        return currentWord.suggestions.join(QStringLiteral(", "));
     case Constants::MISTAKE_COLUMN_LITERAL:
         /* No text, only the image above. */
         return QVariant();
@@ -244,7 +267,7 @@ void SpellingMistakesModel::setActiveProject(ProjectExplorer::Project *activePro
         /* Clear the directory path. This would mean that the
          * directory will point to the current application directory
          * but this should not be a problem. */
-        d->projectDir.setPath(QLatin1String("."));
+        d->projectDir.setPath(QStringLiteral("."));
         return;
     }
     d->projectDir.setPath(activeProject->projectDirectory().toString());

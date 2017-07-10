@@ -40,12 +40,17 @@ const char ACTION_HOLDER5_ID[] = "SpellChecker.ActionHolder5";
 const char CORE_SETTINGS_GROUP[]      = "SpellCheckerPlugin";
 const char CORE_SPELLCHECKERS_GROUP[] = "SpellCheckers";
 const char CORE_PARSERS_GROUP[]       = "Parsers";
+const char CORE_SETTINGS_OP_GROUP[]   = "OutputPane";
 
 const char SETTING_ACTIVE_SPELLCHECKER[]      = "ActiveSpellChecker";
 const char SETTING_ONLY_PARSE_CURRENT[]       = "OnlyParseCurrentFile";
 const char SETTING_CHECK_EXTERNAL[]           = "CheckExternal";
 const char PROJECTS_TO_IGNORE[]               = "ProjectsToIgnore";
 const char REPLACE_ALL_FROM_RIGHT_CLICK[]     = "ReplaceAllFromRightClick";
+const char SETTINGS_OUTPUT_PANE_COL_WORD[]    = "ColWord";
+const char SETTINGS_OUTPUT_PANE_COL_LITERAL[] = "ColLiteral";
+const char SETTINGS_OUTPUT_PANE_COL_LINE[]    = "ColLine";
+const char SETTINGS_OUTPUT_PANE_COL_COLUMN[]  = "ColColumn";
 
 const char OUTPUT_PANE_TITLE[] = QT_TRANSLATE_NOOP("SpellChecker::Internal::OutputPane", "Spelling Mistakes");
 

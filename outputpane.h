@@ -59,6 +59,19 @@ public:
     bool canPrevious() const;
     void goToNext();
     void goToPrev();
+private:
+    /*! \brief Load the column sizes from the application settings.
+     *
+     * If there are no current values saved in the settings file, default values
+     * will be used. */
+    void loadColumnSizes();
+    /*! \brief Save the current column sizes of the table to the settings page.
+     *
+     * This is done so that the column sizes are kept between runs of the application.
+     * The settings are not managed by the normal core settings page since they
+     * are not configurable and does not need a page. Instead the current state is
+     * saved when the application is closed and loaded again on the next run. */
+    void saveColumnSizes();
 signals:
     void selectionChanged(const QModelIndex& index, const SpellChecker::Word& word);
 private slots:
