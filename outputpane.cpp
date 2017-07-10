@@ -431,7 +431,7 @@ QWidget *OutputPaneDelegate::createEditor(QWidget *parent, const QStyleOptionVie
         QHBoxLayout* layout = new QHBoxLayout();
         widget->setLayout(layout);
         layout->setMargin(1);
-        layout->setSpacing(2);
+        layout->setSpacing(3);
         Word word = d->wordSelected;
         QStringList suggestions = index.data().toString().split(QStringLiteral(", "));
         for(const QString& suggestion: suggestions) {
