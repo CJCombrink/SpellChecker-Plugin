@@ -77,17 +77,22 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
 
     d->delegate = new OutputPaneDelegate(d->treeView);
     d->treeView->setItemDelegate(d->delegate);
-    d->treeView->setUniformRowHeights(false);
+    d->treeView->setUniformRowHeights(true);
     connect(this, &OutputPane::selectionChanged, d->delegate, &OutputPaneDelegate::rowSelected);
     connect(d->delegate, &OutputPaneDelegate::replaceWord, this, &OutputPane::replaceWord);
 
     QHeaderView *header = d->treeView->header();
-    header->setSectionResizeMode(Constants::MISTAKE_COLUMN_IDX, QHeaderView::ResizeToContents);
-    header->setSectionResizeMode(Constants::MISTAKE_COLUMN_WORD, QHeaderView::ResizeToContents);
+    QHeaderView::ResizeMode resizeMode = QHeaderView::Interactive;
+    header->setSectionHidden(Constants::MISTAKE_COLUMN_IDX, true);
+    header->setSectionResizeMode(Constants::MISTAKE_COLUMN_WORD, resizeMode);
+    d->treeView->setColumnWidth(Constants::MISTAKE_COLUMN_WORD, 200);
     header->setSectionResizeMode(Constants::MISTAKE_COLUMN_SUGGESTIONS, QHeaderView::Stretch);
-    header->setSectionResizeMode(Constants::MISTAKE_COLUMN_LITERAL, QHeaderView::ResizeToContents);
-    header->setSectionResizeMode(Constants::MISTAKE_COLUMN_LINE, QHeaderView::ResizeToContents);
-    header->setSectionResizeMode(Constants::MISTAKE_COLUMN_COLUMN, QHeaderView::ResizeToContents);
+    header->setSectionResizeMode(Constants::MISTAKE_COLUMN_LITERAL, resizeMode);
+    d->treeView->setColumnWidth(Constants::MISTAKE_COLUMN_LITERAL, 30);
+    header->setSectionResizeMode(Constants::MISTAKE_COLUMN_LINE, resizeMode);
+    d->treeView->setColumnWidth(Constants::MISTAKE_COLUMN_LINE, 60);
+    header->setSectionResizeMode(Constants::MISTAKE_COLUMN_COLUMN, resizeMode);
+    d->treeView->setColumnWidth(Constants::MISTAKE_COLUMN_COLUMN, 60);
     header->setStretchLastSection(false);
     header->setSectionsMovable(false);
 
@@ -332,13 +337,9 @@ public:
     int created = 0;
     Word wordSelected;
     const QString buttonStylesheet = QLatin1String("QPushButton { "
-                                                   "  border-style: groove;"
-                                                   "  border-width: 2px;"
-                                                   "  border-color: palette(dark);"
-                                                   "  border-radius: 6px;"
-                                                   "  padding: 0px 4px;"
+                                                   "  border-radius: 3px;"
+                                                   "  padding: 0px 2px;"
                                                    "  background-color: palette(button);"
-                                                   "  min-width: 60px;"
                                                    "}"
                                                    "QPushButton:hover {"
                                                    "  border-style: solid; "
@@ -373,6 +374,8 @@ void OutputPaneDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
         d->editIndex = index;
         d->treeView->openPersistentEditor(index);
         d->buttonsShown = true;
+        /* Paint invalid item, to ensure there is no text */
+        QItemDelegate::paint(painter, option, QModelIndex());
     } else {
         QItemDelegate::paint(painter, option, index);
     }
@@ -387,23 +390,15 @@ QWidget *OutputPaneDelegate::createEditor(QWidget *parent, const QStyleOptionVie
         QWidget* widget = new QWidget(parent);
         QHBoxLayout* layout = new QHBoxLayout();
         widget->setLayout(layout);
-        /* Set the background of the widget based on the OS. For some
-         * reason Windows uses the button color to highlight the selected
-         * row, but on Linux the highlight color is used. Not sure what
-         * MacOS uses but this will also use the highlight color. */
-#ifdef _WIN32
-        widget->setStyleSheet(QStringLiteral("background-color:palette(button)"));
-#else
-        widget->setStyleSheet(QStringLiteral("background-color:palette(highlight)"));
-#endif /* WIN 32 */
-        layout->setMargin(0);
+        layout->setMargin(1);
+        layout->setSpacing(2);
         Word word = d->wordSelected;
         QStringList suggestions = index.data().toString().split(QLatin1String(", "));
         for(const QString& suggestion: suggestions) {
             QPushButton* button = new QPushButton();
             button->setStyleSheet(d->buttonStylesheet);
             button->setText(suggestion);
-            button->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
+            button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
             button->setContentsMargins(0, 0, 0, 0);
             connect(button, &QPushButton::clicked, [this, word, suggestion, index](){
                 emit replaceWord(index, word, suggestion);
@@ -411,10 +406,21 @@ QWidget *OutputPaneDelegate::createEditor(QWidget *parent, const QStyleOptionVie
             layout->addWidget(button);
         }
         layout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding));
-        d->treeView->dataChanged(index, index);
         return widget;
     } else {
         return QItemDelegate::createEditor(parent, option, index);
+    }
+}
+//--------------------------------------------------
+
+void OutputPaneDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if(index.column() == Constants::MISTAKE_COLUMN_SUGGESTIONS) {
+        QRect rect = option.rect;
+        rect.setWidth(qMax(rect.width(), editor->layout()->minimumSize().width()));
+        editor->setGeometry(rect);
+    } else {
+        return QItemDelegate::updateEditorGeometry(editor, option, index);
     }
 }
 //--------------------------------------------------
@@ -434,17 +440,6 @@ void OutputPaneDelegate::setModelData(QWidget *editor, QAbstractItemModel *model
 }
 //--------------------------------------------------
 
-QSize OutputPaneDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
-{
-    if(index.row() == d->selectedRow) {
-        QSize size = QItemDelegate::sizeHint(option, index);
-        size.setHeight(size.height() + 5);
-        return size;
-    }
-    return QItemDelegate::sizeHint(option,index);
-}
-//--------------------------------------------------
-
 void OutputPaneDelegate::rowSelected(const QModelIndex &index, const Word &word)
 {
     /* First close the editor/buttons if they are shown on a previous row. */
@@ -454,19 +449,11 @@ void OutputPaneDelegate::rowSelected(const QModelIndex &index, const Word &word)
         d->editIndex   = QModelIndex();
         d->selectedRow = -1;
         d->treeView->closePersistentEditor(prevIndex);
-        d->treeView->dataChanged(prevIndex, prevIndex);
-        emit sizeHintChanged(prevIndex);
     }
     if(index.isValid() == false) {
         return;
     }
-    /* Mark the row for updates so that the buttons will be drawn and the
-     * row height updated. */
-    QModelIndex left = d->treeView->model()->index(index.row(), 0);
-    QModelIndex right = d->treeView->model()->index(index.row(), Constants::MISTAKE_COLUMN_COUNT);
     d->selectedRow = index.row();
     d->wordSelected = word;
-    d->treeView->dataChanged(left, right);
-    emit sizeHintChanged(index);
 }
 //--------------------------------------------------
