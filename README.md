@@ -9,7 +9,7 @@ The plugin provides an options page in Qt Creator that can be used to configure 
 
 To build the plugin self, see section 2. 
 
-To download a pre-built version of the plugin, refer to section 4. 
+To download a pre-built version of the plugin, refer to section 5. 
 
 The motivation for this plugin is that my spelling is terrible and I was looking for a plugin that could spell check my Doxygen comments. I feel that good comments are essential to any piece of software. I could not find one suitable to my needs so I decided to challenge myself to see if I can implement one myself. In one of my courses on varsity I investigated the Qt Creator source code and was amazed with the whole plugin system, thus it also inspired me to try and
 contribute to such a project. 
