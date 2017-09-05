@@ -71,13 +71,9 @@ void HunspellOptionsWidget::applySettings()
     }
 
     QFileInfo userDict(ui->lineEditUserDictionary->text());
-    if(userDict.dir().exists() == false) {
-        /* Try to create the directory path */
-        bool created = userDict.dir().mkpath(userDict.dir().absolutePath());
-        if(created == false) {
-            emit optionsError(QLatin1String("Hunspell Spellchecker"), tr("Path to user dictionary could not be created"));
-            return;
-        }
+    if(!userDict.dir().mkpath(".")) {
+        emit optionsError(QLatin1String("Hunspell Spellchecker"), tr("Path to user dictionary could not be created"));
+        return;
     }
     /* The Dir should exist at this point, check if the file exists and can be made if it does not */
     if(userDict.exists() == false) {

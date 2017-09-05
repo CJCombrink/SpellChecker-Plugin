@@ -28,7 +28,9 @@
 
 #include <coreplugin/icore.h>
 
+#include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QSharedPointer>
 #include <QMutex>
 #include <QTextCodec>
@@ -205,6 +207,7 @@ bool HunspellChecker::addWord(const QString &word)
         return false;
     }
 
+    QFileInfo(d->userDictionary).dir().mkpath(".");
     QFile dictionary(d->userDictionary);
     if(dictionary.open(QIODevice::Append) == false) {
         qDebug() << "Could not open user dictionary file: " << d->userDictionary;
