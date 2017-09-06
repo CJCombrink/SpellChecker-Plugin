@@ -90,6 +90,9 @@ void HunspellOptionsWidget::applySettings()
 
 void HunspellOptionsWidget::updateDictionary(const QString &dictionary)
 {
+    if(dictionary != ui->lineEditDictionary->text()) {
+        emit optionsError(QLatin1String("Hunspell Spellchecker"), tr("Application restart needed for changes to take affect."));
+    }
     ui->lineEditDictionary->setText(dictionary);
     /* If the dictionary gets changed, and the user dictionary is empty
      * Create a self generated user dictionary name derived from the
@@ -110,6 +113,9 @@ void HunspellOptionsWidget::updateDictionary(const QString &dictionary)
 
 void HunspellOptionsWidget::updateUserDictionary(const QString &userDictionary)
 {
+    if(userDictionary != ui->lineEditDictionary->text()) {
+        emit optionsError(QLatin1String("Hunspell Spellchecker"), tr("Application restart needed for changes to take affect."));
+    }
     ui->lineEditUserDictionary->setText(userDictionary);
 }
 //--------------------------------------------------
