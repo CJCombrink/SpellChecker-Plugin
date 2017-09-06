@@ -68,6 +68,10 @@ private:
     Ui::SpellCheckerCoreOptionsWidget *ui;
     SpellCheckerCoreSettings m_settings;
     QStringList m_projectsToIgnore;
+    QWidget* m_currentCheckerOptionsWidget; /*! Pointer to keep track of the current
+                                             *  options widget that is shown on the
+                                             *  options page. This is needed to remove
+                                             *  the options if the checker changes. */
 };
 
 } // Internal

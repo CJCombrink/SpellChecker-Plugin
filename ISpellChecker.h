@@ -73,6 +73,10 @@ public:
      */
     virtual bool ignoreWord(const QString& word) = 0;
     /*! \brief Get the options widget for the Spell Checker implementation.
+     *
+     * The caller of this function will become the owner of the returned
+     * widget and will delete it as needed. Thus this function should
+     * return a new widget each time it is called.
      * \return Pointer to the options widget.
      */
     virtual QWidget* optionsWidget() = 0;

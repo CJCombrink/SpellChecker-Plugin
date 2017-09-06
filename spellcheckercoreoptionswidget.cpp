@@ -30,7 +30,8 @@ using namespace SpellChecker::Internal;
 
 SpellCheckerCoreOptionsWidget::SpellCheckerCoreOptionsWidget(const SpellChecker::Internal::SpellCheckerCoreSettings * const settings, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::SpellCheckerCoreOptionsWidget)
+    ui(new Ui::SpellCheckerCoreOptionsWidget),
+    m_currentCheckerOptionsWidget(nullptr)
 {
     ui->setupUi(this);
     /* Hide the error widget by default, since there should not be errors. */
@@ -44,11 +45,24 @@ SpellCheckerCoreOptionsWidget::SpellCheckerCoreOptionsWidget(const SpellChecker:
     ui->toolButtonRemoveProject->setIcon(Utils::Icon({{QLatin1String(":/utils/images/minus.png")
                                                        , Utils::Theme::PaletteText}}, Utils::Icon::Tint).icon());
 
-    ui->comboBoxSpellChecker->addItem(QLatin1String(""));
     QMap<QString, ISpellChecker*> availableSpellCheckers = SpellCheckerCore::instance()->addedSpellCheckers();
     for(const QString& name: availableSpellCheckers.keys()) {
         ui->comboBoxSpellChecker->addItem(name);
     }
+
+    /* Logic to select the current checker in the list of available checkers.
+     * The core is implemented in such a way that if one is added and there is
+     * none set, the newly added one will be set as the default checker.
+     * This logic will ensure that the correct one is selected. */
+    int index = -1;
+    ISpellChecker* currentSpellChecker = SpellCheckerCore::instance()->spellChecker();
+    if(currentSpellChecker != nullptr) {
+        index = ui->comboBoxSpellChecker->findText(currentSpellChecker->name());
+    } else {
+        qDebug() << "SpellChecker Plugin: No active spellcheckers...";
+    }
+
+    ui->comboBoxSpellChecker->setCurrentIndex(index);
 
     updateWithSettings(settings);
 }
@@ -108,6 +122,11 @@ void SpellCheckerCoreOptionsWidget::updateWithSettings(const SpellCheckerCoreSet
 
 void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_comboBoxSpellChecker_currentIndexChanged(const QString &arg1)
 {
+    if(m_currentCheckerOptionsWidget != nullptr) {
+        delete m_currentCheckerOptionsWidget;
+        m_currentCheckerOptionsWidget = nullptr;
+    }
+
     if(arg1.isEmpty() == true) {
         return;
     }
@@ -120,6 +139,7 @@ void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_comboBoxSpellChec
     ui->spellCheckerOptionsWidgetLayout->addWidget(widget);
     connect(this, SIGNAL(applyCurrentSetSettings()), widget, SLOT(applySettings()));
     connect(widget, SIGNAL(optionsError(QString,QString)), this, SLOT(optionsPageError(QString,QString)));
+    m_currentCheckerOptionsWidget = widget;
 }
 //--------------------------------------------------
 

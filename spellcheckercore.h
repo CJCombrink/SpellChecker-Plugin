@@ -73,9 +73,27 @@ public:
 
     Internal::OutputPane* outputPane() const;
 
+    /*! \brief Get the current active spell checker that will be used to check spelling.
+     *
+     * If there were no spell checkers added using the add or set functions, this
+     * function will return an empty pointer. */
     ISpellChecker* spellChecker() const;
+    /*! \brief Get the list of spell checkers added to this object. */
     QMap<QString, ISpellChecker*> addedSpellCheckers() const;
+    /*! \brief Add a spell checker to the list of available checkers.
+     *
+     * If there are no active spell checker set on the object, the added
+     * object will be set as the active checker.
+     * \sa setSpellChecker()
+     * \sa spellChecker() */
     void addSpellChecker(ISpellChecker* spellChecker);
+    /*! \brief Set the supplied spell checker object as the current active
+     * spell checker.
+     *
+     * The given checker will be added to the list of checkers if it
+     * is not already added.
+     * \sa addSpellChecker()
+     * \sa spellChecker() */
     void setSpellChecker(ISpellChecker* spellChecker);
 
     Core::IOptionsPage* optionsPage();
