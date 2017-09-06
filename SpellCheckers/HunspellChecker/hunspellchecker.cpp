@@ -214,7 +214,7 @@ bool HunspellChecker::addWord(const QString &word)
         return false;
     }
     /* Only add the word to the spellchecker if the previous checkers passed. */
-    hunspell->add(d->encode(word));
+    hunspell->add(d->encode(word).constData());
 
     QTextStream stream(&dictionary);
     stream << word << endl;
@@ -227,7 +227,7 @@ bool HunspellChecker::ignoreWord(const QString &word)
 {
     QMutexLocker lock(&d->mutex);
     HunspellPtr hunspell = d->hunspell;
-    hunspell->add(d->encode(word));
+    hunspell->add(d->encode(word).constData());
     return true;
 }
 //--------------------------------------------------
