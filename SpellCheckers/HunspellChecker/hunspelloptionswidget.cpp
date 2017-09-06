@@ -71,7 +71,7 @@ void HunspellOptionsWidget::applySettings()
     }
 
     QFileInfo userDict(ui->lineEditUserDictionary->text());
-    if(!userDict.dir().mkpath(".")) {
+    if(userDict.dir().mkpath(".") == false) {
         emit optionsError(QLatin1String("Hunspell Spellchecker"), tr("Path to user dictionary could not be created"));
         return;
     }
