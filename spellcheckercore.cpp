@@ -753,19 +753,20 @@ void SpellCheckerCore::updateContextMenu()
             /* Disconnect the previous connection made, otherwise it will also trigger */
             cmd->action()->disconnect();
             /* Set the text on the action for the word to use*/
-            cmd->action()->setText(list.takeFirst());
+            QString replacementWord = list.takeFirst();
+            cmd->action()->setText(replacementWord);
             /* Show the action */
             cmd->action()->setVisible(true);
             /* Connect to lambda function to call to replace the words if the
              * action is triggered. */
-            connect(cmd->action(), &QAction::triggered, [this, word, cmd]() {
+            connect(cmd->action(), &QAction::triggered, [this, word, cmd, replacementWord]() {
                 WordList wordsToReplace;
                 if(d->settings->replaceAllFromRightClick == true) {
                     this->getAllOccurrencesOfWord(word, wordsToReplace);
                 } else {
                     wordsToReplace.append(word);
                 }
-                this->replaceWordsInCurrentEditor(wordsToReplace, cmd->action()->text());
+                this->replaceWordsInCurrentEditor(wordsToReplace, replacementWord);
             });
         } else {
             /* Hide the action since there are less than 5 suggestions for the word. */
