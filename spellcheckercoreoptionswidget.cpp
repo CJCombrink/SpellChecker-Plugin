@@ -103,11 +103,16 @@ void SpellCheckerCoreOptionsWidget::optionsPageError(const QString &optionsPage,
 
 void SpellCheckerCoreOptionsWidget::updateWithSettings(const SpellCheckerCoreSettings * const settings)
 {
-    int index = ui->comboBoxSpellChecker->findText(settings->activeSpellChecker);
-    if(index == -1) {
-        qDebug() << "Spellchecker from settings not valid option: " << settings->activeSpellChecker;
-        Q_ASSERT_X(false, "updateWithSettings",  "Spellchecker from settings not valid option: " + settings->activeSpellChecker.toLatin1());
-        return;
+    int index;
+    if (settings->activeSpellChecker.isEmpty() && (ui->comboBoxSpellChecker->count() > 0)) {
+        index = 0;
+    } else {
+        index = ui->comboBoxSpellChecker->findText(settings->activeSpellChecker);
+        if(index == -1) {
+            qDebug() << "Spellchecker from settings not valid option: " << settings->activeSpellChecker;
+            Q_ASSERT_X(false, "updateWithSettings",  "Spellchecker from settings not valid option: " + settings->activeSpellChecker.toLatin1());
+            return;
+        }
     }
     ui->comboBoxSpellChecker->setCurrentIndex(index);
     ui->checkBoxOnlyCheckCurrent->setChecked(settings->onlyParseCurrentFile);
