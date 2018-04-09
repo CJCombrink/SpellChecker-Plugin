@@ -26,7 +26,7 @@ namespace CppParser {
 namespace Constants {
 
 /* Pattern based on pattern found on http://gskinner.com/RegExr/ for email addresses */
-const char EMAIL_ADDRESS_REGEXP_PATTERN[]   = "[\\w-\\.]+@((?:[\\w]+\\.)+)[a-zA-Z]{2,4}";
+const char EMAIL_ADDRESS_REGEXP_PATTERN[]   = "[\\w\\-\\.]+@((?:[\\w]+\\.)+)[a-zA-Z]{2,4}";
 /* Custom pattern used for website addresses. Probably not optimal nor a good option. */
 const char WEBSITE_ADDRESS_REGEXP_PATTERN[] = "((http(s)?):\\/\\/)?(\\w+\\.){1,10}[0-9A-z./?=#%\\-]+";
 /* Pattern for characters that can be part of a website URL. */
