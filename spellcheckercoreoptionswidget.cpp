@@ -104,7 +104,8 @@ void SpellCheckerCoreOptionsWidget::optionsPageError(const QString &optionsPage,
 void SpellCheckerCoreOptionsWidget::updateWithSettings(const SpellCheckerCoreSettings * const settings)
 {
     int index;
-    if (settings->activeSpellChecker.isEmpty() && (ui->comboBoxSpellChecker->count() > 0)) {
+    if((settings->activeSpellChecker.isEmpty() == true)
+         && (ui->comboBoxSpellChecker->count() > 0)) {
         index = 0;
     } else {
         index = ui->comboBoxSpellChecker->findText(settings->activeSpellChecker);
