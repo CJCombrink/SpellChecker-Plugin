@@ -41,6 +41,8 @@
 #include <projectexplorer/project.h>
 #include <projectexplorer/session.h>
 
+#include <utils/algorithm.h>
+
 #include <QRegularExpression>
 #include <QTextBlock>
 
@@ -184,7 +186,8 @@ void CppDocumentParser::reparseProject()
         return;
     }
     CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
-    QStringList list = d->activeProject->files(ProjectExplorer::Project::SourceFiles);
+    const QStringList list = Utils::transform(
+                d->activeProject->files(ProjectExplorer::Project::SourceFiles), &Utils::FileName::toString);
     d->filesInStartupProject = list.filter(d->cppRegExp);
     modelManager->updateSourceFiles(d->filesInStartupProject.toSet());
 }

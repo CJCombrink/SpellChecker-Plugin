@@ -42,7 +42,9 @@
 #include <coreplugin/coreconstants.h>
 #include <texteditor/texteditor.h>
 #include <cpptools/cppmodelmanager.h>
-#include <utils/QtConcurrentTools>
+
+#include <utils/algorithm.h>
+#include <utils/runextensions.h>
 #include <utils/fadingindicator.h>
 
 #include <QPointer>
@@ -672,7 +674,8 @@ void SpellCheckerCore::startupProjectChanged(ProjectExplorer::Project *startupPr
     if(startupProject != nullptr) {
         /* Check if the current project is not set to be ignored by the settings. */
         if(d->settings->projectsToIgnore.contains(startupProject->displayName()) == false) {
-            d->filesInStartupProject = startupProject->files(ProjectExplorer::Project::SourceFiles);
+            d->filesInStartupProject = Utils::transform(
+                        startupProject->files(ProjectExplorer::Project::SourceFiles), &Utils::FileName::toString);
         } else {
             /* The Project should be ignored and not be spell checked. */
             d->startupProject = nullptr;
