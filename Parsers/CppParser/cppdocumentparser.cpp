@@ -184,8 +184,11 @@ void CppDocumentParser::reparseProject()
         return;
     }
     CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
-    QStringList list = d->activeProject->files(ProjectExplorer::Project::SourceFiles);
-    d->filesInStartupProject = list.filter(d->cppRegExp);
+    d->filesInStartupProject.clear();
+    foreach (Utils::FileName fileName, d->activeProject->files(ProjectExplorer::Project::SourceFiles)) {
+        if (fileName.toString().contains(d->cppRegExp))
+            d->filesInStartupProject << fileName.toString();
+    }
     modelManager->updateSourceFiles(d->filesInStartupProject.toSet());
 }
 //--------------------------------------------------

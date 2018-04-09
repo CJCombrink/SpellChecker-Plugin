@@ -74,7 +74,7 @@ public:
     QList<Core::Command*> contextMenuHolderCommands;
     QString currentFilePath;
     ProjectExplorer::Project* startupProject;
-    QStringList filesInStartupProject;
+    Utils::FileNameList filesInStartupProject;
     QMutex futureMutex;
     FutureWatcherMap futureWatchers;
     QStringList filesInProcess;
@@ -184,7 +184,8 @@ void SpellCheckerCore::removeDocumentParser(IDocumentParser *parser)
 
 void SpellCheckerCore::addMisspelledWords(const QString &fileName, const WordList &words)
 {
-    d->spellingMistakesModel->insertSpellingMistakes(fileName, words, d->filesInStartupProject.contains(fileName));
+    d->spellingMistakesModel->insertSpellingMistakes(fileName, words,
+        d->filesInStartupProject.contains(Utils::FileName::fromString(fileName)));
     if(d->currentFilePath == fileName) {
         d->mistakesModel->setCurrentSpellingMistakes(words);
     }
