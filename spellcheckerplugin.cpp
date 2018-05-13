@@ -19,27 +19,6 @@
 ****************************************************************************/
 
 #include "spellcheckerplugin.h"
-#include "spellcheckerconstants.h"
-#include "spellcheckercore.h"
-#include "spellcheckquickfix.h"
-#include "outputpane.h"
-#include "NavigationWidget.h"
-
-/* SpellCheckers */
-#include "SpellCheckers/HunspellChecker/hunspellchecker.h"
-
-/* Parsers */
-#include "Parsers/CppParser/cppdocumentparser.h"
-#include "Parsers/CppParser/cppparsersettings.h"
-
-#include <coreplugin/dialogs/ioptionspage.h>
-#include <coreplugin/icore.h>
-#include <coreplugin/icontext.h>
-#include <coreplugin/actionmanager/actionmanager.h>
-#include <coreplugin/actionmanager/command.h>
-#include <coreplugin/actionmanager/actioncontainer.h>
-#include <coreplugin/coreconstants.h>
-#include <texteditor/texteditorconstants.h>
 
 #include <QAction>
 #include <QMessageBox>
@@ -77,16 +56,16 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 }
 #endif /* DEBUG_INSTALL_MESSAGE_HANDLER */
 
-SpellCheckerPlugin::SpellCheckerPlugin() :
-    m_spellCheckerCore(0)
+SpellCheckerPlugin::SpellCheckerPlugin() 
 {
     qRegisterMetaType<SpellChecker::WordList>("SpellChecker::WordList");
 }
 
 SpellCheckerPlugin::~SpellCheckerPlugin()
 {
-    m_spellCheckerCore = 0; // Deleted by Object Pool
-    m_cppParserSettings = 0;
+    delete m_spellCheckerCore->outputPane ();
+    delete m_spellCheckerCore->optionsPage ();
+    delete m_cppParser->optionsPage ();
 }
 
 bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *errorString)
@@ -104,10 +83,7 @@ bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *error
     qInstallMessageHandler(myMessageOutput);
 #endif /* DEBUG_INSTALL_MESSAGE_HANDLER */
     
-    m_spellCheckerCore = new SpellCheckerCore(this);
-    addAutoReleasedObject(m_spellCheckerCore);
-    addAutoReleasedObject(m_spellCheckerCore->outputPane());
-    addAutoReleasedObject(m_spellCheckerCore->optionsPage());
+    m_spellCheckerCore.reset (new SpellCheckerCore(this));
 
     Core::Context textContext(TextEditor::Constants::C_TEXTEDITOR);
     /* Create the menu */
@@ -123,14 +99,14 @@ bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *error
     cmdIgnore->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+I")));
     cmdAdd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+A")));
     cmdLucky->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+L")));
-    connect(actionSuggest, &QAction::triggered, m_spellCheckerCore, &SpellCheckerCore::giveSuggestionsForWordUnderCursor);
-    connect(actionIgnore, &QAction::triggered, m_spellCheckerCore, &SpellCheckerCore::ignoreWordUnderCursor);
-    connect(actionAdd, &QAction::triggered, m_spellCheckerCore, &SpellCheckerCore::addWordUnderCursor);
-    connect(actionLucky, &QAction::triggered, m_spellCheckerCore, &SpellCheckerCore::replaceWordUnderCursorFirstSuggestion);
-    connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, actionSuggest, &QAction::setEnabled);
-    connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, actionIgnore, &QAction::setEnabled);
-    connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, actionAdd, &QAction::setEnabled);
-    connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, [=](bool isMistake, const SpellChecker::Word& word) {
+    connect(actionSuggest, &QAction::triggered, m_spellCheckerCore.get (), &SpellCheckerCore::giveSuggestionsForWordUnderCursor);
+    connect(actionIgnore, &QAction::triggered, m_spellCheckerCore.get (), &SpellCheckerCore::ignoreWordUnderCursor);
+    connect(actionAdd, &QAction::triggered, m_spellCheckerCore.get (), &SpellCheckerCore::addWordUnderCursor);
+    connect(actionLucky, &QAction::triggered, m_spellCheckerCore.get (), &SpellCheckerCore::replaceWordUnderCursorFirstSuggestion);
+    connect(m_spellCheckerCore.get(), &SpellCheckerCore::wordUnderCursorMistake, actionSuggest, &QAction::setEnabled);
+    connect(m_spellCheckerCore.get (), &SpellCheckerCore::wordUnderCursorMistake, actionIgnore, &QAction::setEnabled);
+    connect(m_spellCheckerCore.get (), &SpellCheckerCore::wordUnderCursorMistake, actionAdd, &QAction::setEnabled);
+    connect(m_spellCheckerCore.get (), &SpellCheckerCore::wordUnderCursorMistake, [=](bool isMistake, const SpellChecker::Word& word) {
         actionLucky->setEnabled(isMistake && (word.suggestions.isEmpty() == false));
     });
 
@@ -158,27 +134,23 @@ bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *error
         contextMenu->addAction(cmdHolder);
     }
     /* Set the right click context menu only enabled if the word under the cursor is a spelling mistake */
-    connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, contextMenu->menu(), &QMenu::setEnabled);
+    connect(m_spellCheckerCore.get (), &SpellCheckerCore::wordUnderCursorMistake, contextMenu->menu(), &QMenu::setEnabled);
 
     /* Create the navigation widget factory */
-    addAutoReleasedObject(new NavigationWidgetFactory(m_spellCheckerCore->spellingMistakesModel()));
+    m_navigationWidgetFactory.reset (new NavigationWidgetFactory(m_spellCheckerCore->spellingMistakesModel()));
 
     /* --- Create the default Spell Checker and Document Parser --- */
     /* Hunspell Spell Checker */
-    SpellChecker::Checker::Hunspell::HunspellChecker* spellChecker = new SpellChecker::Checker::Hunspell::HunspellChecker();
-    addAutoReleasedObject(spellChecker);
-    m_spellCheckerCore->setSpellChecker(spellChecker);
+    m_spellChecker.reset (new SpellChecker::Checker::Hunspell::HunspellChecker());
+    m_spellCheckerCore->setSpellChecker(m_spellChecker.get ());
 
     /* Cpp Document Parser */
-    SpellChecker::CppSpellChecker::Internal::CppDocumentParser* cppParser = new SpellChecker::CppSpellChecker::Internal::CppDocumentParser();
-    addAutoReleasedObject(cppParser);
-    addAutoReleasedObject(cppParser->optionsPage());
+    m_cppParser.reset (new SpellChecker::CppSpellChecker::Internal::CppDocumentParser());
 
-    m_spellCheckerCore->addDocumentParser(cppParser);
+    m_spellCheckerCore->addDocumentParser(m_cppParser.get());
 
     /* Quick fix provider */
-    SpellCheckCppQuickFixFactory* quickFixFactory = new SpellCheckCppQuickFixFactory;
-    addAutoReleasedObject(quickFixFactory);
+    m_spellCheckCppQuickFixFactory.reset (new SpellCheckCppQuickFixFactory);
 
     return true;
 }

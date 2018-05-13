@@ -266,6 +266,18 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 
                 /* The String Literal is not expanded thus handle it like a comment is handled. */
                 parseToken(docPtr, token, trUnit, wordsInSource, /* Comment */ false, /* Doxygen */ false, parsedWords, tokenHashesIn, tokenHashesOut);
+            } else if (token.is (CPlusPlus::T_IDENTIFIER)) {
+                /* Parse T_IDENTIFIER tokens. For some reason, in qtcreator master,
+                   it would only parse comments. That should fix that */
+                parseToken(docPtr,
+                           token,
+                           trUnit,
+                           wordsInSource,
+                           /* Comment */ false,
+                           /* Doxygen */ false,
+                           parsedWords,
+                           tokenHashesIn,
+                           tokenHashesOut);
             }
         }
         /* Parse macros */
@@ -660,8 +672,9 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
             /* The check is not precise and accurate science, but a rough estimation of the word is in camelCase. This
              * will probably be updated as this gets tested. The current check checks for one or more lower case letters,
              * followed by one or more upper-case letter, followed by a lower case letter */
-            static const QRegularExpression camelCaseContainsRe(QLatin1String("[a-z]{1,}[A-Z]{1,}[a-z]{1,}"));
-            static const QRegularExpression camelCaseIndexRe(QLatin1String("[a-z][A-Z]"));
+            static const QRegularExpression camelCaseContainsRe(QLatin1String("(^[A-Z][A-Z]{1,}[a-z]{1,})"
+                                                                              "|([a-z]{1,}[A-Z]{1,})"));
+            static const QRegularExpression camelCaseIndexRe(QLatin1String("(^[A-Z][A-Z])|([a-z][A-Z])"));
             if(currentWord.contains(camelCaseContainsRe) == true ) {
                 if(d->settings->camelCaseWordOption == CppParserSettings::RemoveWordsInCamelCase) {
                     removeCurrentWord = true;
