@@ -21,8 +21,32 @@
 #pragma once
 
 #include "spellchecker_global.h"
+#include "spellcheckerconstants.h"
+#include "spellcheckercore.h"
+#include "spellcheckquickfix.h"
+#include "outputpane.h"
+#include "NavigationWidget.h"
+
+/* SpellCheckers */
+#include "SpellCheckers/HunspellChecker/hunspellchecker.h"
+
+
+#include <memory>
 
 #include <extensionsystem/iplugin.h>
+
+/* Parsers */
+#include "Parsers/CppParser/cppdocumentparser.h"
+#include "Parsers/CppParser/cppparsersettings.h"
+
+#include <coreplugin/dialogs/ioptionspage.h>
+#include <coreplugin/icore.h>
+#include <coreplugin/icontext.h>
+#include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/actionmanager/command.h>
+#include <coreplugin/actionmanager/actioncontainer.h>
+#include <coreplugin/coreconstants.h>
+#include <texteditor/texteditorconstants.h>
 
 namespace SpellChecker {
 class SpellCheckerCore;
@@ -50,8 +74,14 @@ public:
     void extensionsInitialized();
     ShutdownFlag aboutToShutdown();
 private:
-    SpellCheckerCore* m_spellCheckerCore;
-    CppSpellChecker::Internal::CppParserSettings* m_cppParserSettings;
+    std::unique_ptr<NavigationWidgetFactory> m_navigationWidgetFactory;
+    std::unique_ptr<SpellCheckCppQuickFixFactory> m_spellCheckCppQuickFixFactory;
+
+    std::unique_ptr<SpellChecker::CppSpellChecker::Internal::CppDocumentParser> m_cppParser;
+
+    std::unique_ptr<SpellCheckerCore> m_spellCheckerCore;
+    std::unique_ptr<CppSpellChecker::Internal::CppParserSettings> m_cppParserSettings;
+    std::unique_ptr<SpellChecker::Checker::Hunspell::HunspellChecker> m_spellChecker;
 };
 
 } // namespace Internal
