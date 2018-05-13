@@ -266,6 +266,18 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 
                 /* The String Literal is not expanded thus handle it like a comment is handled. */
                 parseToken(docPtr, token, trUnit, wordsInSource, /* Comment */ false, /* Doxygen */ false, parsedWords, tokenHashesIn, tokenHashesOut);
+            } else if (token.is (CPlusPlus::T_IDENTIFIER)) {
+                /* Parse T_IDENTIFIER tokens. For some reason, in qtcreator master,
+                   it would only parse comments. That should fix that */
+                parseToken(docPtr,
+                           token,
+                           trUnit,
+                           wordsInSource,
+                           /* Comment */ false,
+                           /* Doxygen */ false,
+                           parsedWords,
+                           tokenHashesIn,
+                           tokenHashesOut);
             }
         }
         /* Parse macros */
