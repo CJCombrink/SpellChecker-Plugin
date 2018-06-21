@@ -100,8 +100,8 @@ OutputPane::OutputPane(SpellingMistakesModel *model, QObject *parent) :
      * An icon is created with the 2 parts with specific colors for each. */
     d->buttonSuggest->setIcon(
           Utils::Icon({
-                       {QLatin1String(":/texteditor/images/lightbulbcap.png"), Utils::Theme::PanelTextColorMid},
-                       {QLatin1String(":/texteditor/images/lightbulb.png"), Utils::Theme::IconsWarningColor}}
+                       {QLatin1String(":/utils/images/lightbulbcap.png"), Utils::Theme::PanelTextColorMid},
+                       {QLatin1String(":/utils/images/lightbulb.png"), Utils::Theme::IconsWarningColor}}
                       , Utils::Icon::Tint).icon());
     d->buttonSuggest->setText(tr("Give Suggestions"));
     d->buttonSuggest->setToolTip(tr("Give suggestions for the word"));
