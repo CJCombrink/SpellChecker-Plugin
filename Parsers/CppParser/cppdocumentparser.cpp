@@ -119,6 +119,7 @@ CppDocumentParser::~CppDocumentParser()
 {
     d->settings->saveToSetting(Core::ICore::settings());
     delete d->settings;
+    delete d->optionsPage;
     delete d;
 }
 //--------------------------------------------------

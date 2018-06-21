@@ -139,6 +139,8 @@ SpellCheckerCore::~SpellCheckerCore()
 {
     d->settings->saveToSettings(Core::ICore::settings());
     delete d->settings;
+    delete d->outputPane;
+    delete d->optionsPage;
 
     g_instance = nullptr;
     delete d;

@@ -4,16 +4,16 @@
 **
 ** This file is part of the SpellChecker Plugin, a Qt Creator plugin.
 **
-** The SpellChecker Plugin is free software: you can redistribute it and/or 
-** modify it under the terms of the GNU Lesser General Public License as 
-** published by the Free Software Foundation, either version 3 of the 
+** The SpellChecker Plugin is free software: you can redistribute it and/or
+** modify it under the terms of the GNU Lesser General Public License as
+** published by the Free Software Foundation, either version 3 of the
 ** License, or (at your option) any later version.
-** 
+**
 ** The SpellChecker Plugin is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU Lesser General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU Lesser General Public License
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
@@ -48,8 +48,21 @@
 
 #include <QtPlugin>
 
+/* Standard C++ */
+#include <memory>
+
 using namespace SpellChecker;
 using namespace SpellChecker::Internal;
+
+class SpellChecker::Internal::SpellCheckerPluginPrivate {
+public:
+    std::unique_ptr<SpellCheckerCore> spellCheckerCore;
+    std::unique_ptr<CppSpellChecker::Internal::CppParserSettings> cppParserSettings;
+    std::unique_ptr<NavigationWidgetFactory> navFactory;
+    std::unique_ptr<SpellChecker::ISpellChecker> spellChecker;
+    std::unique_ptr<SpellChecker::IDocumentParser> cppParser;
+    std::unique_ptr<SpellCheckCppQuickFixFactory> quickFixFactory;
+};
 
 /* The following define can be used to install the myMessageOutput function as the
  * a Qt Message Handler. This is useful for debugging when there is a need to break
@@ -78,20 +91,19 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 #endif /* DEBUG_INSTALL_MESSAGE_HANDLER */
 
 SpellCheckerPlugin::SpellCheckerPlugin() :
-    m_spellCheckerCore(0)
+    d(new SpellCheckerPluginPrivate())
 {
     qRegisterMetaType<SpellChecker::WordList>("SpellChecker::WordList");
 }
 
 SpellCheckerPlugin::~SpellCheckerPlugin()
 {
-    m_spellCheckerCore = 0; // Deleted by Object Pool
-    m_cppParserSettings = 0;
+  delete d;
 }
 
 bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
-    // Register objects in the plugin manager's object pool
+    // Create the core
     // Load settings
     // Add actions to menus
     // Connect to other plugins' signals
@@ -103,11 +115,9 @@ bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *error
 #ifdef DEBUG_INSTALL_MESSAGE_HANDLER
     qInstallMessageHandler(myMessageOutput);
 #endif /* DEBUG_INSTALL_MESSAGE_HANDLER */
-    
-    m_spellCheckerCore = new SpellCheckerCore(this);
-    addAutoReleasedObject(m_spellCheckerCore);
-    addAutoReleasedObject(m_spellCheckerCore->outputPane());
-    addAutoReleasedObject(m_spellCheckerCore->optionsPage());
+
+    /* Create the core, the heart of the plugin. */
+    d->spellCheckerCore = std::make_unique<SpellCheckerCore>(this);
 
     Core::Context textContext(TextEditor::Constants::C_TEXTEDITOR);
     /* Create the menu */
@@ -123,14 +133,14 @@ bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *error
     cmdIgnore->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+I")));
     cmdAdd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+A")));
     cmdLucky->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+L")));
-    connect(actionSuggest, &QAction::triggered, m_spellCheckerCore, &SpellCheckerCore::giveSuggestionsForWordUnderCursor);
-    connect(actionIgnore, &QAction::triggered, m_spellCheckerCore, &SpellCheckerCore::ignoreWordUnderCursor);
-    connect(actionAdd, &QAction::triggered, m_spellCheckerCore, &SpellCheckerCore::addWordUnderCursor);
-    connect(actionLucky, &QAction::triggered, m_spellCheckerCore, &SpellCheckerCore::replaceWordUnderCursorFirstSuggestion);
-    connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, actionSuggest, &QAction::setEnabled);
-    connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, actionIgnore, &QAction::setEnabled);
-    connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, actionAdd, &QAction::setEnabled);
-    connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, [=](bool isMistake, const SpellChecker::Word& word) {
+    connect(actionSuggest, &QAction::triggered, d->spellCheckerCore.get(), &SpellCheckerCore::giveSuggestionsForWordUnderCursor);
+    connect(actionIgnore, &QAction::triggered, d->spellCheckerCore.get(), &SpellCheckerCore::ignoreWordUnderCursor);
+    connect(actionAdd, &QAction::triggered, d->spellCheckerCore.get(), &SpellCheckerCore::addWordUnderCursor);
+    connect(actionLucky, &QAction::triggered, d->spellCheckerCore.get(), &SpellCheckerCore::replaceWordUnderCursorFirstSuggestion);
+    connect(d->spellCheckerCore.get(), &SpellCheckerCore::wordUnderCursorMistake, actionSuggest, &QAction::setEnabled);
+    connect(d->spellCheckerCore.get(), &SpellCheckerCore::wordUnderCursorMistake, actionIgnore, &QAction::setEnabled);
+    connect(d->spellCheckerCore.get(), &SpellCheckerCore::wordUnderCursorMistake, actionAdd, &QAction::setEnabled);
+    connect(d->spellCheckerCore.get(), &SpellCheckerCore::wordUnderCursorMistake, actionLucky, [=](bool isMistake, const SpellChecker::Word& word) {
         actionLucky->setEnabled(isMistake && (word.suggestions.isEmpty() == false));
     });
 
@@ -158,27 +168,23 @@ bool SpellCheckerPlugin::initialize(const QStringList &arguments, QString *error
         contextMenu->addAction(cmdHolder);
     }
     /* Set the right click context menu only enabled if the word under the cursor is a spelling mistake */
-    connect(m_spellCheckerCore, &SpellCheckerCore::wordUnderCursorMistake, contextMenu->menu(), &QMenu::setEnabled);
+    connect(d->spellCheckerCore.get(), &SpellCheckerCore::wordUnderCursorMistake, contextMenu->menu(), &QMenu::setEnabled);
 
     /* Create the navigation widget factory */
-    addAutoReleasedObject(new NavigationWidgetFactory(m_spellCheckerCore->spellingMistakesModel()));
+    d->navFactory = std::make_unique<NavigationWidgetFactory>(d->spellCheckerCore->spellingMistakesModel());
 
     /* --- Create the default Spell Checker and Document Parser --- */
     /* Hunspell Spell Checker */
-    SpellChecker::Checker::Hunspell::HunspellChecker* spellChecker = new SpellChecker::Checker::Hunspell::HunspellChecker();
-    addAutoReleasedObject(spellChecker);
-    m_spellCheckerCore->setSpellChecker(spellChecker);
+    d->spellChecker = std::make_unique<SpellChecker::Checker::Hunspell::HunspellChecker>();
+    d->spellCheckerCore->setSpellChecker(d->spellChecker.get());
 
     /* Cpp Document Parser */
-    SpellChecker::CppSpellChecker::Internal::CppDocumentParser* cppParser = new SpellChecker::CppSpellChecker::Internal::CppDocumentParser();
-    addAutoReleasedObject(cppParser);
-    addAutoReleasedObject(cppParser->optionsPage());
+    d->cppParser = std::make_unique<SpellChecker::CppSpellChecker::Internal::CppDocumentParser>();
 
-    m_spellCheckerCore->addDocumentParser(cppParser);
+    d->spellCheckerCore->addDocumentParser(d->cppParser.get());
 
     /* Quick fix provider */
-    SpellCheckCppQuickFixFactory* quickFixFactory = new SpellCheckCppQuickFixFactory;
-    addAutoReleasedObject(quickFixFactory);
+    d->quickFixFactory = std::make_unique<SpellCheckCppQuickFixFactory>();
 
     return true;
 }

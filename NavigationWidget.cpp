@@ -154,6 +154,7 @@ public:
 //--------------------------------------------------
 
 NavigationWidgetFactory::NavigationWidgetFactory(ProjectMistakesModel *model) :
+    INavigationWidgetFactory(),
     d(new NavigationWidgetFactoryPrivate())
 {
     setDisplayName(NavigationWidget::tr("Spelling Mistakes"));

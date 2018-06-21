@@ -36,7 +36,7 @@ class CppParserSettings;
 
 
 namespace Internal {
-
+class SpellCheckerPluginPrivate;
 class SpellCheckerPlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
@@ -50,8 +50,7 @@ public:
     void extensionsInitialized();
     ShutdownFlag aboutToShutdown();
 private:
-    SpellCheckerCore* m_spellCheckerCore;
-    CppSpellChecker::Internal::CppParserSettings* m_cppParserSettings;
+    SpellCheckerPluginPrivate* const d;
 };
 
 } // namespace Internal
