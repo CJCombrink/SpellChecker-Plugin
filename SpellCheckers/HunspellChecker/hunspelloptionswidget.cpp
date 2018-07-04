@@ -24,6 +24,7 @@
 #include <coreplugin/icore.h>
 
 #include <QFileDialog>
+#include <QRegularExpression>
 
 using namespace SpellChecker::Checker::Hunspell;
 
