@@ -97,7 +97,7 @@ public:
 using namespace SpellChecker;
 using namespace SpellChecker::Internal;
 
-static SpellCheckerCore *g_instance = 0;
+static SpellCheckerCore *g_instance = nullptr;
 
 SpellCheckerCore::SpellCheckerCore(QObject *parent) :
     QObject(parent),
@@ -131,7 +131,7 @@ SpellCheckerCore::SpellCheckerCore(QObject *parent) :
     d->contextMenu = Core::ActionManager::createMenu(Constants::CONTEXT_MENU_ID);
     Q_ASSERT(d->contextMenu != nullptr);
     connect(d->contextMenu->menu(), &QMenu::aboutToShow, this, &SpellCheckerCore::updateContextMenu);
-    connect(qApp, &QCoreApplication::aboutToQuit, this, &SpellCheckerCore::cancelFutures, Qt::DirectConnection);
+    connect(qApp, &QCoreApplication::aboutToQuit, this, &SpellCheckerCore::aboutToQuit, Qt::DirectConnection);
 }
 //--------------------------------------------------
 
@@ -425,6 +425,13 @@ void SpellCheckerCore::cancelFutures()
     for(iter = d->futureWatchers.begin(); iter != d->futureWatchers.end(); ++iter) {
         iter.key()->future().cancel();
     }
+}
+
+//--------------------------------------------------
+void SpellCheckerCore::aboutToQuit()
+{
+    d->startupProject = nullptr;
+    cancelFutures();
 }
 //--------------------------------------------------
 

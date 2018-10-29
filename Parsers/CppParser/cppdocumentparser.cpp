@@ -41,6 +41,7 @@
 #include <projectexplorer/project.h>
 #include <projectexplorer/session.h>
 #include <utils/algorithm.h>
+#include <utils/mimetypes/mimedatabase.h>
 
 #include <QRegularExpression>
 #include <QTextBlock>
@@ -48,6 +49,11 @@
 namespace SpellChecker {
 namespace CppSpellChecker {
 namespace Internal {
+
+/*! Mime Type for the C++ doxygen files.
+ * This must match the 'mime-type type' in the json.in file of this
+ * plugin. */
+const char MIME_TYPE_CXX_DOX[] = "text/x-c++dox";
 
 /*! \brief Class containing the words of a specific token.
  *
@@ -71,21 +77,21 @@ public:
 //--------------------------------------------------
 //--------------------------------------------------
 
+
 class CppDocumentParserPrivate {
 public:
     ProjectExplorer::Project* activeProject;
     QString currentEditorFileName;
     CppParserOptionsPage* optionsPage;
     CppParserSettings* settings;
-    QStringList filesInStartupProject;
-    const QRegularExpression cppRegExp;
+    QSet<QString> filesInStartupProject;
+
     HashWords tokenHashes;
 
     CppDocumentParserPrivate() :
         activeProject(nullptr),
         currentEditorFileName(),
-        filesInStartupProject(),
-        cppRegExp(QLatin1String(SpellChecker::Parsers::CppParser::Constants::CPP_SOURCE_FILES_REGEXP_PATTERN), QRegularExpression::CaseInsensitiveOption)
+        filesInStartupProject()
     {}
 };
 //--------------------------------------------------
@@ -158,11 +164,11 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
     if(docPtr.isNull() == true) {
         return;
     }
-    QString fileName = docPtr->fileName();
+
+    const QString fileName = docPtr->fileName();
     if(shouldParseDocument(fileName) == false) {
         return;
     }
-
     WordList words = parseCppDocument(docPtr);
     /* Now that we have all of the words from the parser, emit the signal
      * so that they will get spell checked. */
@@ -186,30 +192,54 @@ void CppDocumentParser::reparseProject()
         return;
     }
     CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
-    const QStringList list = Utils::transform(d->activeProject->files(ProjectExplorer::Project::SourceFiles), &Utils::FileName::toString);
-    d->filesInStartupProject = list.filter(d->cppRegExp);
-    modelManager->updateSourceFiles(d->filesInStartupProject.toSet());
+
+    const Utils::FileNameList projectFiles = d->activeProject->files(ProjectExplorer::Project::SourceFiles);
+    const QStringList fileList = Utils::transform(projectFiles, &Utils::FileName::toString);
+    const QStringList filteredList = Utils::filtered(fileList, [](const QString& file){
+      CppTools::ProjectFile::Kind kind = CppTools::ProjectFile::classify(file);
+      switch(kind){
+      case CppTools::ProjectFile::Unclassified:
+        return false;
+      case CppTools::ProjectFile::Unsupported: {
+        /* Check our doxy MimeType added by this plugin */
+        const Utils::MimeType mimeType = Utils::mimeTypeForFile(file);
+        const QString mt = mimeType.name();
+        if (mt == QLatin1String(MIME_TYPE_CXX_DOX)){
+            return true;
+        } else {
+          return false;
+        }
+      }
+      default:
+          return true;
+      }
+    });
+    const QSet<QString> fileSet = filteredList.toSet();
+    d->filesInStartupProject = fileSet;
+    modelManager->updateSourceFiles(fileSet);
 }
 //--------------------------------------------------
 
 bool CppDocumentParser::shouldParseDocument(const QString& fileName)
 {
-    if((SpellCheckerCore::instance()->settings()->onlyParseCurrentFile == true)
+    SpellChecker::Internal::SpellCheckerCoreSettings* settings = SpellCheckerCore::instance()->settings();
+    if((settings->onlyParseCurrentFile == true)
             && (d->currentEditorFileName != fileName)) {
         /* The global setting is set to only parse the current file and the
          * file asked about is not the current one, thus do not parse it. */
         return false;
     }
 
-    if((SpellCheckerCore::instance()->settings()->checkExternalFiles) == false) {
+    CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
+    auto snap = modelManager->snapshot();
+
+    if((settings->checkExternalFiles) == false) {
         /* Do not check external files so check if the file is part of the
          * active project. */
         return d->filesInStartupProject.contains(fileName);
     }
 
-    /* Any file can go, project files or external files so just make sure that the
-     * current one is at least a C++ source file. */
-    return fileName.contains(d->cppRegExp);
+    return true;
 }
 //--------------------------------------------------
 

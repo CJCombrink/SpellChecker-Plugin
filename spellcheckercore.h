@@ -219,6 +219,8 @@ private slots:
     void futureFinished();
     /*! \brief Slot called when the application quits to cancel all outstanding futures. */
     void cancelFutures();
+    /*! \brief Slot called when Qt Creator is about to quit. */
+    void aboutToQuit();
 private:
     Internal::SpellCheckerCorePrivate* const d;
 };

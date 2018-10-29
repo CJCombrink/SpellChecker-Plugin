@@ -1,7 +1,7 @@
 {
     \"Name\" : \"SpellChecker\",
-    \"Version\" : \"1.3.0\",
-    \"CompatVersion\" : \"1.3.0\",
+    \"Version\" : \"1.3.82\",
+    \"CompatVersion\" : \"1.3.82\",
     \"Vendor\" : \"Carel Combrink\",
     \"Copyright\" : \"(C) 2015 - 2018 Carel Combrink\",
     \"License\" : [ \"GNU Lesser General Public License Usage\",
@@ -12,5 +12,21 @@
                       \"An Output Pane, Right Click context menu and a Navigation Widget is added to QtCreator to interact with the results from this plugin.\"
     ],
     \"Url\" : \"https://github.com/CJCombrink/SpellChecker-Plugin\",
-    $$dependencyList
+    $$dependencyList,
+
+    \"Mimetypes\" : [
+        \"<?xml version=\'1.0\' encoding=\'UTF-8\'?>\",
+        \"<mime-info xmlns=\'http://www.freedesktop.org/standards/shared-mime-info\'>\",
+        \"    <mime-type type=\'text/x-c++dox\'>\",
+        \"        <sub-class-of type=\'text/x-c++hdr\'/>\",
+        \"        <comment>Doxygen Files</comment>\",
+        \"        <glob pattern=\'*.dox\'/>\",
+        \"        <glob pattern=\'*.doxy\'/>\",
+        \"        <magic priority=\'50\'>\",
+        \"              <match type=\'string\' offset=\'0\' value=\'/*!\'/>\",
+        \"              <match type=\'string\' offset=\'0\' value=\'/**\'/>\",
+        \"        </magic>\",
+        \"    </mime-type>\",
+        \"</mime-info>\"
+    ]
 }
