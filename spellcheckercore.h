@@ -158,6 +158,16 @@ signals:
      * startupProjectChanged() slot to notify parsers that the active project changed.
      * \param startupProject Pointer to the startup project. */
     void activeProjectChanged(ProjectExplorer::Project *startupProject);
+    /*! \brief Signal emitted when the project files changes.
+     *
+     * Passing as copy to try and gain the benefit of copy-on-write to protect
+     * against changes in the sources and to remove the unnecessary copy.
+     *
+     * \param filesAdded List of files added to the project since the last
+     *     notification.
+     * \param filesRemoved List of files removed from the project since the last
+     *     notification. */
+    void projectFilesChanged(QStringSet filesAdded, QStringSet filesRemoved);
 
 public slots:
     /*! \brief Open the suggestions widget for the word under the cursor. */
@@ -194,7 +204,7 @@ private slots:
     /*! \brief Slot called when the Qt Creator Startup or active project changes. */
     void startupProjectChanged(ProjectExplorer::Project* startupProject);
     /*! \brief Slot called when the files in the project changes. */
-    void projectsFilesChanged();
+    void fileListChanged();
     /*! \brief Slot called when the cursor position for the current editor changes.
      *
      * If the cursor is over a misspelled word, then the controls and actions for

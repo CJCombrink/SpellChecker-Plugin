@@ -27,6 +27,12 @@
 
 namespace SpellChecker {
 
+/*! \brief Alias for a QSet with strings, in the same spirit as QStringList.
+ *
+ * It should probably not be called QStringSet (the first letter being a 'Q')
+ * since it will probably get confused with something in Qt. */
+using QStringSet = QSet<QString>;
+
 /*! \brief The Word class
  *
  * This class is a structure representing a word parsed from the source. It

@@ -84,7 +84,7 @@ public:
     QString currentEditorFileName;
     CppParserOptionsPage* optionsPage;
     CppParserSettings* settings;
-    QSet<QString> filesInStartupProject;
+    QStringSet filesInStartupProject;
 
     HashWords tokenHashes;
 
@@ -93,6 +93,38 @@ public:
         currentEditorFileName(),
         filesInStartupProject()
     {}
+
+    /*! \brief Get all C++ files from the \a list of files.
+     *
+     * This function uses the MIME Types of the passed files and check if
+     * they are classified by the CppTools::ProjectFile class. If they are
+     * they are regarded as C++ files.
+     * If a file is unsupported the type is checked against the
+     * custom MIME Type added by this plygin. */
+    QStringSet getCppFiles(const QStringSet& list)
+    {
+        const QStringSet filteredList = Utils::filtered(list, [](const QString& file){
+        const CppTools::ProjectFile::Kind kind = CppTools::ProjectFile::classify(file);
+        switch(kind){
+        case CppTools::ProjectFile::Unclassified:
+          return false;
+        case CppTools::ProjectFile::Unsupported: {
+          /* Check our doxy MimeType added by this plugin */
+          const Utils::MimeType mimeType = Utils::mimeTypeForFile(file);
+          const QString mt = mimeType.name();
+          if (mt == QLatin1String(MIME_TYPE_CXX_DOX)){
+              return true;
+          } else {
+            return false;
+          }
+        }
+        default:
+            return true;
+        }
+      });
+
+      return filteredList;
+    }
 };
 //--------------------------------------------------
 //--------------------------------------------------
@@ -153,6 +185,17 @@ void CppDocumentParser::setActiveProject(ProjectExplorer::Project *activeProject
 }
 //--------------------------------------------------
 
+void CppDocumentParser::updateProjectFiles(QStringSet filesAdded, QStringSet filesRemoved)
+{
+  /* Only re-parse the files that were added. */
+  CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
+
+  const QStringSet fileSet = d->getCppFiles(filesAdded);
+  d->filesInStartupProject.unite(fileSet);
+  modelManager->updateSourceFiles(fileSet);
+}
+//--------------------------------------------------
+
 void CppDocumentParser::setCurrentEditor(const QString& editorFilePath)
 {
     d->currentEditorFileName = editorFilePath;
@@ -195,26 +238,8 @@ void CppDocumentParser::reparseProject()
 
     const Utils::FileNameList projectFiles = d->activeProject->files(ProjectExplorer::Project::SourceFiles);
     const QStringList fileList = Utils::transform(projectFiles, &Utils::FileName::toString);
-    const QStringList filteredList = Utils::filtered(fileList, [](const QString& file){
-      CppTools::ProjectFile::Kind kind = CppTools::ProjectFile::classify(file);
-      switch(kind){
-      case CppTools::ProjectFile::Unclassified:
-        return false;
-      case CppTools::ProjectFile::Unsupported: {
-        /* Check our doxy MimeType added by this plugin */
-        const Utils::MimeType mimeType = Utils::mimeTypeForFile(file);
-        const QString mt = mimeType.name();
-        if (mt == QLatin1String(MIME_TYPE_CXX_DOX)){
-            return true;
-        } else {
-          return false;
-        }
-      }
-      default:
-          return true;
-      }
-    });
-    const QSet<QString> fileSet = filteredList.toSet();
+
+    const QStringSet fileSet = d->getCppFiles(fileList.toSet());
     d->filesInStartupProject = fileSet;
     modelManager->updateSourceFiles(fileSet);
 }
@@ -271,7 +296,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
     HashWords tokenHashesOut;
 
     WordList parsedWords;
-    QSet<QString> wordsInSource;
+    QStringSet wordsInSource;
     /* If the setting is set to remove words from the list based on words found in the source,
      * parse the source file and then remove all words found in the source files from the list
      * of words that will be checked. */
@@ -433,7 +458,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 }
 //--------------------------------------------------
 
-void CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, const QSet<QString>& wordsInSource, bool isComment, bool isDoxygenComment, WordList& extractedWords, const HashWords &hashIn, HashWords &hashOut)
+void CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, const QStringSet& wordsInSource, bool isComment, bool isDoxygenComment, WordList& extractedWords, const HashWords &hashIn, HashWords &hashOut)
 {
     WordList words;
     /* Get the token string */
@@ -533,7 +558,7 @@ void CppDocumentParser::tokenizeWords(const QString& fileName, const QString &st
 }
 //--------------------------------------------------
 
-void CppDocumentParser::applySettingsToWords(const QString &string, WordList &words, bool isDoxygenComment, const QSet<QString> &wordsInSource)
+void CppDocumentParser::applySettingsToWords(const QString &string, WordList &words, bool isDoxygenComment, const QStringSet &wordsInSource)
 {
     using namespace SpellChecker::Parsers::CppParser;
 
@@ -788,7 +813,7 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
 }
 //--------------------------------------------------
 
-void CppDocumentParser::getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr, QSet<QString> &wordsInSource)
+void CppDocumentParser::getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr, QStringSet &wordsInSource)
 {
     if(docPtr == nullptr) {
         Q_ASSERT(docPtr != nullptr);
@@ -803,7 +828,7 @@ void CppDocumentParser::getWordsThatAppearInSource(CPlusPlus::Document::Ptr docP
 }
 //--------------------------------------------------
 
-void CppDocumentParser::getListOfWordsFromSourceRecursive(QSet<QString> &words, const CPlusPlus::Symbol *symbol, const CPlusPlus::Overview &overview)
+void CppDocumentParser::getListOfWordsFromSourceRecursive(QStringSet &words, const CPlusPlus::Symbol *symbol, const CPlusPlus::Overview &overview)
 {
     /* Get the pretty name and type for the current symbol. This name is then split up into
      * different words that are added to the list of words that appear in the source */
@@ -828,7 +853,7 @@ void CppDocumentParser::getListOfWordsFromSourceRecursive(QSet<QString> &words, 
 }
 //--------------------------------------------------
 
-void CppDocumentParser::getPossibleNamesFromString(QSet<QString> &words, const QString& string)
+void CppDocumentParser::getPossibleNamesFromString(QStringSet &words, const QString& string)
 {
     static const QRegularExpression nameRegExp(QStringLiteral("(\\w+)"));
     QRegularExpressionMatchIterator i = nameRegExp.globalMatch(string);
@@ -839,7 +864,7 @@ void CppDocumentParser::getPossibleNamesFromString(QSet<QString> &words, const Q
 }
 //--------------------------------------------------
 
-void CppDocumentParser::removeWordsThatAppearInSource(const QSet<QString> &wordsInSource, WordList &words)
+void CppDocumentParser::removeWordsThatAppearInSource(const QStringSet &wordsInSource, WordList &words)
 {
     /* Hopefully all words that are the same would be together in the WordList because of
      * the nature of the QMultiHash. This would make removing multiple instances of the same

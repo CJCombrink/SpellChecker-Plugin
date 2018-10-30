@@ -26,8 +26,10 @@
 #include <QFileInfo>
 
 using namespace SpellChecker::Internal;
+using namespace SpellChecker;
 
-typedef QMap<QString, QPair<SpellChecker::WordList,bool /* In Startup Project */> > FileMistakes;
+using WordListInternalPair = QPair<SpellChecker::WordList, bool /* In Startup Project */>;
+using FileMistakes         = QMap<QString, WordListInternalPair>;
 
 class SpellChecker::Internal::ProjectMistakesModelPrivate {
 public:
@@ -150,6 +152,40 @@ int ProjectMistakesModel::countStringLiterals(const SpellChecker::WordList &word
                               words.constEnd(),
                               [](const Word& word) {return (word.inComment == false);});
     return count;
+}
+//--------------------------------------------------
+
+void ProjectMistakesModel::projectFilesChanged(QStringSet filesAdded, QStringSet filesRemoved)
+{
+  const auto mistakesEnd = d->spellingMistakes.end();
+
+  {
+      const QStringSet::const_iterator addedEnd = filesAdded.cend();
+      for(auto addedIter = filesAdded.cbegin(); addedIter != addedEnd; ++addedIter) {
+        auto wordIter = d->spellingMistakes.find(*addedIter);
+        if(wordIter != mistakesEnd) {
+          /* Found one */
+          wordIter.value().second = true;
+          const int32_t row       = indexOfFile(*addedIter);
+          const QModelIndex idx   = index(row, COLUMN_FILE_IN_STARTUP);
+          emit dataChanged(idx, idx);
+        }
+      }
+  }
+
+  {
+      const QStringSet::const_iterator removedEnd = filesRemoved.cend();
+      for(auto removedIter = filesRemoved.cbegin(); removedIter != removedEnd; ++removedIter) {
+        auto wordIter = d->spellingMistakes.find(*removedIter);
+        if(wordIter != mistakesEnd) {
+          /* Found one */
+          wordIter.value().second = false;
+          const int32_t row       = indexOfFile(*removedIter);
+          const QModelIndex idx   = index(row, COLUMN_FILE_IN_STARTUP);
+          emit dataChanged(idx, idx);
+        }
+      }
+  }
 }
 //--------------------------------------------------
 

@@ -93,6 +93,12 @@ public:
      * \param[in] words List of words that should be counted.
      * \return The number of words in the list that are in String Literals. */
     int countStringLiterals(const WordList& words) const;
+    /*! \brief Update the model to reflect internal vs external files.
+     *
+     * Since the model has a column for files part of the project, the model
+     * is interested in knowing if the project files has changed so that this
+     * column can be kept in sync. */
+    void projectFilesChanged(QStringSet filesAdded, QStringSet filesRemoved);
 public slots:
     /*! \brief Slot that gets called  from the navigation when a file is selected */
     void fileSelected(const QModelIndex& index);

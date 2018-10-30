@@ -4,16 +4,16 @@
 **
 ** This file is part of the SpellChecker Plugin, a Qt Creator plugin.
 **
-** The SpellChecker Plugin is free software: you can redistribute it and/or 
-** modify it under the terms of the GNU Lesser General Public License as 
-** published by the Free Software Foundation, either version 3 of the 
+** The SpellChecker Plugin is free software: you can redistribute it and/or
+** modify it under the terms of the GNU Lesser General Public License as
+** published by the Free Software Foundation, either version 3 of the
 ** License, or (at your option) any later version.
-** 
+**
 ** The SpellChecker Plugin is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU Lesser General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU Lesser General Public License
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
@@ -43,23 +43,22 @@ class TokenWords;
  * because there is no need for the extra memory in the hash to store the actual token. If the hash was
  * defined as QHash<QString, CommentWords> the hash would store the full token in memory so that it can
  * be obtained using the QHash::key() function. Some token can be long and the overhead is not needed. */
-typedef QHash<quint32, TokenWords> HashWords;
+using HashWords = QHash<quint32, TokenWords>;
 
 class CppDocumentParser : public SpellChecker::IDocumentParser
 {
     Q_OBJECT
 public:
-    CppDocumentParser(QObject *parent = 0);
-    virtual ~CppDocumentParser();
-    QString displayName();
-    Core::IOptionsPage* optionsPage();
-
+    CppDocumentParser(QObject *parent = nullptr);
+    ~CppDocumentParser() Q_DECL_OVERRIDE;
+    QString displayName() Q_DECL_OVERRIDE;
+    Core::IOptionsPage* optionsPage() Q_DECL_OVERRIDE;
     void parseToken(QStringList wordsInSource, CPlusPlus::TranslationUnit *trUnit, WordList words, CPlusPlus::Document::Ptr docPtr, WordList parsedWords, const CPlusPlus::Token& token);
-signals:
-    
+
 protected:
     void setCurrentEditor(const QString& editorFilePath) Q_DECL_OVERRIDE;
     void setActiveProject(ProjectExplorer::Project* activeProject) Q_DECL_OVERRIDE;
+    void updateProjectFiles(QStringSet filesAdded, QStringSet filesRemoved) Q_DECL_OVERRIDE;
 
 protected slots:
     void parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr);
@@ -97,7 +96,7 @@ public:
      * \param[out] extractedWords Words that were extracted from the token that must now
      *              be spellchecked. The extracted words will only get added to the list
      *              and previous items added will stay in the list. */
-    void parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, const QSet<QString> &wordsInSource, bool isComment, bool isDoxygenComment, WordList& extractedWords, const HashWords& hashIn, HashWords& hashOut);
+    void parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, const QStringSet &wordsInSource, bool isComment, bool isDoxygenComment, WordList& extractedWords, const HashWords& hashIn, HashWords& hashOut);
     /*! \brief Tokenize Words from a string.
      *
      * This function takes a string, either a comment or a string literal and
@@ -118,11 +117,11 @@ public:
      * \param[in] wordsInSource List of words that appear in the source. Based on the user
      *                  setting words that appear in this list will be removed from the
      *                  final list of \a words. */
-    void applySettingsToWords(const QString& string, WordList& words, bool isDoxygenComment, const QSet<QString> &wordsInSource = QSet<QString>());
-    void getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr, QSet<QString>& wordsInSource);
-    void getListOfWordsFromSourceRecursive(QSet<QString> &words, const CPlusPlus::Symbol* symbol, const CPlusPlus::Overview& overview);
-    void getPossibleNamesFromString(QSet<QString> &words, const QString &string);
-    void removeWordsThatAppearInSource(const QSet<QString> &wordsInSource, WordList& words);
+    void applySettingsToWords(const QString& string, WordList& words, bool isDoxygenComment, const QStringSet &wordsInSource = QStringSet());
+    void getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr, QStringSet& wordsInSource);
+    void getListOfWordsFromSourceRecursive(QStringSet &words, const CPlusPlus::Symbol* symbol, const CPlusPlus::Overview& overview);
+    void getPossibleNamesFromString(QStringSet &words, const QString &string);
+    void removeWordsThatAppearInSource(const QStringSet &wordsInSource, WordList& words);
     bool isEndOfCurrentWord(const QString& comment, int currentPos);
     bool isReservedWord(const QString& word);
 

@@ -31,7 +31,6 @@ namespace Core { class IOptionsPage; }
 
 namespace SpellChecker {
 
-
 /*! \brief The IDocumentParser class
  *
  * Parse a document and return all words that must be checked for
@@ -44,8 +43,8 @@ class IDocumentParser : public QObject
 {
     Q_OBJECT
 public:
-    IDocumentParser(QObject *parent = 0);
-    virtual ~IDocumentParser();
+    IDocumentParser(QObject *parent = nullptr);
+    virtual ~IDocumentParser() Q_DECL_OVERRIDE;
     virtual QString displayName() = 0;
     virtual Core::IOptionsPage* optionsPage() = 0;
 
@@ -75,6 +74,15 @@ public slots:
      * \param[in] activeProject Project pointer to the current Active
      *      project. */
     virtual void setActiveProject(ProjectExplorer::Project* activeProject) { Q_UNUSED(activeProject) }
+    /*! Slot that will get called when the source files in the current
+     * project changes.
+     *
+     * This slot is only for convenience, it is called after the core handled
+     * the ProjectExplorer::ProjectExplorerPlugin::fileListChanged() signal.
+     * The core will already get all the source files from the explorer,
+     * and then it is passed to the parsers. The parsers then does not need
+     * to get the source files as well. */
+    virtual void updateProjectFiles(QStringSet filesAdded, QStringSet filesRemoved) { Q_UNUSED(filesAdded) Q_UNUSED(filesRemoved) }
 };
 
 } // namespace SpellChecker

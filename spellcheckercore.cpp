@@ -75,7 +75,7 @@ public:
     QList<Core::Command*> contextMenuHolderCommands;
     QString currentFilePath;
     ProjectExplorer::Project* startupProject;
-    QStringList filesInStartupProject;
+    QStringSet filesInStartupProject;
     QMutex futureMutex;
     FutureWatcherMap futureWatchers;
     QStringList filesInProcess;
@@ -126,7 +126,7 @@ SpellCheckerCore::SpellCheckerCore(QObject *parent) :
     connect(editorManager, &Core::EditorManager::editorAboutToClose, this, &SpellCheckerCore::editorAboutToClose);
 
     connect(ProjectExplorer::SessionManager::instance(), &ProjectExplorer::SessionManager::startupProjectChanged, this, &SpellCheckerCore::startupProjectChanged);
-    connect(ProjectExplorer::ProjectExplorerPlugin::instance(), &ProjectExplorer::ProjectExplorerPlugin::fileListChanged, this, &SpellCheckerCore::projectsFilesChanged);
+    connect(ProjectExplorer::ProjectExplorerPlugin::instance(), &ProjectExplorer::ProjectExplorerPlugin::fileListChanged, this, &SpellCheckerCore::fileListChanged);
 
     d->contextMenu = Core::ActionManager::createMenu(Constants::CONTEXT_MENU_ID);
     Q_ASSERT(d->contextMenu != nullptr);
@@ -162,6 +162,7 @@ bool SpellCheckerCore::addDocumentParser(IDocumentParser *parser)
         /* Connect all signals and slots between the parser and the core. */
         connect(this, &SpellCheckerCore::currentEditorChanged, parser, &IDocumentParser::setCurrentEditor);
         connect(this, &SpellCheckerCore::activeProjectChanged, parser, &IDocumentParser::setActiveProject);
+        connect(this, &SpellCheckerCore::projectFilesChanged, parser, &IDocumentParser::updateProjectFiles);
         connect(parser, &IDocumentParser::spellcheckWordsParsed, this, &SpellCheckerCore::spellcheckWordsFromParser, Qt::QueuedConnection);
         return true;
     }
@@ -177,6 +178,7 @@ void SpellCheckerCore::removeDocumentParser(IDocumentParser *parser)
     /* Disconnect all signals between the parser and the core. */
     disconnect(this, &SpellCheckerCore::currentEditorChanged, parser, &IDocumentParser::setCurrentEditor);
     disconnect(this, &SpellCheckerCore::activeProjectChanged, parser, &IDocumentParser::setActiveProject);
+    disconnect(this, &SpellCheckerCore::projectFilesChanged, parser, &IDocumentParser::updateProjectFiles);
     disconnect(parser, &IDocumentParser::spellcheckWordsParsed, this, &SpellCheckerCore::spellcheckWordsFromParser);
     /* Remove the parser from the Core. The removeOne() function is used since
      * the check in the addDocumentParser() would prevent the list from having
@@ -682,7 +684,7 @@ void SpellCheckerCore::startupProjectChanged(ProjectExplorer::Project *startupPr
     if(startupProject != nullptr) {
         /* Check if the current project is not set to be ignored by the settings. */
         if(d->settings->projectsToIgnore.contains(startupProject->displayName()) == false) {
-            d->filesInStartupProject = Utils::transform(startupProject->files(ProjectExplorer::Project::SourceFiles), &Utils::FileName::toString);
+            d->filesInStartupProject = Utils::transform(startupProject->files(ProjectExplorer::Project::SourceFiles), &Utils::FileName::toString).toSet();
         } else {
             /* The Project should be ignored and not be spell checked. */
             d->startupProject = nullptr;
@@ -692,15 +694,49 @@ void SpellCheckerCore::startupProjectChanged(ProjectExplorer::Project *startupPr
 }
 //--------------------------------------------------
 
-void SpellCheckerCore::projectsFilesChanged()
+void SpellCheckerCore::fileListChanged()
 {
-    startupProjectChanged(d->startupProject);
+    if(d->startupProject == nullptr) {
+      return;
+    }
+
+
+    if(d->settings->projectsToIgnore.contains(d->startupProject->displayName()) == true) {
+      /* We should ignore this project, return without doing anything. */
+      return;
+    }
+
+    const QStringSet oldFiles = d->filesInStartupProject;
+    const QStringSet newFiles = Utils::transform(d->startupProject->files(ProjectExplorer::Project::SourceFiles), &Utils::FileName::toString).toSet();;
+
+    /* Compare the two sets with each other to get the lists of files
+     * added and removed.
+     * An implementation using std::set_difference was initially implemented
+     * but that needed the set to be converted to a vector so that it can be
+     * sorted, then after std::set_difference the vector was converted back
+     * to a set. This approach was in almost all tests cases slower than the
+     * current implementation.
+     *
+     * The current implementation relies on the fact that searching in a set
+     * is generally fast. */
+    const QStringSet added = Utils::filtered(newFiles, [&](const QString& file) {
+      return !oldFiles.contains(file);
+    });
+    const QStringSet removed = Utils::filtered(oldFiles, [&](const QString& file) {
+      return !newFiles.contains(file);
+    });
+
+    d->filesInStartupProject = newFiles;
+    /* Must let the model know about the changes since it is interested */
+    d->spellingMistakesModel->projectFilesChanged(added, removed);
+
+    emit projectFilesChanged(added, removed);
 }
 //--------------------------------------------------
 
 void SpellCheckerCore::mangerEditorChanged(Core::IEditor *editor)
 {
-    d->currentFilePath = QLatin1String("");
+    d->currentFilePath.clear();
     d->currentEditor = editor;
     if(editor != nullptr) {
         d->currentFilePath = editor->document()->filePath().toString();
