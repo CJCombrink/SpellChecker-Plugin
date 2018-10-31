@@ -56,8 +56,8 @@
 #include <QMutex>
 #include <QTextBlock>
 
-typedef QMap<QFutureWatcher<SpellChecker::WordList>*, QString> FutureWatcherMap;
-typedef FutureWatcherMap::Iterator FutureWatcherMapIter;
+using FutureWatcherMap     = QMap<QFutureWatcher<SpellChecker::WordList>*, QString> ;
+using FutureWatcherMapIter = FutureWatcherMap::Iterator;
 
 class SpellChecker::Internal::SpellCheckerCorePrivate {
 public:
@@ -80,6 +80,7 @@ public:
     FutureWatcherMap futureWatchers;
     QStringList filesInProcess;
     QHash<QString, WordList> filesWaitingForProcess;
+    bool shuttingDown = false;
 
     SpellCheckerCorePrivate() :
         spellChecker(nullptr),
@@ -321,6 +322,10 @@ void SpellCheckerCore::spellcheckWordsFromParser(const QString& fileName, const 
      * queued connections are used and this function should always execute in the
      * main thread, but for now lets rather be safe. */
     QMutexLocker locker(&d->futureMutex);
+    if(d->shuttingDown == true) {
+      /* Shutting down, no need to do anything further. */
+      return;
+    }
 
     /* Check if this file is not already being processed by QtConcurrent in the
      * background. The current implementation will only use one QFuter per file
@@ -375,6 +380,11 @@ void SpellCheckerCore::futureFinished()
     if(watcher == nullptr) {
         return;
     }
+
+    if(d->shuttingDown ==true) {
+      /* Application shutting down, should not try something */
+      return;
+    }
     if(watcher->isCanceled() == true) {
         /* Application is shutting down */
         return;
@@ -382,6 +392,10 @@ void SpellCheckerCore::futureFinished()
     /* Get the list of words with spelling mistakes from the future. */
     WordList checkedWords = watcher->result();
     QMutexLocker locker(&d->futureMutex);
+    /* Recheck again after getting the lock. */
+    if(d->shuttingDown ==true) {
+      return;
+    }
     /* Get the file name associated with this future and the misspelled
      * words. */
     FutureWatcherMapIter iter = d->futureWatchers.find(watcher);
@@ -427,12 +441,26 @@ void SpellCheckerCore::cancelFutures()
     for(iter = d->futureWatchers.begin(); iter != d->futureWatchers.end(); ++iter) {
         iter.key()->future().cancel();
     }
+
+    /* Wait on the futures and delete the futures */
+    for(iter = d->futureWatchers.begin(); iter != d->futureWatchers.end(); ++iter) {
+        iter.key()->future().waitForFinished();
+        delete iter.key();
+    }
+
+    d->futureWatchers.clear();
 }
 
 //--------------------------------------------------
 void SpellCheckerCore::aboutToQuit()
 {
+    /* Disconnect from everything that can send signals to this object */
+    Core::EditorManager::instance()->disconnect(this);
+    ProjectExplorer::SessionManager::instance()->disconnect(this);
+    ProjectExplorer::ProjectExplorerPlugin::instance()->disconnect(this);
+    d->shuttingDown = true;
     d->startupProject = nullptr;
+    disconnect(this);
     cancelFutures();
 }
 //--------------------------------------------------

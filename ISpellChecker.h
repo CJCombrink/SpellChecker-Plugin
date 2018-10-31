@@ -4,16 +4,16 @@
 **
 ** This file is part of the SpellChecker Plugin, a Qt Creator plugin.
 **
-** The SpellChecker Plugin is free software: you can redistribute it and/or 
-** modify it under the terms of the GNU Lesser General Public License as 
-** published by the Free Software Foundation, either version 3 of the 
+** The SpellChecker Plugin is free software: you can redistribute it and/or
+** modify it under the terms of the GNU Lesser General Public License as
+** published by the Free Software Foundation, either version 3 of the
 ** License, or (at your option) any later version.
-** 
+**
 ** The SpellChecker Plugin is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU Lesser General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU Lesser General Public License
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
@@ -94,7 +94,7 @@ public:
  * to check the words that were extracted from the file and check them
  * for spelling mistakes. To speed up the checking the processor also takes
  * in the list of previous mistakes extracted from the file. This is done
- * since the suggestions for mispelled words can be reused without having to
+ * since the suggestions for misspelled words can be reused without having to
  * ask the spell checker for suggestions each time for repeating words.
  * The chance that a word repeats in a file is big for different passes and the
  * time for a spell checker to get suggestions can be rather slow.

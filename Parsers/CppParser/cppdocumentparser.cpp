@@ -45,6 +45,7 @@
 
 #include <QRegularExpression>
 #include <QTextBlock>
+#include <QApplication>
 
 namespace SpellChecker {
 namespace CppSpellChecker {
@@ -144,6 +145,12 @@ CppDocumentParser::CppDocumentParser(QObject *parent) :
 
     CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
     connect(modelManager, &CppTools::CppModelManager::documentUpdated, this, &CppDocumentParser::parseCppDocumentOnUpdate, Qt::DirectConnection);
+    connect(qApp, &QApplication::aboutToQuit, this, [=](){
+      /* Disconnect any signals that might still get emitted. */
+      modelManager->disconnect(this);
+      SpellCheckerCore::instance()->disconnect(this);
+      this->disconnect(SpellCheckerCore::instance());
+    }, Qt::DirectConnection);
 
     Core::Context context(CppEditor::Constants::CPPEDITOR_ID);
     Core::ActionContainer *cppEditorContextMenu= Core::ActionManager::createMenu(CppEditor::Constants::M_CONTEXT);

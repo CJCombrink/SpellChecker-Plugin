@@ -192,7 +192,7 @@ void ProjectMistakesModel::projectFilesChanged(QStringSet filesAdded, QStringSet
 void ProjectMistakesModel::fileSelected(const QModelIndex &index)
 {
     QString fileName = index.data(COLUMN_FILEPATH).toString();
-    if(QFileInfo(fileName).exists() == true) {
+    if(QFileInfo::exists(fileName) == true) {
         Core::IEditor* editor = Core::EditorManager::openEditor(fileName);
         emit editorOpened();
         Q_ASSERT(editor != nullptr);

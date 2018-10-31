@@ -85,7 +85,7 @@ void SpellCheckProcessor::process(QFutureInterface<WordList> &future)
              * suggestions can be reused without having to get the suggestions
              * through the spell checker since this is slow compared to the rest
              * of the processing. */
-            prevMisspelledIter = d_previousMistakes.find(misspelledWord.text);
+            prevMisspelledIter = d_previousMistakes.constFind(misspelledWord.text);
             if(prevMisspelledIter != d_previousMistakes.constEnd()) {
                 misspelledWord.suggestions = (*prevMisspelledIter).suggestions;
                 misspelledWords.append(misspelledWord);
@@ -98,12 +98,17 @@ void SpellCheckProcessor::process(QFutureInterface<WordList> &future)
              * the file since the time to get suggestions is rather slow.
              * If there are no repeating mistakes then this might add unneeded
              * overhead. */
-            misspelledIter = misspelledWords.find(misspelledWord.text);
+            misspelledIter = misspelledWords.constFind(misspelledWord.text);
             if(misspelledIter != misspelledWords.constEnd()) {
                 misspelledWord.suggestions = (*misspelledIter).suggestions;
                 /* Add the word to the local list of misspelled words. */
                 misspelledWords.append(misspelledWord);
                 continue;
+            }
+
+            /* Another checkpoint before we go into the SpellChecker to check for mistakes */
+            if(future.isCanceled() == true) {
+                return;
             }
             /* At this point the word is a mistake for the first time. It was neither
              * a mistake in the previous pass of the file nor did the word occur previously
@@ -118,6 +123,10 @@ void SpellCheckProcessor::process(QFutureInterface<WordList> &future)
              << "\n  - time : " << timer.elapsed()
              << "\n  - count: " << misspelledWords.size();
 #endif /* BENCH_TIME */
+
+    if(future.isCanceled() == true) {
+        return;
+    }
     future.reportResult(misspelledWords);
 }
 //--------------------------------------------------
