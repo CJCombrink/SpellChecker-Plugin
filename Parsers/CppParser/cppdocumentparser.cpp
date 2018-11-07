@@ -305,6 +305,8 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 
     WordList parsedWords;
     WordList extractedWords;
+    WordList tokenizedWords;
+    WordList wordsToApplySettings;
     QStringSet wordsInSource;
     /* If the setting is set to remove words from the list based on words found in the source,
      * parse the source file and then remove all words found in the source files from the list
@@ -420,12 +422,13 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
                         }
                         WordList words;
                         /* Get the words from the extracted literal */
-                        tokenizeWords(docPtr->fileName(), tokenString, 0, trUnit, words, false);
+                        words = tokenizeWords(docPtr->fileName(), tokenString, 0, trUnit, false);
                         for(Word& word: words) {
                             /* Apply the offsets to the words */
                             word.columnNumber += capStart - colOffset;
                             word.lineNumber = line;
                         }
+                        tokenizedWords += words;
                         /* Apply settings */
                         applySettingsToWords(tokenString, words, false, wordsInSource);
                         /* The resulting words can be checked for spelling mistakes. */
@@ -469,7 +472,6 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 
 void CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, const QStringSet& wordsInSource, bool isComment, bool isDoxygenComment, WordList& extractedWords, const HashWords &hashIn, HashWords &hashOut)
 {
-    WordList words;
     /* Get the token string */
     QString tokenString = QString::fromUtf8(docPtr->utf8Source().mid(token.bytesBegin(), token.bytes()).trimmed());
     /* Calculate the hash of the token string */
@@ -487,6 +489,7 @@ void CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusP
     HashWords::const_iterator iter = hashIn.constFind(hash);
     const HashWords::const_iterator iterEnd = hashIn.constEnd();
     if(iter != iterEnd) {
+        WordList words;
         /* The token was parsed in a previous iteration.
          * Now check if the token moved due to lines being
          * added or removed. It it did not move, use the
@@ -516,21 +519,21 @@ void CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusP
     } else {
         /* Token was not in the list of hashes.
          * Tokenize the string to extract words that should be checked. */
-        tokenizeWords(docPtr->fileName(), tokenString, commentBegin, trUnit, words, isComment);
+        WordList tokenizedWords;
+        tokenizedWords = tokenizeWords(docPtr->fileName(), tokenString, commentBegin, trUnit, isComment);
         /* Apply the user settings to the words. */
-        applySettingsToWords(tokenString, words, isDoxygenComment, wordsInSource);
+        applySettingsToWords(tokenString, tokenizedWords, isDoxygenComment, wordsInSource);
         /* Check to see if there are words that should now be spell checked. */
-        if(words.count() != 0) {
-            extractedWords.append(words);
-        }
-        hashOut[hash] = {line, col, std::move(words)};
+        extractedWords.append(tokenizedWords);
+        hashOut[hash] = {line, col, std::move(tokenizedWords)};
     }
     return;
 }
 //--------------------------------------------------
 
-void CppDocumentParser::tokenizeWords(const QString& fileName, const QString &string, unsigned int stringStart, const CPlusPlus::TranslationUnit * const translationUnit, WordList &words, bool inComment)
+WordList CppDocumentParser::tokenizeWords(const QString& fileName, const QString &string, uint32_t stringStart, const CPlusPlus::TranslationUnit * const translationUnit, bool inComment)
 {
+    WordList wordTokens;
     int strLength = string.length();
     bool busyWithWord = false;
     int wordStartPos = 0;
@@ -557,13 +560,14 @@ void CppDocumentParser::tokenizeWords(const QString& fileName, const QString &st
             word.length = currentPos - wordStartPos;
             word.charAfter = (currentPos < strLength)? string.at(currentPos): QLatin1Char(' ');
             word.inComment = inComment;
-            translationUnit->getPosition(stringStart + wordStartPos, &word.lineNumber, &word.columnNumber);
-            words.append(word);
+            assert(wordStartPos >= 0);
+            translationUnit->getPosition(stringStart + uint32_t(wordStartPos), &word.lineNumber, &word.columnNumber);
+            wordTokens.append(std::move(word));
             busyWithWord = false;
             wordStartPos = 0;
         }
     }
-    return;
+    return wordTokens;
 }
 //--------------------------------------------------
 
@@ -966,6 +970,7 @@ bool CppDocumentParser::isReservedWord(const QString &word)
                 return true;
             break;
         }
+        break;
     case 4:
         switch(word.at(0).toUpper().toLatin1()) {
         case 'E':
@@ -973,6 +978,7 @@ bool CppDocumentParser::isReservedWord(const QString &word)
                 return true;
             break;
         }
+        break;
     case 6:
         switch(word.at(0).toUpper().toLatin1()) {
         case 'S':

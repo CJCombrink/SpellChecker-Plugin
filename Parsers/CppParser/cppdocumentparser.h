@@ -108,7 +108,7 @@ public:
      * \param[in] translationUnit Translation unit belonging to the current document.
      * \param[out] words Words that were extracted from the string.
      * \param[in] inComment If the string is a comment or a String Literal. */
-    void tokenizeWords(const QString &fileName, const QString& string, unsigned int stringStart, const CPlusPlus::TranslationUnit *const translationUnit, WordList& words, bool inComment);
+    WordList tokenizeWords(const QString &fileName, const QString& string, uint32_t stringStart, const CPlusPlus::TranslationUnit *const translationUnit, bool inComment);
     /*! \brief Apply the user Settings to the Words.
      * \param[in] string String that these words belong to.
      * \param[inout] words words that should be parsed. Words will be removed from this list
