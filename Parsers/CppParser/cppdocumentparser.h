@@ -118,10 +118,9 @@ public:
      *                  setting words that appear in this list will be removed from the
      *                  final list of \a words. */
     void applySettingsToWords(const QString& string, WordList& words, bool isDoxygenComment, const QStringSet &wordsInSource = QStringSet());
-    void getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr, QStringSet& wordsInSource);
-    void getListOfWordsFromSourceRecursive(QStringSet &words, const CPlusPlus::Symbol* symbol, const CPlusPlus::Overview& overview);
-    void getPossibleNamesFromString(QStringSet &words, const QString &string);
-    void removeWordsThatAppearInSource(const QStringSet &wordsInSource, WordList& words);
+    QStringSet getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr);
+    QStringSet getListOfWordsFromSourceRecursive(const CPlusPlus::Symbol* symbol, const CPlusPlus::Overview& overview);
+    QStringSet getPossibleNamesFromString(const QString &string);
     bool isEndOfCurrentWord(const QString& comment, int currentPos);
     bool isReservedWord(const QString& word);
 

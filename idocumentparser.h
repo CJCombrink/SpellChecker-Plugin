@@ -50,6 +50,7 @@ public:
 
 protected:
     void getWordsFromSplitString(const QStringList& stringList, const Word& word, WordList& wordList);
+    void removeWordsThatAppearInSource(const QStringSet &wordsInSource, WordList &words);
 signals:
     void spellcheckWordsParsed(const QString& fileName, const SpellChecker::WordList& wordlist);
 

@@ -47,6 +47,7 @@
 #include <QTextBlock>
 #include <QApplication>
 
+
 namespace SpellChecker {
 namespace CppSpellChecker {
 namespace Internal {
@@ -303,6 +304,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
     HashWords tokenHashesOut;
 
     WordList parsedWords;
+    WordList extractedWords;
     QStringSet wordsInSource;
     /* If the setting is set to remove words from the list based on words found in the source,
      * parse the source file and then remove all words found in the source files from the list
@@ -310,7 +312,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
     if(d->settings->removeWordsThatAppearInSource == true) {
         /* First get all words that does appear in the current source file. These words only
          * include variables and their types */
-        getWordsThatAppearInSource(docPtr, wordsInSource);
+        wordsInSource = getWordsThatAppearInSource(docPtr);
     }
 
     if(d->settings->whatToCheck.testFlag(CppParserSettings::CheckStringLiterals) == true) {
@@ -820,29 +822,29 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
 }
 //--------------------------------------------------
 
-void CppDocumentParser::getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr, QStringSet &wordsInSource)
+QStringSet CppDocumentParser::getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr)
 {
-    if(docPtr == nullptr) {
-        Q_ASSERT(docPtr != nullptr);
-        return;
-    }
-    unsigned total = docPtr->globalSymbolCount();
+    QStringSet wordsSet;
+    Q_ASSERT(docPtr != nullptr);
+    const uint32_t total = docPtr->globalSymbolCount();
     CPlusPlus::Overview overview;
-    for (unsigned i = 0; i < total; ++i) {
+    for (uint32_t i = 0; i < total; ++i) {
         CPlusPlus::Symbol *symbol = docPtr->globalSymbolAt(i);
-        getListOfWordsFromSourceRecursive(wordsInSource, symbol, overview);
+        wordsSet += getListOfWordsFromSourceRecursive(symbol, overview);
     }
+    return wordsSet;
 }
 //--------------------------------------------------
 
-void CppDocumentParser::getListOfWordsFromSourceRecursive(QStringSet &words, const CPlusPlus::Symbol *symbol, const CPlusPlus::Overview &overview)
+QStringSet CppDocumentParser::getListOfWordsFromSourceRecursive(const CPlusPlus::Symbol *symbol, const CPlusPlus::Overview &overview)
 {
+    QStringSet wordsInSource;
     /* Get the pretty name and type for the current symbol. This name is then split up into
      * different words that are added to the list of words that appear in the source */
-    QString name = overview.prettyName(symbol->name()).trimmed();
-    QString type = overview.prettyType(symbol->type()).trimmed();
-    getPossibleNamesFromString(words, name);
-    getPossibleNamesFromString(words, type);
+    const QString name = overview.prettyName(symbol->name()).trimmed();
+    const QString type = overview.prettyType(symbol->type()).trimmed();
+    wordsInSource += getPossibleNamesFromString(name);
+    wordsInSource += getPossibleNamesFromString(type);
 
     /* Go to the next level into the scope of the symbol and get the words from that level as well*/
     const CPlusPlus::Scope *scope = symbol->asScope();
@@ -854,69 +856,23 @@ void CppDocumentParser::getListOfWordsFromSourceRecursive(QStringSet &words, con
             if (!curSymbol) {
                 continue;
             }
-            getListOfWordsFromSourceRecursive(words, curSymbol, overview);
+            wordsInSource += getListOfWordsFromSourceRecursive(curSymbol, overview);
         }
     }
+    return wordsInSource;
 }
 //--------------------------------------------------
 
-void CppDocumentParser::getPossibleNamesFromString(QStringSet &words, const QString& string)
+QStringSet CppDocumentParser::getPossibleNamesFromString(const QString& string)
 {
+    QStringSet wordSet;
     static const QRegularExpression nameRegExp(QStringLiteral("(\\w+)"));
     QRegularExpressionMatchIterator i = nameRegExp.globalMatch(string);
     while (i.hasNext()) {
-        QRegularExpressionMatch match = i.next();
-        words << match.captured(1);
+        const QRegularExpressionMatch match = i.next();
+        wordSet += match.captured(1);
     }
-}
-//--------------------------------------------------
-
-void CppDocumentParser::removeWordsThatAppearInSource(const QStringSet &wordsInSource, WordList &words)
-{
-    /* Hopefully all words that are the same would be together in the WordList because of
-     * the nature of the QMultiHash. This would make removing multiple instances of the same
-     * word faster.
-     *
-     * The idea is to save the last word that was removed, and then for the next word,
-     * first compare it to the last word removed, and if it is the same, remove it from the list. Else
-     * search for the word in the wordsInSource list. The reasoning is that the first compare will be
-     * faster than the search in the wordsInSource list. But with this the overhead is added that now
-     * there is perhaps one more compare for each word that is not present in the source. Perhaps this
-     * can then be slower because the probability is that there will be more words not in the source than
-     * there are duplicate words that are in the source. For now this will be left this way but more
-     * benchmarking needs to be done to optimize.
-     *
-     * An initial test using QTime::start() and QTime::elapsed() showed the same speed of 3ms for either
-     * option for about 1425 potential words checked in 98 words occurring in the source. 148 Words were
-     * removed for this test case. NOTE: Due to the inaccuracy of the timer on windows a better test
-     * will be performed in future. */
-#ifdef USE_MULTI_HASH
-    WordList::Iterator iter = words.begin();
-    QString lastWordRemoved;
-    while(iter != words.end()) {
-        if(iter.key() == lastWordRemoved) {
-            iter = words.erase(iter);
-        } else if(wordsInSource.contains(iter.key())) {
-            lastWordRemoved = iter.key();
-            /* The word does appear in the source, thus remove it from the list of
-             * potential words that must be checked */
-            iter = words.erase(iter);
-        } else {
-            ++iter;
-        }
-    }
-#else /* USE_MULTI_HASH */
-    WordList::Iterator iter = words.begin();
-    while(iter != words.end()) {
-        if(wordsInSource.contains((*iter).text)) {
-            /* The word does appear in the source, thus remove it from the list of
-             * potential words that must be checked */
-            iter = words.erase(iter);
-        } else {
-            ++iter;
-        }
-    }
-#endif /* USE_MULTI_HASH */
+    return wordSet;
 }
 //--------------------------------------------------
 
