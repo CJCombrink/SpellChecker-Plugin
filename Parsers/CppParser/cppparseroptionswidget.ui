@@ -64,8 +64,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>800</width>
-        <height>1434</height>
+        <width>804</width>
+        <height>1178</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -818,7 +818,7 @@ The match pattern used is: %1</string>
              </font>
             </property>
             <property name="text">
-             <string>Words that contains underscores will be removed an will not be checked by the spell checker.</string>
+             <string>Words that contains underscores will be removed and will not be checked by the spell checker.</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -1189,7 +1189,7 @@ The match pattern used is: %1</string>
              </font>
             </property>
             <property name="text">
-             <string>Words that contains dots (full stop, period, etc.) will be removed an will not be checked by the spell checker.</string>
+             <string>Words that contains dots (full stop, period, etc.) will be removed and will not be checked by the spell checker.</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>

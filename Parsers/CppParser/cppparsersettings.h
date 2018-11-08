@@ -4,16 +4,16 @@
 **
 ** This file is part of the SpellChecker Plugin, a Qt Creator plugin.
 **
-** The SpellChecker Plugin is free software: you can redistribute it and/or 
-** modify it under the terms of the GNU Lesser General Public License as 
-** published by the Free Software Foundation, either version 3 of the 
+** The SpellChecker Plugin is free software: you can redistribute it and/or
+** modify it under the terms of the GNU Lesser General Public License as
+** published by the Free Software Foundation, either version 3 of the
 ** License, or (at your option) any later version.
-** 
+**
 ** The SpellChecker Plugin is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU Lesser General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU Lesser General Public License
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
@@ -60,7 +60,7 @@ public:
     };
 
     enum WordsWithUnderscoresOption {
-        RemoveWordsWithUnderscores = 0, /*!< Words that contains underscores will be removed an will not be checked by the spell checker. */
+        RemoveWordsWithUnderscores = 0, /*!< Words that contains underscores will be removed and will not be checked by the spell checker. */
         SplitWordsOnUnderscores    = 1, /*!< Split words on underscores. A word like 'some_word' will result in 2 words, 'some' and 'word' that will be added to the words that will be checked. */
         LeaveWordsWithUnderscores  = 2  /*!< Leave words with underscores so that the spell checker can check them. This option does not make much sense since there are no words with underscores in the English language. This will be for perhaps some custom words added to a dictionary. */
     };
@@ -112,10 +112,10 @@ public:
 
     CppParserSettings& operator=(const CppParserSettings& other);
     bool operator==(const CppParserSettings& other) const;
-    
+
 signals:
     void settingsChanged();
-    
+
 public slots:
 
 protected:
