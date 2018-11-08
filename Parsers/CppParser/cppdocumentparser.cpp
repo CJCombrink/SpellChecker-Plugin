@@ -990,6 +990,11 @@ bool CppDocumentParser::isReservedWord(const QString &word)
             if(word.toUpper() == QStringLiteral("CPP"))
                 return true;
             break;
+        case 'S':
+            if(word.toUpper() == QStringLiteral("STD"))
+                return true;
+            break;
+        }
         break;
     case 4:
         switch(word.at(0).toUpper().toLatin1()) {
@@ -1005,6 +1010,10 @@ bool CppDocumentParser::isReservedWord(const QString &word)
             if(word.toUpper() == QStringLiteral("STRUCT"))
                 return true;
             break;
+        case 'P':
+            if(word.toUpper() == QStringLiteral("PLUGIN"))
+                return true;
+          break;
         }
         break;
     case 7:
