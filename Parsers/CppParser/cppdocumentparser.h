@@ -35,7 +35,25 @@ namespace Internal {
 
 class CppParserSettings;
 class CppDocumentParserPrivate;
-class TokenWords;
+
+/*! \brief Class containing the words of a specific token.
+ *
+ * This class is used to store the words for a specific token as well as the
+ * start position (line and column) of the token. The line and column is used
+ * for keeping the offset correct if a token moved due to new tokens or text.
+ * This is then used to adjust the line and column numbers of the words to the
+ * correct locations. */
+class TokenWords {
+public:
+    quint32 line;
+    quint32 col;
+    WordList words;
+
+    TokenWords(quint32 l = 0, quint32 c = 0, const WordList &w = WordList()) :
+        line(l),
+        col(c),
+        words(w) {}
+};
 /*! \brief Hash of a token and the corresponding list of words that were extracted from the token.
  *
  * The quint32 is result of the qHash(QString, 0) and stored in the hash for each token, along with the
@@ -64,6 +82,32 @@ protected slots:
     void parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr);
     void settingsChanged();
 
+private:
+    /*! \brief The Word Tokens structure
+     *
+     * This structure is returned by the parseToken() function and contains
+     * the list of words that were extracted from a token (comment, literal,
+     * etc.). The structure also contains the hash of the token so that it can
+     * be checked when the same file is parsed again. There is no need to store
+     * the actual token since the hash comparison should be good enough to
+     * check for changes.
+     *
+     * The \a line and \a column are stored for the token so that if a token did not
+     * change, but it moved, the words that came from that token can just be
+     * moved as needed without the need to do any string processing and parsing.
+     *
+     * The \a newHash flag keeps track if the words were extracted in a
+     * previous pass or not, meaning that they were already processed and does not
+     * need to be processed further. */
+    struct WordTokens {
+      HashWords::key_type hash;
+      uint32_t line;
+      uint32_t column;
+      QString string;
+      WordList words;
+      bool newHash;
+    };
+
 public:
     void reparseProject();
     /*! \brief Query if the given file should be parsed.
@@ -85,18 +129,36 @@ public:
      *
      * Since both Comments and String Literals are tokens, the common code to extract the
      * words was added to a function to only work on a token.
+     *
+     * A hash is passed to the function that contains a hash and a set of words
+     * that were previously extracted from a token with that hash. The function
+     * uses that information to check if the token that must be processed now
+     * was processed before (the new hash should match a hash in the map). If
+     * a hash was processed before, then the parser can just re-use all the words
+     * that came from the token previously without the need to do any string
+     * processing on the token. This hash also contains information as to where
+     * the token was the previous time, so that if it just moved the words can
+     * be updated accordingly. Benchmarks showed that for large files or files
+     * with a lot of tokens this had a big speedup. On smaller files the effect
+     * was not as much but on smaller files this effect is negligible compared
+     * to the speedup on large files.
+     *
      * \param[in] docPtr Document pointer to the current document.
      * \param[in] token Translation Unit Token that should be split up into words that
      *              should be checked.
      * \param[in] trUnit Translation unit of the Document.
-     * \param[in] wordsInSource Words that appear in the source of the project.
-     * \param[in] isComment If the token is a Comment or a String Literal.
+     * \param[in] isComment If the token is a Comment or a String Literal. This is
+     *              just captured to go along with the word so that the tables
+     *              and displays upstream can indicate the difference between
+     *              a comment and a literal. It does not affect the processing.
      * \param[in] isDoxygenComment If the token is a Comment, if it is a normal or
-     *              doxygen comment.
-     * \param[out] extractedWords Words that were extracted from the token that must now
-     *              be spellchecked. The extracted words will only get added to the list
-     *              and previous items added will stay in the list. */
-    void parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, const QStringSet &wordsInSource, bool isComment, bool isDoxygenComment, WordList& extractedWords, const HashWords& hashIn, HashWords& hashOut);
+     *              doxygen comment. This should affect the processing and remove
+     *              words that are doxygen tags (TODO, next commit).
+     * \param[in] hashIn The hash from the previous pass off the document to speed
+     *              up the processing as discussed above.
+     * \return WordTokens structure containing enough information to be useful to
+     *              the caller. */
+    WordTokens parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, bool isComment, bool isDoxygenComment, const HashWords& hashIn);
     /*! \brief Tokenize Words from a string.
      *
      * This function takes a string, either a comment or a string literal and
@@ -106,8 +168,8 @@ public:
      * \param[in] string String that must be broken up.
      * \param[in] stringStart Start of the string.
      * \param[in] translationUnit Translation unit belonging to the current document.
-     * \param[out] words Words that were extracted from the string.
-     * \param[in] inComment If the string is a comment or a String Literal. */
+     * \param[in] inComment If the string is a comment or a String Literal.
+     * \return Words that were extracted from the string. */
     WordList tokenizeWords(const QString &fileName, const QString& string, uint32_t stringStart, const CPlusPlus::TranslationUnit *const translationUnit, bool inComment);
     /*! \brief Apply the user Settings to the Words.
      * \param[in] string String that these words belong to.
@@ -117,7 +179,7 @@ public:
      * \param[in] wordsInSource List of words that appear in the source. Based on the user
      *                  setting words that appear in this list will be removed from the
      *                  final list of \a words. */
-    void applySettingsToWords(const QString& string, WordList& words, bool isDoxygenComment, const QStringSet &wordsInSource = QStringSet());
+    void applySettingsToWords(const QString& string, WordList& words, bool isDoxygenComment, const QStringSet &wordsInSource);
     QStringSet getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr);
     QStringSet getListOfWordsFromSourceRecursive(const CPlusPlus::Symbol* symbol, const CPlusPlus::Overview& overview);
     QStringSet getPossibleNamesFromString(const QString &string);

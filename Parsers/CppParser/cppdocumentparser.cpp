@@ -57,24 +57,7 @@ namespace Internal {
  * plugin. */
 const char MIME_TYPE_CXX_DOX[] = "text/x-c++dox";
 
-/*! \brief Class containing the words of a specific token.
- *
- * This class is used to store the words for a specific token as well as the
- * start position (line and column) of the token. The line and column is used
- * for keeping the offset correct if a token moved due to new tokens or text.
- * This is then used to adjust the line and column numbers of the words to the
- * correct locations. */
-class TokenWords {
-public:
-    quint32 line;
-    quint32 col;
-    WordList words;
 
-    TokenWords(quint32 l = 0, quint32 c = 0, const WordList &w = WordList()) :
-        line(l),
-        col(c),
-        words(w) {}
-};
 //--------------------------------------------------
 //--------------------------------------------------
 //--------------------------------------------------
@@ -195,6 +178,7 @@ void CppDocumentParser::setActiveProject(ProjectExplorer::Project *activeProject
 
 void CppDocumentParser::updateProjectFiles(QStringSet filesAdded, QStringSet filesRemoved)
 {
+  Q_UNUSED(filesRemoved)
   /* Only re-parse the files that were added. */
   CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
 
@@ -300,13 +284,8 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
      * and this will mostly be the case when editing a file. For this reason the initial
      * project parse on start up can be slower. */
     const HashWords tokenHashesIn = d->tokenHashes;
-    /* Empty one that will become the new one. */
-    HashWords tokenHashesOut;
 
-    WordList parsedWords;
-    WordList extractedWords;
-    WordList tokenizedWords;
-    WordList wordsToApplySettings;
+    QVector<WordTokens> tokenizedWords;
     QStringSet wordsInSource;
     /* If the setting is set to remove words from the list based on words found in the source,
      * parse the source file and then remove all words found in the source files from the list
@@ -332,7 +311,8 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
                 }
 
                 /* The String Literal is not expanded thus handle it like a comment is handled. */
-                parseToken(docPtr, token, trUnit, wordsInSource, /* Comment */ false, /* Doxygen */ false, parsedWords, tokenHashesIn, tokenHashesOut);
+                WordTokens tokens = parseToken(docPtr, token, trUnit, /* Comment */ false, /* Doxygen */ false, tokenHashesIn);
+                tokenizedWords.append(tokens);
             }
         }
         /* Parse macros */
@@ -428,11 +408,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
                             word.columnNumber += capStart - colOffset;
                             word.lineNumber = line;
                         }
-                        tokenizedWords += words;
-                        /* Apply settings */
-                        applySettingsToWords(tokenString, words, false, wordsInSource);
-                        /* The resulting words can be checked for spelling mistakes. */
-                        parsedWords.append(words);
+                        tokenizedWords.append(WordTokens{0x00, 0, 0, tokenString, words, false});
                     }
                 }
             }
@@ -458,29 +434,57 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 
             bool isDoxygenComment = ((token.kind() == CPlusPlus::T_DOXY_COMMENT)
                                      || (token.kind() == CPlusPlus::T_CPP_DOXY_COMMENT));
-            parseToken(docPtr, token, trUnit, wordsInSource, /* Comment */ true, isDoxygenComment, parsedWords, tokenHashesIn, tokenHashesOut);
+            const WordTokens tokens = parseToken(docPtr, token, trUnit, /* Comment */ true, isDoxygenComment, tokenHashesIn);
+            tokenizedWords.append(tokens);
         }
+    }
+
+
+    /* Populate the list of hashes from the tokens that was processed. */
+    HashWords newHashesOut;
+    WordList newSettingsApplied;
+    for(const WordTokens& token: tokenizedWords) {
+      WordList words = token.words;
+      if(token.newHash == true) {
+        /* The words are new, they were not known in a previous hash
+         * thus the settings must now be applied.
+         * Only words that have already been checked against the settings
+         * gets added to the hash, thus there is no need to apply the settings
+         * again, since this will only waste time. */
+        applySettingsToWords(token.string, words, false /*TODO*/, wordsInSource);
+      }
+      newSettingsApplied.append(words);
+      /* TODO: handle macros here as well. */
+      if(token.hash != 0x00) {
+          newHashesOut[token.hash] = {token.line, token.column, words};
+      }
     }
     /* Move the new list of hashes to the member data so that
      * it can be used the next time around. Move is made explicit since
      * the LHS can be removed and the RHS will not be used again from
      * here on. */
-    d->tokenHashes = std::move(tokenHashesOut);
-    return parsedWords;
+    d->tokenHashes = std::move(newHashesOut);
+
+    return newSettingsApplied;
 }
 //--------------------------------------------------
 
-void CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, const QStringSet& wordsInSource, bool isComment, bool isDoxygenComment, WordList& extractedWords, const HashWords &hashIn, HashWords &hashOut)
+CppDocumentParser::WordTokens CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, bool isComment, bool isDoxygenComment, const HashWords &hashIn)
 {
+    WordTokens tokens;
     /* Get the token string */
-    QString tokenString = QString::fromUtf8(docPtr->utf8Source().mid(token.bytesBegin(), token.bytes()).trimmed());
+    const QString tokenString = QString::fromUtf8(docPtr->utf8Source().mid(token.bytesBegin(), token.bytes()).trimmed());
     /* Calculate the hash of the token string */
-    quint32 hash = qHash(tokenString);
+    const uint32_t hash = qHash(tokenString);
     /* Get the index of the token */
-    quint32 commentBegin = token.utf16charsBegin();
-    quint32 line;
-    quint32 col;
+    const uint32_t commentBegin = token.utf16charsBegin();
+    uint32_t line;
+    uint32_t col;
     trUnit->getPosition(commentBegin, &line, &col);
+    tokens.hash = hash;
+    tokens.column  = col;
+    tokens.line = line;
+    tokens.string = tokenString;
     /* Search if the hash contains the given token. If it does
      * then the words that got extracted previously are used
      * as is, without attempting to extract them again. If the
@@ -489,7 +493,6 @@ void CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusP
     HashWords::const_iterator iter = hashIn.constFind(hash);
     const HashWords::const_iterator iterEnd = hashIn.constEnd();
     if(iter != iterEnd) {
-        WordList words;
         /* The token was parsed in a previous iteration.
          * Now check if the token moved due to lines being
          * added or removed. It it did not move, use the
@@ -499,35 +502,32 @@ void CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusP
         const TokenWords& tokenWords = (iter.value());
         if((tokenWords.line == line)
                 && (tokenWords.col == col)) {
-            /* Token did not move */
-            extractedWords.append(tokenWords.words);
-            hashOut[hash] = {line, col, tokenWords.words};
-            return;
+            tokens.words   = tokenWords.words;
+            tokens.newHash = false;
+            return tokens;
         } else {
-            /* Token moved, adjust. */
-            qint32 lineDiff = tokenWords.line - line;
-            qint32 colDiff = tokenWords.col - col;
+            WordList words;
+            /* Token moved, adjust.
+             * This will even work for lines that are copied because the
+             * hash will be the same but the start will just be different. */
+            const qint32 lineDiff = int32_t(tokenWords.line) - int32_t(line);
+            const qint32 colDiff = int32_t(tokenWords.col) - int32_t(col);
             for(Word word: tokenWords.words) {
                 word.lineNumber   -= lineDiff;
                 word.columnNumber -= colDiff;
                 words.append(word);
             }
-            hashOut[hash] = {line, col, words};
-            extractedWords.append(words);
-            return;
+            tokens.words   = words;
+            tokens.newHash = false;
+            return tokens;
         }
     } else {
         /* Token was not in the list of hashes.
          * Tokenize the string to extract words that should be checked. */
-        WordList tokenizedWords;
-        tokenizedWords = tokenizeWords(docPtr->fileName(), tokenString, commentBegin, trUnit, isComment);
-        /* Apply the user settings to the words. */
-        applySettingsToWords(tokenString, tokenizedWords, isDoxygenComment, wordsInSource);
-        /* Check to see if there are words that should now be spell checked. */
-        extractedWords.append(tokenizedWords);
-        hashOut[hash] = {line, col, std::move(tokenizedWords)};
+        tokens.words   = tokenizeWords(docPtr->fileName(), tokenString, commentBegin, trUnit, isComment);
+        tokens.newHash = true;
+        return tokens;
     }
-    return;
 }
 //--------------------------------------------------
 
