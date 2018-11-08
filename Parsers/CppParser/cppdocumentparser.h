@@ -100,12 +100,19 @@ private:
      * previous pass or not, meaning that they were already processed and does not
      * need to be processed further. */
     struct WordTokens {
+      enum class Type {
+        Comment = 0,
+        Doxygen,
+        Literal
+      };
+
       HashWords::key_type hash;
       uint32_t line;
       uint32_t column;
       QString string;
       WordList words;
       bool newHash;
+      Type type;
     };
 
 public:
@@ -147,18 +154,17 @@ public:
      * \param[in] token Translation Unit Token that should be split up into words that
      *              should be checked.
      * \param[in] trUnit Translation unit of the Document.
-     * \param[in] isComment If the token is a Comment or a String Literal. This is
-     *              just captured to go along with the word so that the tables
-     *              and displays upstream can indicate the difference between
-     *              a comment and a literal. It does not affect the processing.
-     * \param[in] isDoxygenComment If the token is a Comment, if it is a normal or
-     *              doxygen comment. This should affect the processing and remove
-     *              words that are doxygen tags (TODO, next commit).
+     * \param[in] type If the token is a Comment, Doxygen Documentation or a
+     *              String Literal. This is captured to go along with the
+     *              word so that the tables and displays upstream can indicate
+     *              the difference between a comment and a literal. This gets
+     *              forwarded to the tokenizeWords() function where it is used
+     *              to extract words.
      * \param[in] hashIn The hash from the previous pass off the document to speed
      *              up the processing as discussed above.
      * \return WordTokens structure containing enough information to be useful to
      *              the caller. */
-    WordTokens parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, bool isComment, bool isDoxygenComment, const HashWords& hashIn);
+    WordTokens parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, WordTokens::Type type, const HashWords& hashIn);
     /*! \brief Tokenize Words from a string.
      *
      * This function takes a string, either a comment or a string literal and
@@ -168,18 +174,22 @@ public:
      * \param[in] string String that must be broken up.
      * \param[in] stringStart Start of the string.
      * \param[in] translationUnit Translation unit belonging to the current document.
-     * \param[in] inComment If the string is a comment or a String Literal.
+     * \param[in] type If the string is a Comment, Doxygen Documentation or a
+     *              String Literal. If the string is Doxygen docs then the
+     *              function will also try to remove doxygen tags from the words
+     *              extracted. This reduce the number of words returned that
+     *              gets handled later on, and it does not rely on a setting,
+     *              it must be done always to remove noise.
      * \return Words that were extracted from the string. */
-    WordList tokenizeWords(const QString &fileName, const QString& string, uint32_t stringStart, const CPlusPlus::TranslationUnit *const translationUnit, bool inComment);
+    WordList tokenizeWords(const QString &fileName, const QString& string, uint32_t stringStart, const CPlusPlus::TranslationUnit *const translationUnit, WordTokens::Type type);
     /*! \brief Apply the user Settings to the Words.
      * \param[in] string String that these words belong to.
      * \param[inout] words words that should be parsed. Words will be removed from this list
      *                  based on the user settings.
-     * \param[in] isDoxygenComment If the word is part of a doxygen comment.
      * \param[in] wordsInSource List of words that appear in the source. Based on the user
      *                  setting words that appear in this list will be removed from the
      *                  final list of \a words. */
-    void applySettingsToWords(const QString& string, WordList& words, bool isDoxygenComment, const QStringSet &wordsInSource);
+    void applySettingsToWords(const QString& string, WordList& words, const QStringSet &wordsInSource);
     QStringSet getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr);
     QStringSet getListOfWordsFromSourceRecursive(const CPlusPlus::Symbol* symbol, const CPlusPlus::Overview& overview);
     QStringSet getPossibleNamesFromString(const QString &string);

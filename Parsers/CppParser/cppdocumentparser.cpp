@@ -1,4 +1,4 @@
-/**************************************************************************
+﻿/**************************************************************************
 **
 ** Copyright (c) 2014 Carel Combrink
 **
@@ -311,7 +311,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
                 }
 
                 /* The String Literal is not expanded thus handle it like a comment is handled. */
-                WordTokens tokens = parseToken(docPtr, token, trUnit, /* Comment */ false, /* Doxygen */ false, tokenHashesIn);
+                WordTokens tokens = parseToken(docPtr, token, trUnit, WordTokens::Type::Literal, tokenHashesIn);
                 tokenizedWords.append(tokens);
             }
         }
@@ -402,13 +402,13 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
                         }
                         WordList words;
                         /* Get the words from the extracted literal */
-                        words = tokenizeWords(docPtr->fileName(), tokenString, 0, trUnit, false);
+                        words = tokenizeWords(docPtr->fileName(), tokenString, 0, trUnit, WordTokens::Type::Literal);
                         for(Word& word: words) {
                             /* Apply the offsets to the words */
                             word.columnNumber += capStart - colOffset;
-                            word.lineNumber = line;
+                            word.lineNumber    = line;
                         }
-                        tokenizedWords.append(WordTokens{0x00, 0, 0, tokenString, words, false});
+                        tokenizedWords.append(WordTokens{0x00, 0, 0, tokenString, words, false, WordTokens::Type::Literal});
                     }
                 }
             }
@@ -432,9 +432,12 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
                 continue;
             }
 
-            bool isDoxygenComment = ((token.kind() == CPlusPlus::T_DOXY_COMMENT)
-                                     || (token.kind() == CPlusPlus::T_CPP_DOXY_COMMENT));
-            const WordTokens tokens = parseToken(docPtr, token, trUnit, /* Comment */ true, isDoxygenComment, tokenHashesIn);
+            WordTokens::Type type = WordTokens::Type::Comment;
+            if((token.kind() == CPlusPlus::T_DOXY_COMMENT)
+               || (token.kind() == CPlusPlus::T_CPP_DOXY_COMMENT)) {
+              type = WordTokens::Type::Doxygen;
+            }
+            const WordTokens tokens = parseToken(docPtr, token, trUnit, type, tokenHashesIn);
             tokenizedWords.append(tokens);
         }
     }
@@ -451,7 +454,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
          * Only words that have already been checked against the settings
          * gets added to the hash, thus there is no need to apply the settings
          * again, since this will only waste time. */
-        applySettingsToWords(token.string, words, false /*TODO*/, wordsInSource);
+        applySettingsToWords(token.string, words, wordsInSource);
       }
       newSettingsApplied.append(words);
       /* TODO: handle macros here as well. */
@@ -469,9 +472,8 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 }
 //--------------------------------------------------
 
-CppDocumentParser::WordTokens CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, bool isComment, bool isDoxygenComment, const HashWords &hashIn)
+CppDocumentParser::WordTokens CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, WordTokens::Type type, const HashWords &hashIn)
 {
-    WordTokens tokens;
     /* Get the token string */
     const QString tokenString = QString::fromUtf8(docPtr->utf8Source().mid(token.bytesBegin(), token.bytes()).trimmed());
     /* Calculate the hash of the token string */
@@ -481,10 +483,14 @@ CppDocumentParser::WordTokens CppDocumentParser::parseToken(CPlusPlus::Document:
     uint32_t line;
     uint32_t col;
     trUnit->getPosition(commentBegin, &line, &col);
-    tokens.hash = hash;
-    tokens.column  = col;
-    tokens.line = line;
+    /* Set up the known parts of the return structure.
+     * The rest will be populated as needed below. */
+    WordTokens tokens;
+    tokens.hash   = hash;
+    tokens.column = col;
+    tokens.line   = line;
     tokens.string = tokenString;
+    tokens.type   = type;
     /* Search if the hash contains the given token. If it does
      * then the words that got extracted previously are used
      * as is, without attempting to extract them again. If the
@@ -524,20 +530,20 @@ CppDocumentParser::WordTokens CppDocumentParser::parseToken(CPlusPlus::Document:
     } else {
         /* Token was not in the list of hashes.
          * Tokenize the string to extract words that should be checked. */
-        tokens.words   = tokenizeWords(docPtr->fileName(), tokenString, commentBegin, trUnit, isComment);
-        tokens.newHash = true;
+        tokens.words         = tokenizeWords(docPtr->fileName(), tokenString, commentBegin, trUnit, type);
+        tokens.newHash       = true;
         return tokens;
     }
 }
 //--------------------------------------------------
 
-WordList CppDocumentParser::tokenizeWords(const QString& fileName, const QString &string, uint32_t stringStart, const CPlusPlus::TranslationUnit * const translationUnit, bool inComment)
+WordList CppDocumentParser::tokenizeWords(const QString& fileName, const QString &string, uint32_t stringStart, const CPlusPlus::TranslationUnit * const translationUnit, WordTokens::Type type)
 {
     WordList wordTokens;
-    int strLength = string.length();
-    bool busyWithWord = false;
-    int wordStartPos = 0;
-    bool endOfWord = false;
+    const int32_t strLength = string.length();
+    bool busyWithWord       = false;
+    int32_t wordStartPos    = 0;
+    bool endOfWord          = false;
 
     /* Iterate through all of the characters in the comment and extract words from them.
      * Words are split up by non-word characters and is checked using the isEndOfCurrentWord()
@@ -552,17 +558,43 @@ WordList CppDocumentParser::tokenizeWords(const QString& fileName, const QString
         }
 
         if((busyWithWord == true) && (endOfWord == true)) {
+            /* Pre-condition sanity checks for debugging. The wordStartPos
+             * can not be 0 or negative. A comment or literal always starts
+             * with either a slash-star or slash-slash (comment) or inverted
+             * comma (literal), thus there must always be something else before
+             * the word starts.
+             *
+             * currentPos on the other hand can be at the end of the string
+             * for example with a single line comment (slash-slash).
+             */
+            Q_ASSERT(wordStartPos > 0);
             Word word;
-            word.fileName = fileName;
-            word.text = string.mid(wordStartPos, currentPos - wordStartPos);
-            word.start = wordStartPos;
-            word.end = currentPos;
-            word.length = currentPos - wordStartPos;
+            word.fileName  = fileName;
+            word.text      = string.mid(wordStartPos, currentPos - wordStartPos);
+            word.start     = wordStartPos;
+            word.end       = currentPos;
+            word.length    = currentPos - wordStartPos;
             word.charAfter = (currentPos < strLength)? string.at(currentPos): QLatin1Char(' ');
-            word.inComment = inComment;
-            assert(wordStartPos >= 0);
-            translationUnit->getPosition(stringStart + uint32_t(wordStartPos), &word.lineNumber, &word.columnNumber);
-            wordTokens.append(std::move(word));
+            word.inComment = (type != WordTokens::Type::Literal);
+            bool isDoxygenTag = false;
+            if(type == WordTokens::Type::Doxygen) {
+                const QChar charBeforeStart = string.at(wordStartPos - 1);
+                if((charBeforeStart == QLatin1Char('\\'))
+                   || (charBeforeStart == QLatin1Char('@'))) {
+                    const QString currentWord = word.text;
+                      /* Classify it */
+                      const int32_t doxyClass = CppTools::classifyDoxygenTag(currentWord.unicode(), currentWord.size());
+                      if(doxyClass != CppTools::T_DOXY_IDENTIFIER) {
+                        /* It is a doxygen tag, mark it as such so that it does not end up
+                         * in the list of words from this string. */
+                        isDoxygenTag = true;
+                    }
+                }
+            }
+            if(isDoxygenTag == false) {
+                translationUnit->getPosition(stringStart + uint32_t(wordStartPos), &word.lineNumber, &word.columnNumber);
+                wordTokens.append(std::move(word));
+            }
             busyWithWord = false;
             wordStartPos = 0;
         }
@@ -571,7 +603,7 @@ WordList CppDocumentParser::tokenizeWords(const QString& fileName, const QString
 }
 //--------------------------------------------------
 
-void CppDocumentParser::applySettingsToWords(const QString &string, WordList &words, bool isDoxygenComment, const QStringSet &wordsInSource)
+void CppDocumentParser::applySettingsToWords(const QString &string, WordList &words, const QStringSet &wordsInSource)
 {
     using namespace SpellChecker::Parsers::CppParser;
 
@@ -663,7 +695,7 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(string, wordsFromSplit, isDoxygenComment, wordsInSource);
+                    applySettingsToWords(string, wordsFromSplit, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 }
             }
@@ -693,7 +725,7 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(string, wordsFromSplit, isDoxygenComment, wordsInSource);
+                    applySettingsToWords(string, wordsFromSplit, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
                     Q_ASSERT(false);
@@ -715,7 +747,7 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(string, wordsFromSplit, isDoxygenComment, wordsInSource);
+                    applySettingsToWords(string, wordsFromSplit, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
                     Q_ASSERT(false);
@@ -770,7 +802,7 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(string, wordsFromSplit, isDoxygenComment, wordsInSource);
+                    applySettingsToWords(string, wordsFromSplit, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
                     Q_ASSERT(false);
@@ -793,21 +825,10 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(string, wordsFromSplit, isDoxygenComment, wordsInSource);
+                    applySettingsToWords(string, wordsFromSplit, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
                     Q_ASSERT(false);
-                }
-            }
-        }
-
-        /* Doxygen comments */
-        if((isDoxygenComment == true) && (removeCurrentWord == false)) {
-            if((string.at((*iter).start - 1) == QLatin1Char('\\'))
-                    || (string.at((*iter).start - 1) == QLatin1Char('@'))) {
-                int doxyClass = CppTools::classifyDoxygenTag(currentWord.unicode(), currentWord.size());
-                if(doxyClass != CppTools::T_DOXY_IDENTIFIER) {
-                    removeCurrentWord = true;
                 }
             }
         }
@@ -969,7 +990,6 @@ bool CppDocumentParser::isReservedWord(const QString &word)
             if(word.toUpper() == QStringLiteral("CPP"))
                 return true;
             break;
-        }
         break;
     case 4:
         switch(word.at(0).toUpper().toLatin1()) {
