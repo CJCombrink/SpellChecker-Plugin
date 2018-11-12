@@ -170,7 +170,7 @@ public:
      * Only macros that are functions and have arguments that are string literals
      * are considered. This is important since QStringLiteral is a macro, and
      * there are also other macros that takes in literals as arguments. */
-    QVector<WordTokens> parseMacros(CPlusPlus::Document::Ptr docPtr, CPlusPlus::TranslationUnit *trUnit);
+    QVector<WordTokens> parseMacros(CPlusPlus::Document::Ptr docPtr, CPlusPlus::TranslationUnit *trUnit, const HashWords& hashIn);
     /*! \brief Tokenize Words from a string.
      *
      * This function takes a string, either a comment or a string literal and
@@ -203,6 +203,7 @@ public:
     bool isReservedWord(const QString& word);
 
 private:
+    friend CppDocumentParserPrivate;
     CppDocumentParserPrivate* const d;
 };
 

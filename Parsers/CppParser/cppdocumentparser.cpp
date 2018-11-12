@@ -110,6 +110,55 @@ public:
 
       return filteredList;
     }
+    // ------------------------------------------
+
+    using TmpOptional = std::pair<bool, CppDocumentParser::WordTokens>;
+    static TmpOptional checkHash(CppDocumentParser::WordTokens tokens, uint32_t hash, const HashWords& hashIn)
+    {
+      /* Search if the hash contains the given token. If it does
+       * then the words that got extracted previously are used
+       * as is, without attempting to extract them again. If the
+       * token is not in the hash, it is a new token and must be
+       * parsed to get the words from the token. */
+      HashWords::const_iterator iter = hashIn.constFind(hash);
+      const HashWords::const_iterator iterEnd = hashIn.constEnd();
+      if(iter != iterEnd) {
+          /* The token was parsed in a previous iteration.
+           * Now check if the token moved due to lines being
+           * added or removed. It it did not move, use the
+           * words as is, if it did move, adjust the line and
+           * column number of the words by the amount that the
+           * token moved. */
+          const TokenWords& tokenWords = (iter.value());
+          if((tokenWords.line == tokens.line)
+                  && (tokenWords.col == tokens.column)) {
+              tokens.words   = tokenWords.words;
+              tokens.newHash = false;
+              return std::make_pair(true, tokens);
+          } else {
+              WordList words;
+              /* Token moved, adjust.
+               * This will even work for lines that are copied because the
+               * hash will be the same but the start will just be different. */
+              const qint32 lineDiff = int32_t(tokenWords.line) - int32_t(tokens.line);
+              const qint32 colDiff = int32_t(tokenWords.col) - int32_t(tokens.column);
+              const uint32_t firstLine = tokenWords.words.at(0).lineNumber - lineDiff;
+              for(Word word: qAsConst(tokenWords.words)) {
+                  word.lineNumber   -= lineDiff;
+                  if(word.lineNumber == tokenWords.line) {
+                    word.columnNumber -= colDiff;
+                  }
+                  words.append(word);
+              }
+              tokens.words   = words;
+              tokens.newHash = false;
+              qDebug() << "STR: " << tokens.string;
+              return std::make_pair(true, tokens);
+          }
+      }
+      return std::make_pair(false, CppDocumentParser::WordTokens{});
+    }
+    // ------------------------------------------
 };
 //--------------------------------------------------
 //--------------------------------------------------
@@ -260,8 +309,17 @@ bool CppDocumentParser::shouldParseDocument(const QString& fileName)
 }
 //--------------------------------------------------
 
-QVector<CppDocumentParser::WordTokens> CppDocumentParser::parseMacros(CPlusPlus::Document::Ptr docPtr, CPlusPlus::TranslationUnit *trUnit)
+QVector<CppDocumentParser::WordTokens> CppDocumentParser::parseMacros(CPlusPlus::Document::Ptr docPtr, CPlusPlus::TranslationUnit *trUnit, const HashWords &hashIn)
 {
+  /* Get the macros from the document pointer. The arguments of the macro will then be parsed
+   * and checked for spelling mistakes.
+   * Since the TranslationUnit::getPosition() is not usable with the Macro Uses a manual method to extract
+   * the literals and their line and column positions are implemented. This involves getting the unprocessed
+   * source from the document for the macro and tracking the byte offsets manually from there.
+   * An alternative implementation can involve using the Snapshot::preprocessedDocument(), which makes use of the FastPreprocessor
+   * and the AST visitors.
+   * For more information around a discussion on the mailing list around this issue refer to the following
+   * link: http://comments.gmane.org/gmane.comp.lib.qt.creator/11853 */
     QVector<WordTokens> tokenizedWords;
     QList<CPlusPlus::Document::MacroUse> macroUse = docPtr->macroUses();
     if(macroUse.count() == 0) {
@@ -308,6 +366,28 @@ QVector<CppDocumentParser::WordTokens> CppDocumentParser::parseMacros(CPlusPlus:
         if(macroBytes.contains('\"') == false) {
             continue;
         }
+
+        /* Check if the hash of the macro is not already contained
+         * in the list of known hashes. Since the macroBytes contains
+         * the data from the start of the line, any update in the line
+         *
+         */
+        const uint32_t hash = qHash(macroBytes.mid(mac.utf16charsBegin() - start));
+        qDebug() << "MAC: " << mac.macro().name()
+                 << "\n   - " << macroBytes.mid(mac.utf16charsBegin() - start);
+        WordTokens tokens;
+        tokens.hash   = hash;
+        tokens.column = mac.utf16charsBegin() - start;
+        tokens.line   = line;
+        tokens.string = QString::fromUtf8(macroBytes.mid(mac.utf16charsBegin() - start));
+        tokens.type   = WordTokens::Type::Literal;
+
+        CppDocumentParserPrivate::TmpOptional wordOpt = CppDocumentParserPrivate::checkHash(tokens, hash, hashIn);
+        if(wordOpt.first == true) {
+           tokenizedWords.append(wordOpt.second);
+           continue;
+        }
+
         /* Get the byte offsets inside the macro bytes for each line break inside the macro.
          * This will be used during the extraction to get the correct lines relative to the
          * line that the macro started on. */
@@ -354,8 +434,11 @@ QVector<CppDocumentParser::WordTokens> CppDocumentParser::parseMacros(CPlusPlus:
                 word.columnNumber += capStart - colOffset;
                 word.lineNumber    = line;
             }
+            tokens.words.append(words);
             /* Get the words from the extracted literal */
-            tokenizedWords.append(WordTokens{0x00, 0, 0, tokenString, words, false, WordTokens::Type::Literal});
+        }
+        if(tokens.words.count() != 0) {
+          tokenizedWords.append(tokens);
         }
     }
     return tokenizedWords;
@@ -418,16 +501,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
             }
         }
         /* Parse macros */
-        /* Get the macros from the document pointer. The arguments of the macro will then be parsed
-         * and checked for spelling mistakes.
-         * Since the TranslationUnit::getPosition() is not usable with the Macro Uses a manual method to extract
-         * the literals and their line and column positions are implemented. This involves getting the unprocessed
-         * source from the document for the macro and tracking the byte offsets manually from there.
-         * An alternative implementation can involve using the Snapshot::preprocessedDocument(), which makes use of the FastPreprocessor
-         * and the AST visitors.
-         * For more information around a discussion on the mailing list around this issue refer to the following
-         * link: http://comments.gmane.org/gmane.comp.lib.qt.creator/11853 */
-        tokenizedWords += parseMacros(docPtr, trUnit);
+        tokenizedWords += parseMacros(docPtr, trUnit, tokenHashesIn);
     }
 
     if(d->settings->whatToCheck.testFlag(CppParserSettings::CheckComments) == true) {
@@ -506,49 +580,17 @@ CppDocumentParser::WordTokens CppDocumentParser::parseToken(CPlusPlus::Document:
     tokens.line   = line;
     tokens.string = tokenString;
     tokens.type   = type;
-    /* Search if the hash contains the given token. If it does
-     * then the words that got extracted previously are used
-     * as is, without attempting to extract them again. If the
-     * token is not in the hash, it is a new token and must be
-     * parsed to get the words from the token. */
-    HashWords::const_iterator iter = hashIn.constFind(hash);
-    const HashWords::const_iterator iterEnd = hashIn.constEnd();
-    if(iter != iterEnd) {
-        /* The token was parsed in a previous iteration.
-         * Now check if the token moved due to lines being
-         * added or removed. It it did not move, use the
-         * words as is, if it did move, adjust the line and
-         * column number of the words by the amount that the
-         * token moved. */
-        const TokenWords& tokenWords = (iter.value());
-        if((tokenWords.line == line)
-                && (tokenWords.col == col)) {
-            tokens.words   = tokenWords.words;
-            tokens.newHash = false;
-            return tokens;
-        } else {
-            WordList words;
-            /* Token moved, adjust.
-             * This will even work for lines that are copied because the
-             * hash will be the same but the start will just be different. */
-            const qint32 lineDiff = int32_t(tokenWords.line) - int32_t(line);
-            const qint32 colDiff = int32_t(tokenWords.col) - int32_t(col);
-            for(Word word: tokenWords.words) {
-                word.lineNumber   -= lineDiff;
-                word.columnNumber -= colDiff;
-                words.append(word);
-            }
-            tokens.words   = words;
-            tokens.newHash = false;
-            return tokens;
-        }
-    } else {
-        /* Token was not in the list of hashes.
-         * Tokenize the string to extract words that should be checked. */
-        tokens.words         = tokenizeWords(docPtr->fileName(), tokenString, commentBegin, trUnit, type);
-        tokens.newHash       = true;
-        return tokens;
+
+    CppDocumentParserPrivate::TmpOptional wordOpt = CppDocumentParserPrivate::checkHash(tokens, hash, hashIn);
+    if(wordOpt.first == true) {
+      return wordOpt.second;
     }
+
+    /* Token was not in the list of hashes.
+     * Tokenize the string to extract words that should be checked. */
+    tokens.words         = tokenizeWords(docPtr->fileName(), tokenString, commentBegin, trUnit, type);
+    tokens.newHash       = true;
+    return tokens;
 }
 //--------------------------------------------------
 
