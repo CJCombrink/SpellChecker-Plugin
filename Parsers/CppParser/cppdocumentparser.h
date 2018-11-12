@@ -164,7 +164,13 @@ public:
      *              up the processing as discussed above.
      * \return WordTokens structure containing enough information to be useful to
      *              the caller. */
-    WordTokens parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, WordTokens::Type type, const HashWords& hashIn);
+    WordTokens parseToken(CPlusPlus::Document::Ptr docPtr, CPlusPlus::TranslationUnit *trUnit, const CPlusPlus::Token& token, WordTokens::Type type, const HashWords& hashIn);
+    /*! \brief Parse all macros in the document and extract string literals.
+     *
+     * Only macros that are functions and have arguments that are string literals
+     * are considered. This is important since QStringLiteral is a macro, and
+     * there are also other macros that takes in literals as arguments. */
+    QVector<WordTokens> parseMacros(CPlusPlus::Document::Ptr docPtr, CPlusPlus::TranslationUnit *trUnit);
     /*! \brief Tokenize Words from a string.
      *
      * This function takes a string, either a comment or a string literal and

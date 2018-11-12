@@ -260,6 +260,108 @@ bool CppDocumentParser::shouldParseDocument(const QString& fileName)
 }
 //--------------------------------------------------
 
+QVector<CppDocumentParser::WordTokens> CppDocumentParser::parseMacros(CPlusPlus::Document::Ptr docPtr, CPlusPlus::TranslationUnit *trUnit)
+{
+    QVector<WordTokens> tokenizedWords;
+    QList<CPlusPlus::Document::MacroUse> macroUse = docPtr->macroUses();
+    if(macroUse.count() == 0) {
+      return {};
+    }
+    static CppTools::CppModelManager *cppModelManager = CppTools::CppModelManager::instance();
+    CppTools::CppEditorDocumentHandle *cppEditorDocument = cppModelManager->cppEditorDocument(docPtr->fileName());
+    if(cppEditorDocument == nullptr) {
+      return {};
+    }
+    const QByteArray source = cppEditorDocument->contents();
+
+    for(const CPlusPlus::Document::MacroUse& mac: macroUse) {
+        if(mac.isFunctionLike() == false) {
+          /* Only macros that are function like should be considered.
+           * These are ones that have arguments, that can be literals.
+           */
+          continue;
+        }
+        const QVector<CPlusPlus::Document::Block>& args = mac.arguments();
+        if(args.count() == 0) {
+            /* There are no arguments for the macro, no need to consider
+             * further. */
+            continue;
+        }
+        /* The line number of the macro is used as the reference. */
+        uint32_t line  = mac.beginLine();
+        /* Get the start of the line from the source. From this start the offset to the
+         * words will be calculated. */
+        const int32_t start = source.lastIndexOf('\n', int32_t(mac.utf16charsBegin()));
+        /* Get the end index of the last argument of the macro. */
+        const int32_t end   = int32_t(args.last().utf16charsEnd());
+        if(end == 0) {
+            /* This will happen on an empty argument, for example Q_ASSERT() */
+            continue;
+        }
+
+        /* Get the full macro from the start of the line until the last byte of the last
+         * argument. */
+        const QByteArray macroBytes = source.mid(start, end - start);
+        /* Quick check to see if there are any string literals in the macro text.
+         * if the are this check can be a waist, but if not this can speed up the check by
+         * avoiding an unneeded regular expression. */
+        if(macroBytes.contains('\"') == false) {
+            continue;
+        }
+        /* Get the byte offsets inside the macro bytes for each line break inside the macro.
+         * This will be used during the extraction to get the correct lines relative to the
+         * line that the macro started on. */
+        QVector<uint32_t> lineIndexes;
+        /* The search above for the start include the new line character so the start for other
+         * new lines must start from index 1 so that it is not also included. */
+        int32_t startSearch = 1;
+        while(true) {
+            int idx = macroBytes.indexOf('\n', startSearch);
+            if(idx < 0) {
+                /* No more new lines, break out */
+                break;
+            }
+            lineIndexes << uint32_t(idx);
+            /* Must increment the start of the next search otherwise it will be found on
+             * that index. */
+            startSearch = idx + 1;
+        }
+        /* The end is also added to simplify some of the checks further on. No character can
+         * fall outside of the end. */
+        lineIndexes << uint32_t(end);
+        uint32_t lineBreak = lineIndexes.takeFirst();
+        uint32_t colOffset = 0;
+
+        /* Use a regular expression to get all string literals from the macro and its arguments. */
+        static const QRegularExpression regExp(QStringLiteral("\"([^\"\\\\]|\\\\.)*\""));
+        QRegularExpressionMatchIterator regExpIter = regExp.globalMatch(QString::fromLatin1(macroBytes));
+        while(regExpIter.hasNext() == true) {
+            const QRegularExpressionMatch match = regExpIter.next();
+            const QString tokenString           = match.captured(0);
+            Q_ASSERT(match.capturedStart(0) >= 0);
+            const uint32_t capStart = uint32_t(match.capturedStart(0));
+            /* Check if the literal starts on the next line from the current one */
+            while(capStart > lineBreak) {
+                /* Increase the line number and reset the column offset */
+                ++line;
+                colOffset = lineBreak;
+                lineBreak = lineIndexes.takeFirst();
+            }
+            /* Get the words from the extracted literal */
+            WordList words = tokenizeWords(docPtr->fileName(), tokenString, 0, trUnit, WordTokens::Type::Literal);
+            for(Word& word: words) {
+                /* Apply the offsets to the words */
+                word.columnNumber += capStart - colOffset;
+                word.lineNumber    = line;
+            }
+            /* Get the words from the extracted literal */
+            tokenizedWords.append(WordTokens{0x00, 0, 0, tokenString, words, false, WordTokens::Type::Literal});
+        }
+    }
+    return tokenizedWords;
+}
+//--------------------------------------------------
+
 WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 {
     if(docPtr.isNull() == true) {
@@ -311,7 +413,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
                 }
 
                 /* The String Literal is not expanded thus handle it like a comment is handled. */
-                WordTokens tokens = parseToken(docPtr, token, trUnit, WordTokens::Type::Literal, tokenHashesIn);
+                WordTokens tokens = parseToken(docPtr, trUnit, token, WordTokens::Type::Literal, tokenHashesIn);
                 tokenizedWords.append(tokens);
             }
         }
@@ -325,94 +427,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
          * and the AST visitors.
          * For more information around a discussion on the mailing list around this issue refer to the following
          * link: http://comments.gmane.org/gmane.comp.lib.qt.creator/11853 */
-        QList<CPlusPlus::Document::MacroUse> macroUse = docPtr->macroUses();
-        if(macroUse.count() != 0) {
-            CppTools::CppModelManager *cppModelManager = CppTools::CppModelManager::instance();
-            CppTools::CppEditorDocumentHandle *cppEditorDocument = cppModelManager->cppEditorDocument(docPtr->fileName());
-            if(cppEditorDocument != nullptr) {
-                const QByteArray source = cppEditorDocument->contents();
-
-                for(const CPlusPlus::Document::MacroUse& mac: macroUse) {
-                    const QVector<CPlusPlus::Document::Block>& args = mac.arguments();
-                    if((mac.isFunctionLike() == false)
-                            || (args.count() == 0)) {
-                        /* The argument is not function like or there are no arguments */
-                        continue;
-                    }
-                    /* The line number of the macro is used as the reference. */
-                    int line  = mac.beginLine();
-                    /* Get the start of the line from the source. From this start the offset to the
-                     * words will be calculated. */
-                    int start = source.lastIndexOf("\n", mac.bytesBegin());
-                    /* Get the end index of the last argument of the macro. */
-                    int end   = args.last().bytesEnd();
-                    if(end == 0) {
-                        /* This will happen on an empty argument, for example Q_ASSERT() */
-                        continue;
-                    }
-
-                    /* Get the full macro from the start of the line until the last byte of the last
-                     * argument. */
-                    QByteArray macroBytes = source.mid(start, end - start);
-                    /* Quick check to see if there are any string literals in the macro text.
-                     * if the are this check can be a waist, but if not this can speed up the check by
-                     * avoiding an unneeded regular expression. */
-                    if(macroBytes.contains('\"') == false) {
-                        continue;
-                    }
-                    /* Get the byte offsets inside the macro bytes for each line break inside the macro.
-                     * This will be used during the extraction to get the correct lines relative to the
-                     * line that the macro started on. */
-                    QList<int> lineIndexes;
-                    /* The search above for the start include the new line character so the start for other
-                     * new lines must start from index 1 so that it is not also included. */
-                    int startSearch = 1;
-                    while(true) {
-                        int idx = macroBytes.indexOf('\n', startSearch);
-                        if(idx < 0) {
-                            /* No more new lines, break out */
-                            break;
-                        }
-                        lineIndexes << idx;
-                        /* Must increment the start of the next search otherwise it will be found on
-                       * that index. */
-                        startSearch = idx + 1;
-                    }
-                    /* The end is also added to simplify some of the checks further on. No character can
-                     * fall outside of the end. */
-                    lineIndexes << end;
-                    int lineBreak = lineIndexes.front();
-                    lineIndexes.pop_front();
-                    int colOffset = 0;
-
-                    /* Use a regular expression to get all string literals from the macro and its arguments. */
-                    static const QRegularExpression regExp(QStringLiteral("\"([^\"\\\\]|\\\\.)*\""));
-                    QRegularExpressionMatchIterator regExpIter = regExp.globalMatch(QString::fromLatin1(macroBytes));
-                    while(regExpIter.hasNext() == true) {
-                        QRegularExpressionMatch match = regExpIter.next();
-                        QString tokenString = match.captured(0);
-                        int capStart = match.capturedStart(0);
-                        /* Check if the literal starts on the next line from the current one */
-                        while(capStart > lineBreak) {
-                            /* Increase the line number and reset the column offset */
-                            ++line;
-                            colOffset = lineBreak;
-                            lineBreak = lineIndexes.front();
-                            lineIndexes.pop_front();
-                        }
-                        WordList words;
-                        /* Get the words from the extracted literal */
-                        words = tokenizeWords(docPtr->fileName(), tokenString, 0, trUnit, WordTokens::Type::Literal);
-                        for(Word& word: words) {
-                            /* Apply the offsets to the words */
-                            word.columnNumber += capStart - colOffset;
-                            word.lineNumber    = line;
-                        }
-                        tokenizedWords.append(WordTokens{0x00, 0, 0, tokenString, words, false, WordTokens::Type::Literal});
-                    }
-                }
-            }
-        }
+        tokenizedWords += parseMacros(docPtr, trUnit);
     }
 
     if(d->settings->whatToCheck.testFlag(CppParserSettings::CheckComments) == true) {
@@ -437,7 +452,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
                || (token.kind() == CPlusPlus::T_CPP_DOXY_COMMENT)) {
               type = WordTokens::Type::Doxygen;
             }
-            const WordTokens tokens = parseToken(docPtr, token, trUnit, type, tokenHashesIn);
+            const WordTokens tokens = parseToken(docPtr, trUnit, token, type, tokenHashesIn);
             tokenizedWords.append(tokens);
         }
     }
@@ -446,7 +461,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
     /* Populate the list of hashes from the tokens that was processed. */
     HashWords newHashesOut;
     WordList newSettingsApplied;
-    for(const WordTokens& token: tokenizedWords) {
+    for(const WordTokens& token: qAsConst(tokenizedWords)) {
       WordList words = token.words;
       if(token.newHash == true) {
         /* The words are new, they were not known in a previous hash
@@ -472,7 +487,7 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 }
 //--------------------------------------------------
 
-CppDocumentParser::WordTokens CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, const CPlusPlus::Token& token, CPlusPlus::TranslationUnit *trUnit, WordTokens::Type type, const HashWords &hashIn)
+CppDocumentParser::WordTokens CppDocumentParser::parseToken(CPlusPlus::Document::Ptr docPtr, CPlusPlus::TranslationUnit *trUnit, const CPlusPlus::Token& token,WordTokens::Type type, const HashWords &hashIn)
 {
     /* Get the token string */
     const QString tokenString = QString::fromUtf8(docPtr->utf8Source().mid(token.bytesBegin(), token.bytes()).trimmed());
