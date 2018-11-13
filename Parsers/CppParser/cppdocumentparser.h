@@ -71,7 +71,7 @@ public:
     ~CppDocumentParser() Q_DECL_OVERRIDE;
     QString displayName() Q_DECL_OVERRIDE;
     Core::IOptionsPage* optionsPage() Q_DECL_OVERRIDE;
-    void parseToken(QStringList wordsInSource, CPlusPlus::TranslationUnit *trUnit, WordList words, CPlusPlus::Document::Ptr docPtr, WordList parsedWords, const CPlusPlus::Token& token);
+//    void parseToken(QStringList wordsInSource, CPlusPlus::TranslationUnit *trUnit, WordList words, CPlusPlus::Document::Ptr docPtr, WordList parsedWords, const CPlusPlus::Token& token);
 
 protected:
     void setCurrentEditor(const QString& editorFilePath) Q_DECL_OVERRIDE;
@@ -82,7 +82,7 @@ protected slots:
     void parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr);
     void settingsChanged();
 
-private:
+public:
     /*! \brief The Word Tokens structure
      *
      * This structure is returned by the parseToken() function and contains
@@ -164,13 +164,13 @@ public:
      *              up the processing as discussed above.
      * \return WordTokens structure containing enough information to be useful to
      *              the caller. */
-    WordTokens parseToken(CPlusPlus::Document::Ptr docPtr, CPlusPlus::TranslationUnit *trUnit, const CPlusPlus::Token& token, WordTokens::Type type, const HashWords& hashIn);
+    static WordTokens parseToken(CPlusPlus::Document::Ptr docPtr, CPlusPlus::TranslationUnit *trUnit, const CPlusPlus::Token& token, WordTokens::Type type, const HashWords& hashIn, const CppParserSettings &settings);
     /*! \brief Parse all macros in the document and extract string literals.
      *
      * Only macros that are functions and have arguments that are string literals
      * are considered. This is important since QStringLiteral is a macro, and
      * there are also other macros that takes in literals as arguments. */
-    QVector<WordTokens> parseMacros(CPlusPlus::Document::Ptr docPtr, CPlusPlus::TranslationUnit *trUnit, const HashWords& hashIn);
+//    static QVector<WordTokens> parseMacros(CPlusPlus::Document::Ptr docPtr, CPlusPlus::TranslationUnit *trUnit, const HashWords& hashIn, const CppParserSettings &settings);
     /*! \brief Tokenize Words from a string.
      *
      * This function takes a string, either a comment or a string literal and
@@ -187,7 +187,7 @@ public:
      *              gets handled later on, and it does not rely on a setting,
      *              it must be done always to remove noise.
      * \return Words that were extracted from the string. */
-    WordList tokenizeWords(const QString &fileName, const QString& string, uint32_t stringStart, const CPlusPlus::TranslationUnit *const translationUnit, WordTokens::Type type);
+//    static WordList tokenizeWords(const QString &fileName, const QString& string, uint32_t stringStart, const CPlusPlus::TranslationUnit *const translationUnit, WordTokens::Type type, const CppParserSettings &settings);
     /*! \brief Apply the user Settings to the Words.
      * \param[in] string String that these words belong to.
      * \param[inout] words words that should be parsed. Words will be removed from this list
@@ -196,10 +196,10 @@ public:
      *                  setting words that appear in this list will be removed from the
      *                  final list of \a words. */
     void applySettingsToWords(const QString& string, WordList& words, const QStringSet &wordsInSource);
-    QStringSet getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr);
-    QStringSet getListOfWordsFromSourceRecursive(const CPlusPlus::Symbol* symbol, const CPlusPlus::Overview& overview);
-    QStringSet getPossibleNamesFromString(const QString &string);
-    bool isEndOfCurrentWord(const QString& comment, int currentPos);
+//    QStringSet getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr);
+//    QStringSet getListOfWordsFromSourceRecursive(const CPlusPlus::Symbol* symbol, const CPlusPlus::Overview& overview);
+//    QStringSet getPossibleNamesFromString(const QString &string);
+    static bool isEndOfCurrentWord(const QString& comment, int currentPos, const CppParserSettings &settings);
     bool isReservedWord(const QString& word);
 
 private:
