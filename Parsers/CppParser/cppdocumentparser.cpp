@@ -116,7 +116,31 @@ public:
     }
     // ------------------------------------------
 
+    /*! \brief Custom type for the checkHash() return type.
+     *
+     * If C++17 is used this should be replaced by a std::optional. */
     using TmpOptional = std::pair<bool, CppDocumentParser::WordTokens>;
+    /*! \brief Optimisation function to check a hash.
+     *
+     * An optimisation is done where a token string is extracted and
+     * then the hash associated with that string and the words that
+     * were extracted from that string is stored for the next pass
+     * of the same file.
+     *
+     * If a hash is known, the token is not processed and the words
+     * that were extracted in the previous pass will just get used
+     * as-is.
+     *
+     * Also, the line and column number of the hash is stored
+     * to check for trivial cases where the hash just moved.
+     * This information is then used to move the words based
+     * on the movement of the hash.
+     *
+     * This has the added benefit that if the same string is found
+     * multiple times in the same file, it can just re-use the words
+     * without any more processing on the second string. The usefulness
+     * of this is probably not much since strings should not normally repeat.
+     * People should use the DRY principal... */
     static TmpOptional checkHash(CppDocumentParser::WordTokens tokens, uint32_t hash, const HashWords& hashIn)
     {
       /* Search if the hash contains the given token. If it does
