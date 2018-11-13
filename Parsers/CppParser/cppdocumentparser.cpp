@@ -47,6 +47,10 @@
 #include <QTextBlock>
 #include <QApplication>
 
+/*! \brief Testing assert that should be used during debugging
+ * but should not be made part of a release. */
+//#define SP_CHECK( test ) QTC_CHECK( test )
+#define SP_CHECK( test )
 
 namespace SpellChecker {
 namespace CppSpellChecker {
@@ -140,8 +144,9 @@ public:
               /* Token moved, adjust.
                * This will even work for lines that are copied because the
                * hash will be the same but the start will just be different. */
-              const qint32 lineDiff = int32_t(tokenWords.line) - int32_t(tokens.line);
-              const qint32 colDiff = int32_t(tokenWords.col) - int32_t(tokens.column);
+              const qint32 lineDiff    = int32_t(tokenWords.line) - int32_t(tokens.line);
+              const qint32 colDiff     = int32_t(tokenWords.col) - int32_t(tokens.column);
+              const uint32_t firstLine = tokens.line;
               /* Move the line according to the difference between the
                * known position and the position from the hash.
                * The column is also moved, but only if on the first line
@@ -150,7 +155,6 @@ public:
                * would be new and it would be regarded as a new hash. A move
                * on the column will not cause this, but will also not move the
                * words below it, thus they should not be updated. */
-              const uint32_t firstLine = uint32_t(int32_t(tokenWords.words.at(0).lineNumber) - lineDiff);
               for(Word word: qAsConst(tokenWords.words)) {
                   word.lineNumber = uint32_t(int32_t(word.lineNumber) - lineDiff);
                   if(word.lineNumber == firstLine) {
@@ -355,10 +359,15 @@ QVector<CppDocumentParser::WordTokens> CppDocumentParser::parseMacros(CPlusPlus:
         /* The line number of the macro is used as the reference. */
         uint32_t line  = mac.beginLine();
         /* Get the start of the line from the source. From this start the offset to the
-         * words will be calculated. */
-        const int32_t start = source.lastIndexOf('\n', int32_t(mac.utf16charsBegin()));
+         * words will be calculated. This start should never be -1 since
+         * a line will always start with a newline, and it seems like a macro
+         * will never start on the first line of the source file.
+         * Added a debug assert just to ensure this. */
+        const uint32_t start = uint32_t(source.lastIndexOf('\n', int32_t(mac.utf16charsBegin())));
+        SP_CHECK(source.lastIndexOf('\n', int32_t(mac.utf16charsBegin())) > 0);
         /* Get the end index of the last argument of the macro. */
-        const int32_t end   = int32_t(args.last().utf16charsEnd());
+        const uint32_t end   = args.last().utf16charsEnd();
+        SP_CHECK(start < end);
         if(end == 0) {
             /* This will happen on an empty argument, for example Q_ASSERT() */
             continue;
@@ -366,8 +375,8 @@ QVector<CppDocumentParser::WordTokens> CppDocumentParser::parseMacros(CPlusPlus:
 
         /* Get the full macro from the start of the line until the last byte of the last
          * argument. */
-        const QByteArray macroBytes = source.mid(start, end - start);
-        /* Quick check to see if there are any string literals in the macro text.
+        const QByteArray macroBytes = source.mid(int32_t(start), int32_t(end - start));
+        /* Quick check to see if thdere are any string literals in the macro text.
          * if the are this check can be a waist, but if not this can speed up the check by
          * avoiding an unneeded regular expression. */
         if(macroBytes.contains('\"') == false) {
@@ -423,7 +432,7 @@ QVector<CppDocumentParser::WordTokens> CppDocumentParser::parseMacros(CPlusPlus:
         while(regExpIter.hasNext() == true) {
             const QRegularExpressionMatch match = regExpIter.next();
             const QString tokenString           = match.captured(0);
-            Q_ASSERT(match.capturedStart(0) >= 0);
+            SP_CHECK(match.capturedStart(0) >= 0);
             const uint32_t capStart = uint32_t(match.capturedStart(0));
             /* Check if the literal starts on the next line from the current one */
             while(capStart > lineBreak) {
@@ -629,7 +638,7 @@ WordList CppDocumentParser::tokenizeWords(const QString& fileName, const QString
              * currentPos on the other hand can be at the end of the string
              * for example with a single line comment (slash-slash).
              */
-            Q_ASSERT(wordStartPos > 0);
+            SP_CHECK(wordStartPos > 0);
             Word word;
             word.fileName  = fileName;
             word.text      = string.mid(wordStartPos, currentPos - wordStartPos);
@@ -790,7 +799,8 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     applySettingsToWords(string, wordsFromSplit, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
-                    Q_ASSERT(false);
+                    /* Should never get here */
+                    QTC_CHECK(false);
                 }
             }
         }
@@ -812,7 +822,8 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     applySettingsToWords(string, wordsFromSplit, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
-                    Q_ASSERT(false);
+                    /* Should never get here */
+                    QTC_CHECK(false);
                 }
             }
         }
@@ -867,7 +878,8 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     applySettingsToWords(string, wordsFromSplit, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
-                    Q_ASSERT(false);
+                    /* Should never get here */
+                    QTC_CHECK(false);
                 }
             }
         }
@@ -890,7 +902,8 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     applySettingsToWords(string, wordsFromSplit, wordsInSource);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
-                    Q_ASSERT(false);
+                    /* Should never get here */
+                    QTC_CHECK(false);
                 }
             }
         }
@@ -912,7 +925,7 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
 QStringSet CppDocumentParser::getWordsThatAppearInSource(CPlusPlus::Document::Ptr docPtr)
 {
     QStringSet wordsSet;
-    Q_ASSERT(docPtr != nullptr);
+    SP_CHECK(docPtr != nullptr);
     const uint32_t total = docPtr->globalSymbolCount();
     CPlusPlus::Overview overview;
     for (uint32_t i = 0; i < total; ++i) {
