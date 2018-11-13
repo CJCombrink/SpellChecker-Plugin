@@ -198,8 +198,16 @@ void ProjectMistakesModel::fileSelected(const QModelIndex &index)
         Q_ASSERT(editor != nullptr);
         Q_ASSERT(d->spellingMistakes.value(fileName).first.isEmpty() == false);
         /* Go to the first misspelled word in the editor. */
-        Word word = d->spellingMistakes.value(fileName).first.at(0);
-        editor->gotoLine(word.lineNumber, word.columnNumber - 1);
+        const SpellChecker::WordList words = d->spellingMistakes.value(fileName).first;
+        Q_ASSERT(words.empty() == false);
+        /* Get a word on the first line with a spelling mistake and
+         * go to that line. This is to ensure that the highest up spelling
+         * mistake is selected instead of a random mistake randomly in the
+         * file. This seemed strange. */
+        const Word word = *std::min_element(words.begin(), words.end(), [](const Word& lhs, const Word& rhs){
+          return lhs.lineNumber < rhs.lineNumber;
+        });
+        editor->gotoLine(int32_t(word.lineNumber), int32_t(word.columnNumber - 1));
     }
 }
 //--------------------------------------------------

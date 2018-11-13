@@ -78,8 +78,6 @@ public:
     void append(const Word& t) { this->insert(t.text, t); }
     void append(const WordList& l)
     { for(const Word& t: l) { append(t); } }
-    const Word& at(int i) const
-    { return values().at(i); }
 };
 
 typedef WordList::iterator WordListIter;
