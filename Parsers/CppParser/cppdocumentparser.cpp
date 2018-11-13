@@ -142,17 +142,24 @@ public:
                * hash will be the same but the start will just be different. */
               const qint32 lineDiff = int32_t(tokenWords.line) - int32_t(tokens.line);
               const qint32 colDiff = int32_t(tokenWords.col) - int32_t(tokens.column);
-              const uint32_t firstLine = tokenWords.words.at(0).lineNumber - lineDiff;
+              /* Move the line according to the difference between the
+               * known position and the position from the hash.
+               * The column is also moved, but only if on the first line
+               * since a column move is only possible on the first line.
+               * If a column moved that are not on the first line, the hash
+               * would be new and it would be regarded as a new hash. A move
+               * on the column will not cause this, but will also not move the
+               * words below it, thus they should not be updated. */
+              const uint32_t firstLine = uint32_t(int32_t(tokenWords.words.at(0).lineNumber) - lineDiff);
               for(Word word: qAsConst(tokenWords.words)) {
-                  word.lineNumber   -= lineDiff;
-                  if(word.lineNumber == tokenWords.line) {
-                    word.columnNumber -= colDiff;
+                  word.lineNumber = uint32_t(int32_t(word.lineNumber) - lineDiff);
+                  if(word.lineNumber == firstLine) {
+                    word.columnNumber = uint32_t(int32_t(word.columnNumber) - colDiff);
                   }
                   words.append(word);
               }
               tokens.words   = words;
               tokens.newHash = false;
-              qDebug() << "STR: " << tokens.string;
               return std::make_pair(true, tokens);
           }
       }
@@ -373,8 +380,6 @@ QVector<CppDocumentParser::WordTokens> CppDocumentParser::parseMacros(CPlusPlus:
          *
          */
         const uint32_t hash = qHash(macroBytes.mid(mac.utf16charsBegin() - start));
-        qDebug() << "MAC: " << mac.macro().name()
-                 << "\n   - " << macroBytes.mid(mac.utf16charsBegin() - start);
         WordTokens tokens;
         tokens.hash   = hash;
         tokens.column = mac.utf16charsBegin() - start;
