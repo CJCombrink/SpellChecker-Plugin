@@ -36,33 +36,6 @@ namespace Internal {
 class CppParserSettings;
 class CppDocumentParserPrivate;
 
-/*! \brief Class containing the words of a specific token.
- *
- * This class is used to store the words for a specific token as well as the
- * start position (line and column) of the token. The line and column is used
- * for keeping the offset correct if a token moved due to new tokens or text.
- * This is then used to adjust the line and column numbers of the words to the
- * correct locations. */
-class TokenWords {
-public:
-    quint32 line;
-    quint32 col;
-    WordList words;
-
-    TokenWords(quint32 l = 0, quint32 c = 0, const WordList &w = WordList()) :
-        line(l),
-        col(c),
-        words(w) {}
-};
-/*! \brief Hash of a token and the corresponding list of words that were extracted from the token.
- *
- * The quint32 is result of the qHash(QString, 0) and stored in the hash for each token, along with the
- * list of words that were extracted from that comment. The hash of the token is used instead of the string
- * because there is no need for the extra memory in the hash to store the actual token. If the hash was
- * defined as QHash<QString, CommentWords> the hash would store the full token in memory so that it can
- * be obtained using the QHash::key() function. Some token can be long and the overhead is not needed. */
-using HashWords = QHash<quint32, TokenWords>;
-
 class CppDocumentParser : public SpellChecker::IDocumentParser
 {
     Q_OBJECT
@@ -80,6 +53,7 @@ protected:
 protected slots:
     void parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr);
     void settingsChanged();
+    void futureFinished();
 
 public:
 

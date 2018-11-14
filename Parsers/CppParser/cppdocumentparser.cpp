@@ -26,14 +26,13 @@
 #include "cppparsersettings.h"
 #include "cppparseroptionspage.h"
 #include "cppparserconstants.h"
+#include "cplusplusdocumentparser.h"
 
 #include <coreplugin/icore.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <cpptools/cppmodelmanager.h>
 #include <cpptools/cpptoolsreuse.h>
-#include <cpptools/cppdoxygen.h>
-#include <cplusplus/Overview.h>
 #include <cppeditor/cppeditorconstants.h>
 #include <cppeditor/cppeditordocument.h>
 #include <texteditor/texteditor.h>
@@ -42,10 +41,12 @@
 #include <projectexplorer/session.h>
 #include <utils/algorithm.h>
 #include <utils/mimetypes/mimedatabase.h>
+#include <utils/runextensions.h>
 
 #include <QRegularExpression>
 #include <QTextBlock>
 #include <QApplication>
+#include <QFutureWatcher>
 
 /*! \brief Testing assert that should be used during debugging
  * but should not be made part of a release. */
@@ -61,11 +62,17 @@ namespace Internal {
  * plugin. */
 const char MIME_TYPE_CXX_DOX[] = "text/x-c++dox";
 
-
 //--------------------------------------------------
 //--------------------------------------------------
 //--------------------------------------------------
 
+#ifdef FUTURE_NOT_WORKING
+using ParserMap     = QMap<CPlusPlusDocumentParser*, QString> ;
+using ParserMapIter = ParserMap::Iterator;
+#else
+using FutureWatcherMap     = QMap<QFutureWatcher<CPlusPlusDocumentParser::ResultType>*, QString> ;
+using FutureWatcherMapIter = FutureWatcherMap::Iterator;
+#endif
 
 class CppDocumentParserPrivate {
 public:
@@ -76,6 +83,13 @@ public:
     QStringSet filesInStartupProject;
 
     HashWords tokenHashes;
+    QMutex futureMutex;
+#ifdef FUTURE_NOT_WORKING
+    ParserMap parserMap;
+#else
+    FutureWatcherMap futureWatchers;
+#endif
+    QStringList filesInProcess;
 
     CppDocumentParserPrivate() :
         activeProject(nullptr),
@@ -210,9 +224,9 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
         return;
     }
     WordList words = parseCppDocument(std::move(docPtr));
-    /* Now that we have all of the words from the parser, emit the signal
-     * so that they will get spell checked. */
-    emit spellcheckWordsParsed(fileName, words);
+//    /* Now that we have all of the words from the parser, emit the signal
+//     * so that they will get spell checked. */
+//    emit spellcheckWordsParsed(fileName, words);
 }
 //--------------------------------------------------
 
@@ -265,647 +279,57 @@ bool CppDocumentParser::shouldParseDocument(const QString& fileName)
 }
 //--------------------------------------------------
 
-
-//--------------------------------------------------
-
-/*! \brief The Word Tokens structure
- *
- * This structure is returned by the parseToken() function and contains
- * the list of words that were extracted from a token (comment, literal,
- * etc.). The structure also contains the hash of the token so that it can
- * be checked when the same file is parsed again. There is no need to store
- * the actual token since the hash comparison should be good enough to
- * check for changes.
- *
- * The \a line and \a column are stored for the token so that if a token did not
- * change, but it moved, the words that came from that token can just be
- * moved as needed without the need to do any string processing and parsing.
- *
- * The \a newHash flag keeps track if the words were extracted in a
- * previous pass or not, meaning that they were already processed and does not
- * need to be processed further. */
-struct WordTokens {
-  enum class Type {
-    Comment = 0,
-    Doxygen,
-    Literal
-  };
-
-  HashWords::key_type hash;
-  uint32_t line;
-  uint32_t column;
-  QString string;
-  WordList words;
-  bool newHash;
-  Type type;
-};
-
-class CPlusPlusDocumentParser
+void CppDocumentParser::futureFinished()
 {
-  CPlusPlusDocumentParser(const CPlusPlusDocumentParser&) = delete;
-  CPlusPlusDocumentParser& operator==(const CPlusPlusDocumentParser&) = delete;
-public:
-  using WordTokenList = QVector<WordTokens>;
+    /* Get the watcher from the sender() of the signal that invoked this slot.
+     * reinterpret_cast is used since qobject_cast is not valid of template
+     * classes since the template class does not have the Q_OBJECT macro. */
 
-  CPlusPlusDocumentParser(CPlusPlus::Document::Ptr documentPointer, const HashWords& hashWords, const CppParserSettings& cppSettings)
-    : docPtr(documentPointer)
-    , tokenHashes(hashWords)
-    , settings(cppSettings)
-    , trUnit(documentPointer->translationUnit())
-    , fileName(documentPointer->fileName())
-  {
-    docPtr->keepSourceAndAST();
-  }
-  ~CPlusPlusDocumentParser()
-  {
-    docPtr->releaseSourceAndAST();
-  }
-
-  bool run()
-  {
-    SP_CHECK(docPtr.isNull() == false);
-    SP_CHECK(trUnit != nullptr);
-    /* If the setting is set to remove words from the list based on words found in the source,
-     * parse the source file and then remove all words found in the source files from the list
-     * of words that will be checked. */
-    if(settings.removeWordsThatAppearInSource == true) {
-        /* First get all words that does appear in the current source file. These words only
-         * include variables and their types */
-        wordsInSource = getWordsThatAppearInSource();
+#ifdef FUTURE_NOT_WORKING
+    CPlusPlusDocumentParser* parser = qobject_cast<CPlusPlusDocumentParser*>(sender());
+    if(parser == nullptr) {
+      qDebug() << "INVALID WATCHER";
+      return;
     }
-
-    if(settings.whatToCheck.testFlag(CppParserSettings::CheckStringLiterals) == true) {
-        /* Parse string literals */
-        unsigned int tokenCount = trUnit->tokenCount();
-        for(unsigned int idx = 0; idx < tokenCount; ++idx) {
-            const CPlusPlus::Token& token = trUnit->tokenAt(idx);
-            if(token.isStringLiteral() == true) {
-                if(token.expanded() == true) {
-                    /* Expanded literals comes from macros. These are not checked since they can be the
-                     * result of a macro like '__LINE__'. A user is not interested in such literals.
-                     * The input arguments to Macros are more usable like MY_MAC("Some String").
-                     * The macro arguments are checked after the normal literals are checked. */
-                    continue;
-                }
-
-                /* The String Literal is not expanded thus handle it like a comment is handled. */
-                WordTokens tokens = parseToken(token, WordTokens::Type::Literal);
-                wordTokens.append(tokens);
-            }
-        }
-        /* Parse macros */
-        wordTokens += parseMacros();
+    const CPlusPlusDocumentParser::ResultType result = parser->result();
+#else
+    QFutureWatcher<CPlusPlusDocumentParser::ResultType> *watcher = reinterpret_cast<QFutureWatcher<CPlusPlusDocumentParser::ResultType>*>(sender());
+    if(watcher == nullptr) {
+      qDebug() << "INVALID WATCHER";
+      return;
     }
-
-    if(settings.whatToCheck.testFlag(CppParserSettings::CheckComments) == true) {
-        /* Parse comments */
-        unsigned int commentCount = trUnit->commentCount();
-        for(unsigned int comment = 0; comment < commentCount; ++comment) {
-            const CPlusPlus::Token& token = trUnit->commentAt(comment);
-            /* Check to see if the current comment type must be checked */
-            if((settings.commentsToCheck.testFlag(CppParserSettings::CommentsC) == false)
-                    && (token.kind() == CPlusPlus::T_COMMENT)) {
-                /* C Style comments should not be checked and this is one */
-                continue;
-            }
-            if((settings.commentsToCheck.testFlag(CppParserSettings::CommentsCpp) == false)
-                    && (token.kind() == CPlusPlus::T_CPP_COMMENT)) {
-                /* C++ Style comments should not be checked and this is one */
-                continue;
-            }
-
-            WordTokens::Type type = WordTokens::Type::Comment;
-            if((token.kind() == CPlusPlus::T_DOXY_COMMENT)
-               || (token.kind() == CPlusPlus::T_CPP_DOXY_COMMENT)) {
-              type = WordTokens::Type::Doxygen;
-            }
-            const WordTokens tokens = parseToken(token, type);
-            wordTokens.append(tokens);
-        }
+    if(watcher->isCanceled() == true) {
+        /* Application is shutting down */
+        return;
     }
+    const CPlusPlusDocumentParser::ResultType result = watcher->result();
+#endif
 
-    return true;
-  }
+    qDebug() << "FUTURE DONE: " << this->thread();
 
-  QStringSet takeWordsInSource() { return std::move(wordsInSource); }
-  WordTokenList takeWordTokens() { return std::move(wordTokens); }
+    const QStringSet wordsInSource           = result.first;
+    const QVector<WordTokens> tokenizedWords = result.second;
 
-private:
 
-  QStringSet getWordsThatAppearInSource() const
-  {
-      QStringSet wordsSet;
-      SP_CHECK(docPtr != nullptr);
-      const uint32_t total = docPtr->globalSymbolCount();
-      CPlusPlus::Overview overview;
-      for (uint32_t i = 0; i < total; ++i) {
-          CPlusPlus::Symbol *symbol = docPtr->globalSymbolAt(i);
-          wordsSet += getListOfWordsFromSourceRecursive(symbol, overview);
-      }
-      return wordsSet;
-  }
-  QStringSet getListOfWordsFromSourceRecursive(const CPlusPlus::Symbol *symbol, const CPlusPlus::Overview &overview) const
-  {
-      QStringSet wordsInSource;
-      /* Get the pretty name and type for the current symbol. This name is then split up into
-       * different words that are added to the list of words that appear in the source */
-      const QString name = overview.prettyName(symbol->name()).trimmed();
-      const QString type = overview.prettyType(symbol->type()).trimmed();
-      wordsInSource += getPossibleNamesFromString(name);
-      wordsInSource += getPossibleNamesFromString(type);
-
-      /* Go to the next level into the scope of the symbol and get the words from that level as well*/
-      const CPlusPlus::Scope *scope = symbol->asScope();
-      if (scope != nullptr) {
-          CPlusPlus::Scope::iterator cur = scope->memberBegin();
-          while (cur != scope->memberEnd()) {
-              const CPlusPlus::Symbol *curSymbol = *cur;
-              ++cur;
-              if (!curSymbol) {
-                  continue;
-              }
-              wordsInSource += getListOfWordsFromSourceRecursive(curSymbol, overview);
-          }
-      }
-      return wordsInSource;
-  }
-  QStringSet getPossibleNamesFromString(const QString& string) const
-  {
-      QStringSet wordSet;
-      static const QRegularExpression nameRegExp(QStringLiteral("(\\w+)"));
-      QRegularExpressionMatchIterator i = nameRegExp.globalMatch(string);
-      while (i.hasNext()) {
-          const QRegularExpressionMatch match = i.next();
-          wordSet += match.captured(1);
-      }
-      return wordSet;
-  }
-
-  /*! \brief Parse a Token retrieved from the Translation Unit of the document.
-   *
-   * Since both Comments and String Literals are tokens, the common code to extract the
-   * words was added to a function to only work on a token.
-   *
-   * A hash is passed to the function that contains a hash and a set of words
-   * that were previously extracted from a token with that hash. The function
-   * uses that information to check if the token that must be processed now
-   * was processed before (the new hash should match a hash in the map). If
-   * a hash was processed before, then the parser can just re-use all the words
-   * that came from the token previously without the need to do any string
-   * processing on the token. This hash also contains information as to where
-   * the token was the previous time, so that if it just moved the words can
-   * be updated accordingly. Benchmarks showed that for large files or files
-   * with a lot of tokens this had a big speedup. On smaller files the effect
-   * was not as much but on smaller files this effect is negligible compared
-   * to the speedup on large files.
-   *
-   * \param[in] token Translation Unit Token that should be split up into words that
-   *              should be checked.
-   * \param[in] type If the token is a Comment, Doxygen Documentation or a
-   *              String Literal. This is captured to go along with the
-   *              word so that the tables and displays upstream can indicate
-   *              the difference between a comment and a literal. This gets
-   *              forwarded to the extractWordsFromString() function where it
-   *              is used to extract words.
-   * \return WordTokens structure containing enough information to be useful to
-   *              the caller. */
-  WordTokens parseToken(const CPlusPlus::Token& token, WordTokens::Type type) const
-  {
-      /* Get the token string */
-      const QString tokenString = QString::fromUtf8(docPtr->utf8Source().mid(token.bytesBegin(), token.bytes()).trimmed());
-      /* Calculate the hash of the token string */
-      const uint32_t hash = qHash(tokenString);
-      /* Get the index of the token */
-      const uint32_t commentBegin = token.utf16charsBegin();
-      uint32_t line;
-      uint32_t col;
-      trUnit->getPosition(commentBegin, &line, &col);
-      /* Set up the known parts of the return structure.
-       * The rest will be populated as needed below. */
-      WordTokens tokens;
-      tokens.hash   = hash;
-      tokens.column = col;
-      tokens.line   = line;
-      tokens.string = tokenString;
-      tokens.type   = type;
-
-      TmpOptional wordOpt = checkHash(tokens, hash);
-      if(wordOpt.first == true) {
-        return wordOpt.second;
-      }
-
-      /* Token was not in the list of hashes.
-       * Tokenize the string to extract words that should be checked. */
-      tokens.words         = extractWordsFromString(tokenString, commentBegin, type);
-      tokens.newHash       = true;
-      return tokens;
-  }
-  /*! \brief Extract Words from the given string.
-   *
-   * This function takes a string, either a comment or a string literal and
-   * breaks the string into words or tokens that should later be checked
-   * for spelling mistakes.
-   * \param[in] string String that must be broken up into words.
-   * \param[in] stringStart Start of the string.
-   * \param[in] type If the string is a Comment, Doxygen Documentation or a
-   *              String Literal. If the string is Doxygen docs then the
-   *              function will also try to remove doxygen tags from the words
-   *              extracted. This reduce the number of words returned that
-   *              gets handled later on, and it does not rely on a setting,
-   *              it must be done always to remove noise.
-   * \return Words that were extracted from the string. */
-  WordList extractWordsFromString(const QString &string, uint32_t stringStart, WordTokens::Type type) const
-  {
-      WordList wordTokens;
-      const int32_t strLength = string.length();
-      bool busyWithWord       = false;
-      int32_t wordStartPos    = 0;
-      bool endOfWord          = false;
-
-      /* Iterate through all of the characters in the comment and extract words from them.
-       * Words are split up by non-word characters and is checked using the isEndOfCurrentWord()
-       * function. The end condition is deliberately set to continue past the length of the
-       * comment so that a word in progress is stopped and extracted when the comment ends */
-      for(int currentPos = 0; currentPos <= strLength; ++currentPos) {
-          /* Check if the current character is the end of a word character. */
-          endOfWord = isEndOfCurrentWord(string, currentPos);
-          if((endOfWord == false) && (busyWithWord == false)){
-              wordStartPos = currentPos;
-              busyWithWord = true;
-          }
-
-          if((busyWithWord == true) && (endOfWord == true)) {
-              /* Pre-condition sanity checks for debugging. The wordStartPos
-               * can not be 0 or negative. A comment or literal always starts
-               * with either a slash-star or slash-slash (comment) or inverted
-               * comma (literal), thus there must always be something else before
-               * the word starts.
-               *
-               * currentPos on the other hand can be at the end of the string
-               * for example with a single line comment (slash-slash).
-               */
-              SP_CHECK(wordStartPos > 0);
-              Word word;
-              word.fileName  = fileName;
-              word.text      = string.mid(wordStartPos, currentPos - wordStartPos);
-              word.start     = wordStartPos;
-              word.end       = currentPos;
-              word.length    = currentPos - wordStartPos;
-              word.charAfter = (currentPos < strLength)? string.at(currentPos): QLatin1Char(' ');
-              word.inComment = (type != WordTokens::Type::Literal);
-              bool isDoxygenTag = false;
-              if(type == WordTokens::Type::Doxygen) {
-                  const QChar charBeforeStart = string.at(wordStartPos - 1);
-                  if((charBeforeStart == QLatin1Char('\\'))
-                     || (charBeforeStart == QLatin1Char('@'))) {
-                      const QString currentWord = word.text;
-                        /* Classify it */
-                        const int32_t doxyClass = CppTools::classifyDoxygenTag(currentWord.unicode(), currentWord.size());
-                        if(doxyClass != CppTools::T_DOXY_IDENTIFIER) {
-                          /* It is a doxygen tag, mark it as such so that it does not end up
-                           * in the list of words from this string. */
-                          isDoxygenTag = true;
-                      }
-                  }
-              }
-              if(isDoxygenTag == false) {
-                  trUnit->getPosition(stringStart + uint32_t(wordStartPos), &word.lineNumber, &word.columnNumber);
-                  wordTokens.append(std::move(word));
-              }
-              busyWithWord = false;
-              wordStartPos = 0;
-          }
-      }
-      return wordTokens;
-  }
-  /*! \brief Check if the end of a possible word was reached.
-   *
-   * Utility function to check if the character at the given position is the
-   * end of a word. The end of a word for example is a space There
-   * are some handling of dots and other characters that determine if the
-   * position is the end of the word.
-   *
-   * \todo Check if isEndOfCurrentWord can not be re-implemented
-   * using an iterator instead of an index. This would possibly require
-   * rework in the calling function as well, but might be cleaner. */
-  bool isEndOfCurrentWord(const QString &comment, int currentPos) const
-  {
-      /* Check to see if the current position is past the length of the comment. If this
-       * is the case, then clearly it is the end of the current word */
-      if(currentPos >= comment.length()) {
-          return true;
-      }
-
-      const QChar& currentChar = comment[currentPos];
-
-      /* Check if the current character is a letter, number or underscore.
-       * Some settings might change what the end of a word actually is.
-       * For some settings an underscore will be considered as the end of a word */
-      if((currentChar.isLetterOrNumber() == true)
-              || currentChar == QLatin1Char('_')) {
-          return false;
-      }
-
-      /* Check for an apostrophe in a word. This is for words like we're. Not all
-       * apostrophes are part of a word, like words that starts with and end with */
-      if(currentChar == QLatin1Char('\'')) {
-          /* Do some range checking, is this is the first or last character then
-           * this is not part of a word, thus it is the end of the current word */
-          if((currentPos == 0) || (currentPos == (comment.length() - 1))) {
-              return true;
-          }
-          if((comment.at(currentPos + 1).isLetter() == true)
-                  && (comment.at(currentPos - 1).isLetter() == true)) {
-              return false;
-          }
-      }
-
-      /* For words with '.' in, such as abbreviations and email addresses */
-      if(currentChar == QLatin1Char('.')) {
-          if((currentPos == 0) || (currentPos == (comment.length() - 1))) {
-              return true;
-          }
-          static const QRegularExpression wordChars(QStringLiteral("\\w"));
-          if((wordChars.match(comment.at(currentPos + 1)).hasMatch())
-                  &&(wordChars.match(comment.at(currentPos - 1)).hasMatch())) {
-              return false;
-          }
-      }
-
-      /* For word with @ in: Email address */
-      if(currentChar == QLatin1Char('@')) {
-          if((currentPos == 0) || (currentPos == (comment.length() - 1))) {
-              return true;
-          }
-          static const QRegularExpression wordChars(QStringLiteral("\\w"));
-          if((wordChars.match(comment.at(currentPos + 1)).hasMatch())
-                  &&(wordChars.match(comment.at(currentPos - 1)).hasMatch())) {
-              return false;
-          }
-      }
-
-      /* Check for websites. This will only check the website characters if the
-       * option for website addresses are enabled due to the amount of false positives
-       * that this setting can remove. Also this can put some overhead to other settings
-       * that are not always desired.
-       * This setting might require some rework in the future. */
-      if(settings.removeWebsites == true) {
-          static const QRegularExpression websiteChars(QStringLiteral("\\/|:|\\?|\\=|#|%|\\w|\\-"));
-          if(websiteChars.match(currentChar).hasMatch() == true) {
-              if((currentPos == 0) || (currentPos == (comment.length() - 1))) {
-                  return true;
-              }
-              if((websiteChars.match(comment.at(currentPos + 1)).hasMatch() == true)
-                      &&(websiteChars.match(comment.at(currentPos - 1)).hasMatch() == true)) {
-                  return false;
-              }
-          }
-      }
-
-      return true;
-  }
-  /*! \brief Parse all macros in the document and extract string literals.
-   *
-   * Only macros that are functions and have arguments that are string literals
-   * are considered. This is important since QStringLiteral() is a macro, and
-   * there are also other macros that takes in literals as arguments. */
-  QVector<WordTokens> parseMacros() const
-  {
-    /* Get the macros from the document pointer. The arguments of the macro will then be parsed
-     * and checked for spelling mistakes.
-     * Since the TranslationUnit::getPosition() is not usable with the Macro Uses a manual method to extract
-     * the literals and their line and column positions are implemented. This involves getting the unprocessed
-     * source from the document for the macro and tracking the byte offsets manually from there.
-     * An alternative implementation can involve using the Snapshot::preprocessedDocument(), which makes use of the FastPreprocessor
-     * and the AST visitors.
-     * For more information around a discussion on the mailing list around this issue refer to the following
-     * link: http://comments.gmane.org/gmane.comp.lib.qt.creator/11853 */
-      QVector<WordTokens> tokenizedWords;
-      QList<CPlusPlus::Document::MacroUse> macroUse = docPtr->macroUses();
-      if(macroUse.count() == 0) {
-        return {};
-      }
-      static CppTools::CppModelManager *cppModelManager = CppTools::CppModelManager::instance();
-      CppTools::CppEditorDocumentHandle *cppEditorDocument = cppModelManager->cppEditorDocument(docPtr->fileName());
-      if(cppEditorDocument == nullptr) {
-        return {};
-      }
-      const QByteArray source = cppEditorDocument->contents();
-
-      for(const CPlusPlus::Document::MacroUse& mac: macroUse) {
-          if(mac.isFunctionLike() == false) {
-            /* Only macros that are function like should be considered.
-             * These are ones that have arguments, that can be literals.
-             */
-            continue;
-          }
-          const QVector<CPlusPlus::Document::Block>& args = mac.arguments();
-          if(args.count() == 0) {
-              /* There are no arguments for the macro, no need to consider
-               * further. */
-              continue;
-          }
-          /* The line number of the macro is used as the reference. */
-          uint32_t line  = mac.beginLine();
-          /* Get the start of the line from the source. From this start the offset to the
-           * words will be calculated. This start should never be -1 since
-           * a line will always start with a newline, and it seems like a macro
-           * will never start on the first line of the source file.
-           * Added a debug assert just to ensure this. */
-          const uint32_t start = uint32_t(source.lastIndexOf('\n', int32_t(mac.utf16charsBegin())));
-          SP_CHECK(source.lastIndexOf('\n', int32_t(mac.utf16charsBegin())) > 0);
-          /* Get the end index of the last argument of the macro. */
-          const uint32_t end   = args.last().utf16charsEnd();
-          SP_CHECK(start < end);
-          if(end == 0) {
-              /* This will happen on an empty argument, for example Q_ASSERT() */
-              continue;
-          }
-
-          /* Get the full macro from the start of the line until the last byte of the last
-           * argument. */
-          const QByteArray macroBytes = source.mid(int32_t(start), int32_t(end - start));
-          /* Quick check to see if there are any string literals in the macro text.
-           * if the are this check can be a waist, but if not this can speed up the check by
-           * avoiding an unneeded regular expression. */
-          if(macroBytes.contains('\"') == false) {
-              continue;
-          }
-
-          /* Check if the hash of the macro is not already contained
-           * in the list of known hashes. Since the macroBytes contains
-           * the data from the start of the line, any update in the line
-           *
-           */
-          const uint32_t hash = qHash(macroBytes.mid(mac.utf16charsBegin() - start));
-          WordTokens tokens;
-          tokens.hash   = hash;
-          tokens.column = mac.utf16charsBegin() - start;
-          tokens.line   = line;
-          tokens.string = QString::fromUtf8(macroBytes.mid(mac.utf16charsBegin() - start));
-          tokens.type   = WordTokens::Type::Literal;
-
-          TmpOptional wordOpt = checkHash(tokens, hash);
-          if(wordOpt.first == true) {
-             tokenizedWords.append(wordOpt.second);
-             continue;
-          }
-
-          /* Get the byte offsets inside the macro bytes for each line break inside the macro.
-           * This will be used during the extraction to get the correct lines relative to the
-           * line that the macro started on. */
-          QVector<uint32_t> lineIndexes;
-          /* The search above for the start include the new line character so the start for other
-           * new lines must start from index 1 so that it is not also included. */
-          int32_t startSearch = 1;
-          while(true) {
-              int idx = macroBytes.indexOf('\n', startSearch);
-              if(idx < 0) {
-                  /* No more new lines, break out */
-                  break;
-              }
-              lineIndexes << uint32_t(idx);
-              /* Must increment the start of the next search otherwise it will be found on
-               * that index. */
-              startSearch = idx + 1;
-          }
-          /* The end is also added to simplify some of the checks further on. No character can
-           * fall outside of the end. */
-          lineIndexes << uint32_t(end);
-          uint32_t lineBreak = lineIndexes.takeFirst();
-          uint32_t colOffset = 0;
-
-          /* Use a regular expression to get all string literals from the macro and its arguments. */
-          static const QRegularExpression regExp(QStringLiteral("\"([^\"\\\\]|\\\\.)*\""));
-          QRegularExpressionMatchIterator regExpIter = regExp.globalMatch(QString::fromLatin1(macroBytes));
-          while(regExpIter.hasNext() == true) {
-              const QRegularExpressionMatch match = regExpIter.next();
-              const QString tokenString           = match.captured(0);
-              SP_CHECK(match.capturedStart(0) >= 0);
-              const uint32_t capStart = uint32_t(match.capturedStart(0));
-              /* Check if the literal starts on the next line from the current one */
-              while(capStart > lineBreak) {
-                  /* Increase the line number and reset the column offset */
-                  ++line;
-                  colOffset = lineBreak;
-                  lineBreak = lineIndexes.takeFirst();
-              }
-              /* Get the words from the extracted literal */
-              WordList words = extractWordsFromString(tokenString, 0, WordTokens::Type::Literal);
-              for(Word& word: words) {
-                  /* Apply the offsets to the words */
-                  word.columnNumber += capStart - colOffset;
-                  word.lineNumber    = line;
-              }
-              tokens.words.append(words);
-              /* Get the words from the extracted literal */
-          }
-          if(tokens.words.count() != 0) {
-            tokenizedWords.append(tokens);
-          }
-      }
-      return tokenizedWords;
-  }
-
-  /*! \brief Custom type for the checkHash() return type.
-   *
-   * If C++17 is used this should be replaced by a std::optional. */
-  using TmpOptional = std::pair<bool, WordTokens>;
-  /*! \brief Optimisation function to check a hash.
-   *
-   * An optimisation is done where a token string is extracted and
-   * then the hash associated with that string and the words that
-   * were extracted from that string is stored for the next pass
-   * of the same file.
-   *
-   * If a hash is known, the token is not processed and the words
-   * that were extracted in the previous pass will just get used
-   * as-is.
-   *
-   * Also, the line and column number of the hash is stored
-   * to check for trivial cases where the hash just moved.
-   * This information is then used to move the words based
-   * on the movement of the hash.
-   *
-   * This has the added benefit that if the same string is found
-   * multiple times in the same file, it can just re-use the words
-   * without any more processing on the second string. The usefulness
-   * of this is probably not much since strings should not normally repeat.
-   * People should use the DRY principal... */
-  TmpOptional checkHash(WordTokens tokens, uint32_t hash) const
-  {
-    HashWords tokenHashes;
-    /* Search if the hash contains the given token. If it does
-     * then the words that got extracted previously are used
-     * as is, without attempting to extract them again. If the
-     * token is not in the hash, it is a new token and must be
-     * parsed to get the words from the token. */
-    HashWords::const_iterator iter = tokenHashes.constFind(hash);
-    const HashWords::const_iterator iterEnd = tokenHashes.constEnd();
-    if(iter != iterEnd) {
-        /* The token was parsed in a previous iteration.
-         * Now check if the token moved due to lines being
-         * added or removed. It it did not move, use the
-         * words as is, if it did move, adjust the line and
-         * column number of the words by the amount that the
-         * token moved. */
-        const TokenWords& tokenWords = (iter.value());
-        if((tokenWords.line == tokens.line)
-                && (tokenWords.col == tokens.column)) {
-            tokens.words   = tokenWords.words;
-            tokens.newHash = false;
-            return std::make_pair(true, tokens);
-        } else {
-            WordList words;
-            /* Token moved, adjust.
-             * This will even work for lines that are copied because the
-             * hash will be the same but the start will just be different. */
-            const qint32 lineDiff    = int32_t(tokenWords.line) - int32_t(tokens.line);
-            const qint32 colDiff     = int32_t(tokenWords.col) - int32_t(tokens.column);
-            const uint32_t firstLine = tokens.line;
-            /* Move the line according to the difference between the
-             * known position and the position from the hash.
-             * The column is also moved, but only if on the first line
-             * since a column move is only possible on the first line.
-             * If a column moved that are not on the first line, the hash
-             * would be new and it would be regarded as a new hash. A move
-             * on the column will not cause this, but will also not move the
-             * words below it, thus they should not be updated. */
-            for(Word word: qAsConst(tokenWords.words)) {
-                word.lineNumber = uint32_t(int32_t(word.lineNumber) - lineDiff);
-                if(word.lineNumber == firstLine) {
-                  word.columnNumber = uint32_t(int32_t(word.columnNumber) - colDiff);
-                }
-                words.append(word);
-            }
-            tokens.words   = words;
-            tokens.newHash = false;
-            return std::make_pair(true, tokens);
-        }
+    QMutexLocker locker(&d->futureMutex);
+    /* Get the file name associated with this future and the misspelled
+     * words. */
+#ifdef FUTURE_NOT_WORKING
+    ParserMapIter iter = d->parserMap.find(parser);
+    if(iter == d->parserMap.end()) {
+      return;
     }
-    return std::make_pair(false, WordTokens{});
-  }
-
-  CPlusPlus::Document::Ptr docPtr;
-  HashWords tokenHashes;
-  CppParserSettings settings;
-  CPlusPlus::TranslationUnit *trUnit;
-  QString fileName;
-
-  QStringSet wordsInSource;
-  WordTokenList wordTokens;
-};
-
-WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
-{
-    CPlusPlusDocumentParser parser(docPtr, d->tokenHashes, *d->settings);
-    docPtr.reset();
-
-    bool success = parser.run();
-    SP_CHECK(success == true);
-
-    const QStringSet wordsInSource = parser.takeWordsInSource();
-    const QVector<WordTokens> tokenizedWords = parser.takeWordTokens();
+    QString fileName = iter.value();
+    d->parserMap.erase(iter);
+#else
+    FutureWatcherMapIter iter = d->futureWatchers.find(watcher);
+    if(iter == d->futureWatchers.end()) {
+        return;
+    }
+    QString fileName = iter.value();
+    d->futureWatchers.erase(iter);
+#endif
+    d->filesInProcess.removeAll(fileName);
 
     /* Make a local copy of the last list of hashes. A local copy is made and used
      * as the input the tokenize function, but a new list is returned from the
@@ -941,12 +365,54 @@ WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
      * here on. */
     d->tokenHashes = std::move(newHashesOut);
 
-    return newSettingsApplied;
+    /* Now that we have all of the words from the parser, emit the signal
+     * so that they will get spell checked. */
+    emit spellcheckWordsParsed(fileName, newSettingsApplied);
 }
-//--------------------------------------------------
 
-//--------------------------------------------------
+WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
+{
+    const QString fileName = docPtr->fileName();
+    qDebug() << fileName <<":" << this->thread();
+    using ResultType = CPlusPlusDocumentParser::ResultType;
+    CPlusPlusDocumentParser *parser = new CPlusPlusDocumentParser(docPtr, d->tokenHashes, *d->settings);
+    docPtr.reset();
 
+#ifdef FUTURE_NOT_WORKING
+    connect(parser, &CPlusPlusDocumentParser::done, this, [](){ qDebug() << "FUTURE DONE"; }, Qt::QueuedConnection);
+    connect(parser, &CPlusPlusDocumentParser::done, this, &CppDocumentParser::futureFinished, Qt::QueuedConnection);
+    connect(parser, &CPlusPlusDocumentParser::done, parser, &CPlusPlusDocumentParser::deleteLater);
+    d->parserMap.insert(parser, fileName);
+#else
+    QFutureWatcher<ResultType> *watcher = new QFutureWatcher<ResultType>();
+    connect(watcher, &QFutureWatcher<ResultType>::finished, this, [](){ qDebug() << "FUTURE DONE"; }, Qt::QueuedConnection);
+    connect(watcher, &QFutureWatcher<ResultType>::finished, this, &CppDocumentParser::futureFinished, Qt::QueuedConnection);
+    connect(watcher, &QFutureWatcher<ResultType>::finished, parser, &CPlusPlusDocumentParser::deleteLater);
+    d->futureWatchers.insert(watcher, fileName);
+#endif
+
+    d->filesInProcess.append(fileName);
+
+
+    /* Run the processor in the background and set a watcher to monitor the progress. */
+#ifdef FUTURE_NOT_WORKING
+    QFuture<void> future = Utils::runAsync(QThreadPool::globalInstance(), QThread::HighestPriority, &CPlusPlusDocumentParser::process, parser);
+#else
+    QFuture<ResultType> future = Utils::runAsync(QThreadPool::globalInstance(), QThread::HighPriority, &CPlusPlusDocumentParser::process, parser);
+    qDebug() << "FUTURE CREATED";
+    watcher->setFuture(future);
+    qDebug() << "WATCHERS SET";
+#endif
+
+//    watcher->waitForFinished();
+//    qDebug() << "DONE";
+//    bool success = parser.run();
+//    SP_CHECK(success == true);
+
+
+//    return newSettingsApplied;
+    return {};
+}
 //--------------------------------------------------
 
 void CppDocumentParser::applySettingsToWords(const QString &string, WordList &words, const QStringSet &wordsInSource)
@@ -962,11 +428,11 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
     /* Regular Expressions that might be used, defined here so that it does not get cleared in the loop.
      * They are made static const because they will be re-used a lot and will never be changed. This way
      * the construction of the objects can be done once and then be re-used. */
-    static const QRegularExpression doubleRe(QLatin1String("\\A\\d+(\\.\\d+)?\\z"));
-    static const QRegularExpression hexRe(QLatin1String("\\A0x[0-9A-Fa-f]+\\z"));
-    static const QRegularExpression emailRe(QLatin1String("\\A") + QLatin1String(SpellChecker::Parsers::CppParser::Constants::EMAIL_ADDRESS_REGEXP_PATTERN) + QLatin1String("\\z"));
-    static const QRegularExpression websiteRe(QLatin1String("") + QLatin1String(SpellChecker::Parsers::CppParser::Constants::WEBSITE_ADDRESS_REGEXP_PATTERN));
-    static const QRegularExpression websiteCharsRe(QLatin1String("") + QLatin1String(SpellChecker::Parsers::CppParser::Constants::WEBSITE_CHARS_REGEXP_PATTERN));
+    static const QRegularExpression doubleRe(QStringLiteral("\\A\\d+(\\.\\d+)?\\z"));
+    static const QRegularExpression hexRe(QStringLiteral("\\A0x[0-9A-Fa-f]+\\z"));
+    static const QRegularExpression emailRe(QStringLiteral("\\A") + QLatin1String(SpellChecker::Parsers::CppParser::Constants::EMAIL_ADDRESS_REGEXP_PATTERN) + QStringLiteral("\\z"));
+    static const QRegularExpression websiteRe(QString() + QLatin1String(SpellChecker::Parsers::CppParser::Constants::WEBSITE_ADDRESS_REGEXP_PATTERN));
+    static const QRegularExpression websiteCharsRe(QString() + QLatin1String(SpellChecker::Parsers::CppParser::Constants::WEBSITE_CHARS_REGEXP_PATTERN));
     /* Word list that can be added to in the case that a word is split up into different words
      * due to some setting or rule. These words can also be checked against the settings using
      * recursion or not. It depends on the implementation that did the splitting of the
@@ -1057,8 +523,8 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
         if((d->settings->wordsWithNumberOption != CppParserSettings::LeaveWordsWithNumbers) && (removeCurrentWord == false)) {
             /* Before doing anything, check if the word contains any numbers. If it does then we can go to the
              * settings to handle the word differently */
-            static const QRegularExpression numberContainRe(QLatin1String("[0-9]"));
-            static const QRegularExpression numberSplitRe(QLatin1String("[0-9]+"));
+            static const QRegularExpression numberContainRe(QStringLiteral("[0-9]"));
+            static const QRegularExpression numberSplitRe(QStringLiteral("[0-9]+"));
             if(currentWord.contains(numberContainRe) == true) {
                 /* Handle words with numbers based on the setting that is set for them */
                 if(d->settings->wordsWithNumberOption == CppParserSettings::RemoveWordsWithNumbers) {
@@ -1087,7 +553,7 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     removeCurrentWord = true;
                 } else if(d->settings->wordsWithUnderscoresOption == CppParserSettings::SplitWordsOnUnderscores) {
                     removeCurrentWord = true;
-                    static const QRegularExpression underscoreSplitRe(QLatin1String("_+"));
+                    static const QRegularExpression underscoreSplitRe(QStringLiteral("_+"));
                     QStringList wordsSplitOnUnderScores = currentWord.split(underscoreSplitRe, QString::SkipEmptyParts);
                     WordList wordsFromSplit;
                     IDocumentParser::getWordsFromSplitString(wordsSplitOnUnderScores, (*iter), wordsFromSplit);
@@ -1109,8 +575,8 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
             /* The check is not precise and accurate science, but a rough estimation of the word is in camelCase. This
              * will probably be updated as this gets tested. The current check checks for one or more lower case letters,
              * followed by one or more upper-case letter, followed by a lower case letter */
-            static const QRegularExpression camelCaseContainsRe(QLatin1String("[a-z]{1,}[A-Z]{1,}[a-z]{1,}"));
-            static const QRegularExpression camelCaseIndexRe(QLatin1String("[a-z][A-Z]"));
+            static const QRegularExpression camelCaseContainsRe(QStringLiteral("[a-z]{1,}[A-Z]{1,}[a-z]{1,}"));
+            static const QRegularExpression camelCaseIndexRe(QStringLiteral("[a-z][A-Z]"));
             if(currentWord.contains(camelCaseContainsRe) == true ) {
                 if(d->settings->camelCaseWordOption == CppParserSettings::RemoveWordsInCamelCase) {
                     removeCurrentWord = true;
@@ -1167,7 +633,7 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     removeCurrentWord = true;
                 } else if(d->settings->wordsWithDotsOption == CppParserSettings::SplitWordsOnDots) {
                     removeCurrentWord = true;
-                    static const QRegularExpression dotsSplitRe(QLatin1String("\\.+"));
+                    static const QRegularExpression dotsSplitRe(QStringLiteral("\\.+"));
                     QStringList wordsSplitOnDots = currentWord.split(dotsSplitRe, QString::SkipEmptyParts);
                     WordList wordsFromSplit;
                     IDocumentParser::getWordsFromSplitString(wordsSplitOnDots, (*iter), wordsFromSplit);
