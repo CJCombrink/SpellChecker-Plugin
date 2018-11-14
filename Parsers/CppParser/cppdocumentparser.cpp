@@ -49,8 +49,8 @@
 
 /*! \brief Testing assert that should be used during debugging
  * but should not be made part of a release. */
-#define SP_CHECK( test ) QTC_CHECK( test )
-//#define SP_CHECK( test )
+//#define SP_CHECK( test ) QTC_CHECK( test )
+#define SP_CHECK( test )
 
 namespace SpellChecker {
 namespace CppSpellChecker {
@@ -268,12 +268,43 @@ bool CppDocumentParser::shouldParseDocument(const QString& fileName)
 
 //--------------------------------------------------
 
+/*! \brief The Word Tokens structure
+ *
+ * This structure is returned by the parseToken() function and contains
+ * the list of words that were extracted from a token (comment, literal,
+ * etc.). The structure also contains the hash of the token so that it can
+ * be checked when the same file is parsed again. There is no need to store
+ * the actual token since the hash comparison should be good enough to
+ * check for changes.
+ *
+ * The \a line and \a column are stored for the token so that if a token did not
+ * change, but it moved, the words that came from that token can just be
+ * moved as needed without the need to do any string processing and parsing.
+ *
+ * The \a newHash flag keeps track if the words were extracted in a
+ * previous pass or not, meaning that they were already processed and does not
+ * need to be processed further. */
+struct WordTokens {
+  enum class Type {
+    Comment = 0,
+    Doxygen,
+    Literal
+  };
+
+  HashWords::key_type hash;
+  uint32_t line;
+  uint32_t column;
+  QString string;
+  WordList words;
+  bool newHash;
+  Type type;
+};
+
 class CPlusPlusDocumentParser
 {
   CPlusPlusDocumentParser(const CPlusPlusDocumentParser&) = delete;
   CPlusPlusDocumentParser& operator==(const CPlusPlusDocumentParser&) = delete;
 public:
-  using WordTokens = CppDocumentParser::WordTokens;
   using WordTokenList = QVector<WordTokens>;
 
   CPlusPlusDocumentParser(CPlusPlus::Document::Ptr documentPointer, const HashWords& hashWords, const CppParserSettings& cppSettings)
@@ -281,6 +312,7 @@ public:
     , tokenHashes(hashWords)
     , settings(cppSettings)
     , trUnit(documentPointer->translationUnit())
+    , fileName(documentPointer->fileName())
   {
     docPtr->keepSourceAndAST();
   }
@@ -408,6 +440,35 @@ private:
       }
       return wordSet;
   }
+
+  /*! \brief Parse a Token retrieved from the Translation Unit of the document.
+   *
+   * Since both Comments and String Literals are tokens, the common code to extract the
+   * words was added to a function to only work on a token.
+   *
+   * A hash is passed to the function that contains a hash and a set of words
+   * that were previously extracted from a token with that hash. The function
+   * uses that information to check if the token that must be processed now
+   * was processed before (the new hash should match a hash in the map). If
+   * a hash was processed before, then the parser can just re-use all the words
+   * that came from the token previously without the need to do any string
+   * processing on the token. This hash also contains information as to where
+   * the token was the previous time, so that if it just moved the words can
+   * be updated accordingly. Benchmarks showed that for large files or files
+   * with a lot of tokens this had a big speedup. On smaller files the effect
+   * was not as much but on smaller files this effect is negligible compared
+   * to the speedup on large files.
+   *
+   * \param[in] token Translation Unit Token that should be split up into words that
+   *              should be checked.
+   * \param[in] type If the token is a Comment, Doxygen Documentation or a
+   *              String Literal. This is captured to go along with the
+   *              word so that the tables and displays upstream can indicate
+   *              the difference between a comment and a literal. This gets
+   *              forwarded to the extractWordsFromString() function where it
+   *              is used to extract words.
+   * \return WordTokens structure containing enough information to be useful to
+   *              the caller. */
   WordTokens parseToken(const CPlusPlus::Token& token, WordTokens::Type type) const
   {
       /* Get the token string */
@@ -435,11 +496,25 @@ private:
 
       /* Token was not in the list of hashes.
        * Tokenize the string to extract words that should be checked. */
-      tokens.words         = tokenizeWords(docPtr->fileName(), tokenString, commentBegin, type);
+      tokens.words         = extractWordsFromString(tokenString, commentBegin, type);
       tokens.newHash       = true;
       return tokens;
   }
-  WordList tokenizeWords(const QString& fileName, const QString &string, uint32_t stringStart, WordTokens::Type type) const
+  /*! \brief Extract Words from the given string.
+   *
+   * This function takes a string, either a comment or a string literal and
+   * breaks the string into words or tokens that should later be checked
+   * for spelling mistakes.
+   * \param[in] string String that must be broken up into words.
+   * \param[in] stringStart Start of the string.
+   * \param[in] type If the string is a Comment, Doxygen Documentation or a
+   *              String Literal. If the string is Doxygen docs then the
+   *              function will also try to remove doxygen tags from the words
+   *              extracted. This reduce the number of words returned that
+   *              gets handled later on, and it does not rely on a setting,
+   *              it must be done always to remove noise.
+   * \return Words that were extracted from the string. */
+  WordList extractWordsFromString(const QString &string, uint32_t stringStart, WordTokens::Type type) const
   {
       WordList wordTokens;
       const int32_t strLength = string.length();
@@ -503,6 +578,16 @@ private:
       }
       return wordTokens;
   }
+  /*! \brief Check if the end of a possible word was reached.
+   *
+   * Utility function to check if the character at the given position is the
+   * end of a word. The end of a word for example is a space There
+   * are some handling of dots and other characters that determine if the
+   * position is the end of the word.
+   *
+   * \todo Check if isEndOfCurrentWord can not be re-implemented
+   * using an iterator instead of an index. This would possibly require
+   * rework in the calling function as well, but might be cleaner. */
   bool isEndOfCurrentWord(const QString &comment, int currentPos) const
   {
       /* Check to see if the current position is past the length of the comment. If this
@@ -579,6 +664,11 @@ private:
 
       return true;
   }
+  /*! \brief Parse all macros in the document and extract string literals.
+   *
+   * Only macros that are functions and have arguments that are string literals
+   * are considered. This is important since QStringLiteral() is a macro, and
+   * there are also other macros that takes in literals as arguments. */
   QVector<WordTokens> parseMacros() const
   {
     /* Get the macros from the document pointer. The arguments of the macro will then be parsed
@@ -701,7 +791,7 @@ private:
                   lineBreak = lineIndexes.takeFirst();
               }
               /* Get the words from the extracted literal */
-              WordList words = tokenizeWords(docPtr->fileName(), tokenString, 0, WordTokens::Type::Literal);
+              WordList words = extractWordsFromString(tokenString, 0, WordTokens::Type::Literal);
               for(Word& word: words) {
                   /* Apply the offsets to the words */
                   word.columnNumber += capStart - colOffset;
@@ -793,13 +883,14 @@ private:
             return std::make_pair(true, tokens);
         }
     }
-    return std::make_pair(false, CppDocumentParser::WordTokens{});
+    return std::make_pair(false, WordTokens{});
   }
 
   CPlusPlus::Document::Ptr docPtr;
   HashWords tokenHashes;
   CppParserSettings settings;
   CPlusPlus::TranslationUnit *trUnit;
+  QString fileName;
 
   QStringSet wordsInSource;
   WordTokenList wordTokens;
