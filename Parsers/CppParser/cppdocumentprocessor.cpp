@@ -18,7 +18,7 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#include "cplusplusdocumentparser.h"
+#include "cppdocumentprocessor.h"
 
 #include <cppeditor/cppeditordocument.h>
 #include <cplusplus/Overview.h>
@@ -32,7 +32,7 @@ using namespace SpellChecker::CppSpellChecker::Internal;
 //#define SP_CHECK( test ) QTC_CHECK( test )
 #define SP_CHECK( test )
 
-class SpellChecker::CppSpellChecker::Internal::CPlusPlusDocumentParserPrivate
+class SpellChecker::CppSpellChecker::Internal::CppDocumentProcessorPrivate
 {
 public:
   CPlusPlus::Document::Ptr docPtr;
@@ -41,13 +41,10 @@ public:
   CPlusPlus::TranslationUnit *trUnit;
   QString fileName;
 
-  QStringSet wordsInSource;
-  CPlusPlusDocumentParser::WordTokenList wordTokens;
-
-  CPlusPlusDocumentParserPrivate(CPlusPlus::Document::Ptr documentPointer, const HashWords &hashWords, const CppParserSettings &cppSettings);
+  CppDocumentProcessorPrivate(CPlusPlus::Document::Ptr documentPointer, const HashWords &hashWords, const CppParserSettings &cppSettings);
 };
 
-CPlusPlusDocumentParserPrivate::CPlusPlusDocumentParserPrivate(CPlusPlus::Document::Ptr documentPointer, const HashWords &hashWords, const CppParserSettings &cppSettings)
+CppDocumentProcessorPrivate::CppDocumentProcessorPrivate(CPlusPlus::Document::Ptr documentPointer, const HashWords &hashWords, const CppParserSettings &cppSettings)
   : docPtr(documentPointer)
   , tokenHashes(hashWords)
   , settings(cppSettings)
@@ -58,65 +55,33 @@ CPlusPlusDocumentParserPrivate::CPlusPlusDocumentParserPrivate(CPlusPlus::Docume
 }
 
 
-CPlusPlusDocumentParser::CPlusPlusDocumentParser(CPlusPlus::Document::Ptr documentPointer, const HashWords &hashWords, const CppParserSettings &cppSettings)
+CppDocumentProcessor::CppDocumentProcessor(CPlusPlus::Document::Ptr documentPointer, const HashWords &hashWords, const CppParserSettings &cppSettings)
   : QObject(nullptr)
-  , d(new CPlusPlusDocumentParserPrivate(documentPointer, hashWords, cppSettings))
+  , d(new CppDocumentProcessorPrivate(documentPointer, hashWords, cppSettings))
 {
   d->docPtr->keepSourceAndAST();
 }
 
-CPlusPlusDocumentParser::~CPlusPlusDocumentParser()
+CppDocumentProcessor::~CppDocumentProcessor()
 {
   if(d->docPtr != nullptr) {
       d->docPtr->releaseSourceAndAST();
   }
 }
 
-#ifdef FUTURE_NOT_WORKING
-
-void CPlusPlusDocumentParser::process()
-{
-  qDebug() << "process " << d->docPtr->fileName() <<":" << this->thread();
-  run();
-  qDebug() << "report";
-  d->docPtr->releaseSourceAndAST();
-  d->docPtr = nullptr;
-  emit done();
-  qDebug() << "process done";
-}
-
-CPlusPlusDocumentParser::ResultType CPlusPlusDocumentParser::result()
-{
-  return std::make_pair(d->wordsInSource, d->wordTokens);
-}
-
-#else
-
-void CPlusPlusDocumentParser::process(CPlusPlusDocumentParser::FutureIF &future)
-{
-
-  qDebug() << "process " << d->docPtr->fileName() <<":" << this->thread();
-  run();
-  qDebug() << "report";
-  future.reportResult(std::make_pair(d->wordsInSource, d->wordTokens));
-  qDebug() << "process done";
-  auto a = new ResultType(d->wordsInSource, d->wordTokens);
-  future.reportFinished(a);
-}
-
-#endif
-
-bool CPlusPlusDocumentParser::run()
+void CppDocumentProcessor::process(CppDocumentProcessor::FutureIF &future)
 {
   SP_CHECK(docPtr.isNull() == false);
   SP_CHECK(trUnit != nullptr);
+  QStringSet wordsInSource;
+  CppDocumentProcessor::WordTokenList wordTokens;
   /* If the setting is set to remove words from the list based on words found in the source,
      * parse the source file and then remove all words found in the source files from the list
      * of words that will be checked. */
   if(d->settings.removeWordsThatAppearInSource == true) {
     /* First get all words that does appear in the current source file. These words only
          * include variables and their types */
-    d->wordsInSource = getWordsThatAppearInSource();
+    wordsInSource = getWordsThatAppearInSource();
   }
 
   if(d->settings.whatToCheck.testFlag(CppParserSettings::CheckStringLiterals) == true) {
@@ -135,11 +100,11 @@ bool CPlusPlusDocumentParser::run()
 
         /* The String Literal is not expanded thus handle it like a comment is handled. */
         WordTokens tokens = parseToken(token, WordTokens::Type::Literal);
-        d->wordTokens.append(tokens);
+        wordTokens.append(tokens);
       }
     }
     /* Parse macros */
-    d->wordTokens += parseMacros();
+    wordTokens += parseMacros();
   }
 
   if(d->settings.whatToCheck.testFlag(CppParserSettings::CheckComments) == true) {
@@ -165,18 +130,14 @@ bool CPlusPlusDocumentParser::run()
         type = WordTokens::Type::Doxygen;
       }
       const WordTokens tokens = parseToken(token, type);
-      d->wordTokens.append(tokens);
+      wordTokens.append(tokens);
     }
   }
 
-  return true;
+  future.reportResult(ResultType{std::move(wordsInSource), std::move(wordTokens)});
 }
 
-QStringSet CPlusPlusDocumentParser::takeWordsInSource() { return std::move(d->wordsInSource); }
-
-CPlusPlusDocumentParser::WordTokenList CPlusPlusDocumentParser::takeWordTokens() { return std::move(d->wordTokens); }
-
-QStringSet CPlusPlusDocumentParser::getWordsThatAppearInSource() const
+QStringSet CppDocumentProcessor::getWordsThatAppearInSource() const
 {
   QStringSet wordsSet;
   SP_CHECK(docPtr != nullptr);
@@ -189,7 +150,7 @@ QStringSet CPlusPlusDocumentParser::getWordsThatAppearInSource() const
   return wordsSet;
 }
 
-QStringSet CPlusPlusDocumentParser::getListOfWordsFromSourceRecursive(const CPlusPlus::Symbol *symbol, const CPlusPlus::Overview &overview) const
+QStringSet CppDocumentProcessor::getListOfWordsFromSourceRecursive(const CPlusPlus::Symbol *symbol, const CPlusPlus::Overview &overview) const
 {
   QStringSet wordsInSource;
   /* Get the pretty name and type for the current symbol. This name is then split up into
@@ -215,7 +176,7 @@ QStringSet CPlusPlusDocumentParser::getListOfWordsFromSourceRecursive(const CPlu
   return wordsInSource;
 }
 
-QStringSet CPlusPlusDocumentParser::getPossibleNamesFromString(const QString &string) const
+QStringSet CppDocumentProcessor::getPossibleNamesFromString(const QString &string) const
 {
   QStringSet wordSet;
   static const QRegularExpression nameRegExp(QStringLiteral("(\\w+)"));
@@ -227,7 +188,7 @@ QStringSet CPlusPlusDocumentParser::getPossibleNamesFromString(const QString &st
   return wordSet;
 }
 
-WordTokens CPlusPlusDocumentParser::parseToken(const CPlusPlus::Token &token, WordTokens::Type type) const
+WordTokens CppDocumentProcessor::parseToken(const CPlusPlus::Token &token, WordTokens::Type type) const
 {
   /* Get the token string */
   const QString tokenString = QString::fromUtf8(d->docPtr->utf8Source().mid(int32_t(token.bytesBegin()), int32_t(token.bytes())).trimmed());
@@ -259,7 +220,7 @@ WordTokens CPlusPlusDocumentParser::parseToken(const CPlusPlus::Token &token, Wo
   return tokens;
 }
 
-WordList CPlusPlusDocumentParser::extractWordsFromString(const QString &string, uint32_t stringStart, WordTokens::Type type) const
+WordList CppDocumentProcessor::extractWordsFromString(const QString &string, uint32_t stringStart, WordTokens::Type type) const
 {
   WordList wordTokens;
   const int32_t strLength = string.length();
@@ -324,7 +285,7 @@ WordList CPlusPlusDocumentParser::extractWordsFromString(const QString &string, 
   return wordTokens;
 }
 
-bool CPlusPlusDocumentParser::isEndOfCurrentWord(const QString &comment, int currentPos) const
+bool CppDocumentProcessor::isEndOfCurrentWord(const QString &comment, int currentPos) const
 {
   /* Check to see if the current position is past the length of the comment. If this
        * is the case, then clearly it is the end of the current word */
@@ -401,7 +362,7 @@ bool CPlusPlusDocumentParser::isEndOfCurrentWord(const QString &comment, int cur
   return true;
 }
 
-QVector<WordTokens> CPlusPlusDocumentParser::parseMacros() const
+QVector<WordTokens> CppDocumentProcessor::parseMacros() const
 {
   /* Get the macros from the document pointer. The arguments of the macro will then be parsed
      * and checked for spelling mistakes.
@@ -538,7 +499,7 @@ QVector<WordTokens> CPlusPlusDocumentParser::parseMacros() const
   return tokenizedWords;
 }
 
-CPlusPlusDocumentParser::TmpOptional CPlusPlusDocumentParser::checkHash(WordTokens tokens, uint32_t hash) const
+CppDocumentProcessor::TmpOptional CppDocumentProcessor::checkHash(WordTokens tokens, uint32_t hash) const
 {
   HashWords tokenHashes;
   /* Search if the hash contains the given token. If it does

@@ -73,7 +73,7 @@ public:
      * be checked for spelling mistakes.
      * \param[in] docPtr Pointer to the document that will get parsed.
      * \return A list of words extracted that should be checked for spelling mistakes. */
-    WordList parseCppDocument(CPlusPlus::Document::Ptr docPtr);
+    void parseCppDocument(CPlusPlus::Document::Ptr docPtr);
     /*! \brief Apply the user Settings to the Words.
      * \param[in] string String that these words belong to.
      * \param[inout] words words that should be parsed. Words will be removed from this list

@@ -3,7 +3,7 @@ SOURCES += \
         $$PWD/cppparsersettings.cpp \
         $$PWD/cppparseroptionspage.cpp \
         $$PWD/cppparseroptionswidget.cpp \
-        $$PWD/cplusplusdocumentparser.cpp
+        $$PWD/cppdocumentprocessor.cpp
 
 HEADERS +=  \
         $$PWD/cppdocumentparser.h \
@@ -11,7 +11,7 @@ HEADERS +=  \
         $$PWD/cppparseroptionspage.h \
         $$PWD/cppparseroptionswidget.h \
         $$PWD/cppparserconstants.h \
-        $$PWD/cplusplusdocumentparser.h
+        $$PWD/cppdocumentprocessor.h
 
 FORMS += \
         $$PWD/cppparseroptionswidget.ui

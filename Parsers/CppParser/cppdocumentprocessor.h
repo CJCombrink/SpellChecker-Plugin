@@ -65,42 +65,56 @@ struct WordTokens {
   Type type;
 };
 
-#define FUTURE_NOT_WORKING
-
-class CPlusPlusDocumentParserPrivate;
-
-class CPlusPlusDocumentParser
+class CppDocumentProcessorPrivate;
+/*! \brief The C++ Document Processor class.
+ *
+ * This processor class use QtConcurrent to process a CPlusPlus::Document::Ptr
+ * in in the background and uses a QFuture to report the result.
+ *
+ * The processor extracts words and literals from the document and this is
+ * then passed to the spellChecker.
+ *
+ * This processor does some handling of settings, but only those that are
+ * significant while working with the document. */
+class CppDocumentProcessor
     : public QObject
 {
   Q_OBJECT
-  CPlusPlusDocumentParser(const CPlusPlusDocumentParser&) = delete;
-  CPlusPlusDocumentParser& operator==(const CPlusPlusDocumentParser&) = delete;
+  /*! \brief Deleted copy constructor */
+  CppDocumentProcessor(const CppDocumentProcessor&) = delete;
+  /*! \brief Deleted assignment operator */
+  CppDocumentProcessor& operator==(const CppDocumentProcessor&) = delete;
 public:
+  /*! \brief Alias for a list of Word Tokens. */
   using WordTokenList = QVector<WordTokens>;
 
-  CPlusPlusDocumentParser(CPlusPlus::Document::Ptr documentPointer, const HashWords& hashWords, const CppParserSettings& cppSettings);
-  ~CPlusPlusDocumentParser();
+  /*! \brief Constructor
+   *
+   * Construct the processor for he given document, hashes for a speedup and
+   * the settings that should be applied.
+   * \param documentPointer Shared ownership of the document pointer to prevent
+   *    it from getting deleted while the processor still runs.
+   * \param hashWords List of hashes that should be used to optimise the parsing.
+   * \param cppSettings Settings that should be applied. */
+  CppDocumentProcessor(CPlusPlus::Document::Ptr documentPointer, const HashWords& hashWords, const CppParserSettings& cppSettings);
+  /*! Destructor. */
+  ~CppDocumentProcessor();
 
-  using ResultType = std::pair<QStringSet, WordTokenList>;
+  /*! \brief Structure for the result type that the future will return. */
+  struct ResultType
+  {
+    QStringSet wordsInSource; /*!< List of words extracted from the source of
+                               * the document. This is used when the settings
+                               * are applied. */
+    WordTokenList wordTokens; /*!< Word tokens that were extracted by the processor. */
+  };
+  /*! \brief Future Interface alias to simplify some typing and management. */
   using FutureIF = QFutureInterface<ResultType>;
-
-#ifdef FUTURE_NOT_WORKING
-public:
-  void process();
-  ResultType result();
-signals:
-  void done();
-#else
-public:
+  /*! \brief Process function that the thread will run with the future that will
+   * report the result. */
   void process(FutureIF& future);
-#endif
-public:
-
-  QStringSet takeWordsInSource();
-  WordTokenList takeWordTokens();
 
 private:
-  bool run();
   QStringSet getWordsThatAppearInSource() const;
   QStringSet getListOfWordsFromSourceRecursive(const CPlusPlus::Symbol *symbol, const CPlusPlus::Overview &overview) const;
   QStringSet getPossibleNamesFromString(const QString& string) const;
@@ -194,8 +208,8 @@ private:
    * People should use the DRY principal... */
   TmpOptional checkHash(WordTokens tokens, uint32_t hash) const;
 
-  friend CPlusPlusDocumentParserPrivate;
-  CPlusPlusDocumentParserPrivate* const d;
+  friend CppDocumentProcessorPrivate;
+  CppDocumentProcessorPrivate* const d;
 };
 
 }

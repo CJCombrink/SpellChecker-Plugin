@@ -26,7 +26,7 @@
 #include "cppparsersettings.h"
 #include "cppparseroptionspage.h"
 #include "cppparserconstants.h"
-#include "cplusplusdocumentparser.h"
+#include "cppdocumentprocessor.h"
 
 #include <coreplugin/icore.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
@@ -66,13 +66,8 @@ const char MIME_TYPE_CXX_DOX[] = "text/x-c++dox";
 //--------------------------------------------------
 //--------------------------------------------------
 
-#ifdef FUTURE_NOT_WORKING
-using ParserMap     = QMap<CPlusPlusDocumentParser*, QString> ;
-using ParserMapIter = ParserMap::Iterator;
-#else
-using FutureWatcherMap     = QMap<QFutureWatcher<CPlusPlusDocumentParser::ResultType>*, QString> ;
+using FutureWatcherMap     = QMap<QFutureWatcher<CppDocumentProcessor::ResultType>*, QString> ;
 using FutureWatcherMapIter = FutureWatcherMap::Iterator;
-#endif
 
 class CppDocumentParserPrivate {
 public:
@@ -84,12 +79,20 @@ public:
 
     HashWords tokenHashes;
     QMutex futureMutex;
-#ifdef FUTURE_NOT_WORKING
-    ParserMap parserMap;
-#else
-    FutureWatcherMap futureWatchers;
-#endif
-    QStringList filesInProcess;
+    FutureWatcherMap futureWatchers; /*!< List of future watchers created. This
+                                      * list is used to cancel the futures as needed
+                                      * for example when the application closes down,
+                                      * the project changes or the settings changes. */
+    QStringSet filesInProcess;       /*!< List of files that are currently processed.
+                                      * The idea is to not create a new future if one
+                                      * is already in process for the same file, but
+                                      * this will not be implemented.
+                                      * TODO: Merge the filesInProcess and the futureWatchers
+                                      * into a QHash so that they are co-located. Also see
+                                      * if there is not a way to restart a processor
+                                      * if the same file gets updated, perhaps the hashes
+                                      * can then be re-used and some unnecessary work can
+                                      * be cancelled. */
 
     CppDocumentParserPrivate() :
         activeProject(nullptr),
@@ -223,10 +226,7 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
     if(shouldParseDocument(fileName) == false) {
         return;
     }
-    WordList words = parseCppDocument(std::move(docPtr));
-//    /* Now that we have all of the words from the parser, emit the signal
-//     * so that they will get spell checked. */
-//    emit spellcheckWordsParsed(fileName, words);
+    parseCppDocument(std::move(docPtr));
 }
 //--------------------------------------------------
 
@@ -284,52 +284,24 @@ void CppDocumentParser::futureFinished()
     /* Get the watcher from the sender() of the signal that invoked this slot.
      * reinterpret_cast is used since qobject_cast is not valid of template
      * classes since the template class does not have the Q_OBJECT macro. */
-
-#ifdef FUTURE_NOT_WORKING
-    CPlusPlusDocumentParser* parser = qobject_cast<CPlusPlusDocumentParser*>(sender());
-    if(parser == nullptr) {
-      qDebug() << "INVALID WATCHER";
-      return;
-    }
-    const CPlusPlusDocumentParser::ResultType result = parser->result();
-#else
-    QFutureWatcher<CPlusPlusDocumentParser::ResultType> *watcher = reinterpret_cast<QFutureWatcher<CPlusPlusDocumentParser::ResultType>*>(sender());
-    if(watcher == nullptr) {
-      qDebug() << "INVALID WATCHER";
-      return;
-    }
+    QFutureWatcher<CppDocumentProcessor::ResultType> *watcher = reinterpret_cast<QFutureWatcher<CppDocumentProcessor::ResultType>*>(sender());
+    SP_CHECK(watcher != nullptr);
     if(watcher->isCanceled() == true) {
-        /* Application is shutting down */
+        /* Application is shutting down or settings changed etc. */
         return;
     }
-    const CPlusPlusDocumentParser::ResultType result = watcher->result();
-#endif
-
-    qDebug() << "FUTURE DONE: " << this->thread();
-
-    const QStringSet wordsInSource           = result.first;
-    const QVector<WordTokens> tokenizedWords = result.second;
-
+    const CppDocumentProcessor::ResultType result    = watcher->result();
 
     QMutexLocker locker(&d->futureMutex);
     /* Get the file name associated with this future and the misspelled
      * words. */
-#ifdef FUTURE_NOT_WORKING
-    ParserMapIter iter = d->parserMap.find(parser);
-    if(iter == d->parserMap.end()) {
-      return;
-    }
-    QString fileName = iter.value();
-    d->parserMap.erase(iter);
-#else
     FutureWatcherMapIter iter = d->futureWatchers.find(watcher);
     if(iter == d->futureWatchers.end()) {
         return;
     }
     QString fileName = iter.value();
     d->futureWatchers.erase(iter);
-#endif
-    d->filesInProcess.removeAll(fileName);
+    d->filesInProcess.remove(fileName);
 
     /* Make a local copy of the last list of hashes. A local copy is made and used
      * as the input the tokenize function, but a new list is returned from the
@@ -345,7 +317,7 @@ void CppDocumentParser::futureFinished()
     /* Populate the list of hashes from the tokens that was processed. */
     HashWords newHashesOut;
     WordList newSettingsApplied;
-    for(const WordTokens& token: qAsConst(tokenizedWords)) {
+    for(const WordTokens& token: qAsConst(result.wordTokens)) {
       WordList words = token.words;
       if(token.newHash == true) {
         /* The words are new, they were not known in a previous hash
@@ -353,7 +325,7 @@ void CppDocumentParser::futureFinished()
          * Only words that have already been checked against the settings
          * gets added to the hash, thus there is no need to apply the settings
          * again, since this will only waste time. */
-        applySettingsToWords(token.string, words, wordsInSource);
+        applySettingsToWords(token.string, words, result.wordsInSource);
       }
       newSettingsApplied.append(words);
       SP_CHECK(token.hash != 0x00);
@@ -370,48 +342,37 @@ void CppDocumentParser::futureFinished()
     emit spellcheckWordsParsed(fileName, newSettingsApplied);
 }
 
-WordList CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
+void CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 {
     const QString fileName = docPtr->fileName();
-    qDebug() << fileName <<":" << this->thread();
-    using ResultType = CPlusPlusDocumentParser::ResultType;
-    CPlusPlusDocumentParser *parser = new CPlusPlusDocumentParser(docPtr, d->tokenHashes, *d->settings);
+    using ResultType = CppDocumentProcessor::ResultType;
+    /* Create a document parser and move it to the main thread.
+     * Not sure if this is required but it seemed like a good
+     * idea since this will be in a QThreadPool thread. */
+    CppDocumentProcessor *parser = new CppDocumentProcessor(docPtr, d->tokenHashes, *d->settings);
+    parser->moveToThread(qApp->thread());
+    /* Reset the document pointer so that it can be released as soon as it is
+     * done in the processor. The processor makes its own copy to keep it
+     * alive. */
     docPtr.reset();
 
-#ifdef FUTURE_NOT_WORKING
-    connect(parser, &CPlusPlusDocumentParser::done, this, [](){ qDebug() << "FUTURE DONE"; }, Qt::QueuedConnection);
-    connect(parser, &CPlusPlusDocumentParser::done, this, &CppDocumentParser::futureFinished, Qt::QueuedConnection);
-    connect(parser, &CPlusPlusDocumentParser::done, parser, &CPlusPlusDocumentParser::deleteLater);
-    d->parserMap.insert(parser, fileName);
-#else
+    /* Create a Future watcher that will be used to watch the future
+     * promised by the processor.
+     * NB: The moveToThread() call is vital. If the future is not in the
+     * main thread, the finished() signals will not be delivered and the
+     * processing does not work. */
     QFutureWatcher<ResultType> *watcher = new QFutureWatcher<ResultType>();
-    connect(watcher, &QFutureWatcher<ResultType>::finished, this, [](){ qDebug() << "FUTURE DONE"; }, Qt::QueuedConnection);
+    watcher->moveToThread(qApp->thread());
     connect(watcher, &QFutureWatcher<ResultType>::finished, this, &CppDocumentParser::futureFinished, Qt::QueuedConnection);
-    connect(watcher, &QFutureWatcher<ResultType>::finished, parser, &CPlusPlusDocumentParser::deleteLater);
+    connect(watcher, &QFutureWatcher<ResultType>::finished, parser, &CppDocumentProcessor::deleteLater);
+    /* Keep track of the watchers so that they can be cancelled as needed. */
     d->futureWatchers.insert(watcher, fileName);
-#endif
-
-    d->filesInProcess.append(fileName);
-
-
-    /* Run the processor in the background and set a watcher to monitor the progress. */
-#ifdef FUTURE_NOT_WORKING
-    QFuture<void> future = Utils::runAsync(QThreadPool::globalInstance(), QThread::HighestPriority, &CPlusPlusDocumentParser::process, parser);
-#else
-    QFuture<ResultType> future = Utils::runAsync(QThreadPool::globalInstance(), QThread::HighPriority, &CPlusPlusDocumentParser::process, parser);
-    qDebug() << "FUTURE CREATED";
+    /* Add the file that will be processed to the list of files. */
+    d->filesInProcess.insert(fileName);
+    /* Run the process function in the threadpool and return the future that
+     * will be used by the processor. */
+    QFuture<ResultType> future = Utils::runAsync(QThreadPool::globalInstance(), QThread::HighPriority, &CppDocumentProcessor::process, parser);
     watcher->setFuture(future);
-    qDebug() << "WATCHERS SET";
-#endif
-
-//    watcher->waitForFinished();
-//    qDebug() << "DONE";
-//    bool success = parser.run();
-//    SP_CHECK(success == true);
-
-
-//    return newSettingsApplied;
-    return {};
 }
 //--------------------------------------------------
 
