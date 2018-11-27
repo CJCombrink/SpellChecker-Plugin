@@ -106,7 +106,7 @@ public:
      * they are classified by the CppTools::ProjectFile class. If they are
      * they are regarded as C++ files.
      * If a file is unsupported the type is checked against the
-     * custom MIME Type added by this plygin. */
+     * custom MIME Type added by this plugin. */
     QStringSet getCppFiles(const QStringSet& list)
     {
         const QStringSet filteredList = Utils::filtered(list, [](const QString& file){
@@ -341,6 +341,7 @@ void CppDocumentParser::futureFinished()
      * so that they will get spell checked. */
     emit spellcheckWordsParsed(fileName, newSettingsApplied);
 }
+//--------------------------------------------------
 
 void CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 {

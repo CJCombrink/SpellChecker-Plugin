@@ -43,6 +43,9 @@ public:
 
   CppDocumentProcessorPrivate(CPlusPlus::Document::Ptr documentPointer, const HashWords &hashWords, const CppParserSettings &cppSettings);
 };
+//--------------------------------------------------
+//--------------------------------------------------
+//--------------------------------------------------
 
 CppDocumentProcessorPrivate::CppDocumentProcessorPrivate(CPlusPlus::Document::Ptr documentPointer, const HashWords &hashWords, const CppParserSettings &cppSettings)
   : docPtr(documentPointer)
@@ -53,7 +56,7 @@ CppDocumentProcessorPrivate::CppDocumentProcessorPrivate(CPlusPlus::Document::Pt
 {
 
 }
-
+//--------------------------------------------------
 
 CppDocumentProcessor::CppDocumentProcessor(CPlusPlus::Document::Ptr documentPointer, const HashWords &hashWords, const CppParserSettings &cppSettings)
   : QObject(nullptr)
@@ -61,6 +64,7 @@ CppDocumentProcessor::CppDocumentProcessor(CPlusPlus::Document::Ptr documentPoin
 {
   d->docPtr->keepSourceAndAST();
 }
+//--------------------------------------------------
 
 CppDocumentProcessor::~CppDocumentProcessor()
 {
@@ -68,6 +72,7 @@ CppDocumentProcessor::~CppDocumentProcessor()
       d->docPtr->releaseSourceAndAST();
   }
 }
+//--------------------------------------------------
 
 void CppDocumentProcessor::process(CppDocumentProcessor::FutureIF &future)
 {
@@ -136,6 +141,7 @@ void CppDocumentProcessor::process(CppDocumentProcessor::FutureIF &future)
 
   future.reportResult(ResultType{std::move(wordsInSource), std::move(wordTokens)});
 }
+//--------------------------------------------------
 
 QStringSet CppDocumentProcessor::getWordsThatAppearInSource() const
 {
@@ -149,6 +155,7 @@ QStringSet CppDocumentProcessor::getWordsThatAppearInSource() const
   }
   return wordsSet;
 }
+//--------------------------------------------------
 
 QStringSet CppDocumentProcessor::getListOfWordsFromSourceRecursive(const CPlusPlus::Symbol *symbol, const CPlusPlus::Overview &overview) const
 {
@@ -175,6 +182,7 @@ QStringSet CppDocumentProcessor::getListOfWordsFromSourceRecursive(const CPlusPl
   }
   return wordsInSource;
 }
+//--------------------------------------------------
 
 QStringSet CppDocumentProcessor::getPossibleNamesFromString(const QString &string) const
 {
@@ -187,6 +195,7 @@ QStringSet CppDocumentProcessor::getPossibleNamesFromString(const QString &strin
   }
   return wordSet;
 }
+//--------------------------------------------------
 
 WordTokens CppDocumentProcessor::parseToken(const CPlusPlus::Token &token, WordTokens::Type type) const
 {
@@ -219,6 +228,7 @@ WordTokens CppDocumentProcessor::parseToken(const CPlusPlus::Token &token, WordT
   tokens.newHash       = true;
   return tokens;
 }
+//--------------------------------------------------
 
 WordList CppDocumentProcessor::extractWordsFromString(const QString &string, uint32_t stringStart, WordTokens::Type type) const
 {
@@ -284,6 +294,7 @@ WordList CppDocumentProcessor::extractWordsFromString(const QString &string, uin
   }
   return wordTokens;
 }
+//--------------------------------------------------
 
 bool CppDocumentProcessor::isEndOfCurrentWord(const QString &comment, int currentPos) const
 {
@@ -361,6 +372,7 @@ bool CppDocumentProcessor::isEndOfCurrentWord(const QString &comment, int curren
 
   return true;
 }
+//--------------------------------------------------
 
 QVector<WordTokens> CppDocumentProcessor::parseMacros() const
 {
@@ -498,6 +510,7 @@ QVector<WordTokens> CppDocumentProcessor::parseMacros() const
   }
   return tokenizedWords;
 }
+//--------------------------------------------------
 
 CppDocumentProcessor::TmpOptional CppDocumentProcessor::checkHash(WordTokens tokens, uint32_t hash) const
 {
@@ -552,3 +565,4 @@ CppDocumentProcessor::TmpOptional CppDocumentProcessor::checkHash(WordTokens tok
   }
   return std::make_pair(false, WordTokens{});
 }
+//--------------------------------------------------
