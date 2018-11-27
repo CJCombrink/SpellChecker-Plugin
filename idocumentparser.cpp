@@ -33,6 +33,74 @@ IDocumentParser::~IDocumentParser()
 }
 //--------------------------------------------------
 
+bool IDocumentParser::isReservedWord(const QString &word)
+{
+    /* Trying to optimize the check using the same method as used
+     * in the cpptoolsreuse.cpp file in the CppTools plugin. */
+    switch (word.length()) {
+    case 3:
+        switch(word.at(0).toUpper().toLatin1()) {
+        case 'C':
+            if(word.toUpper() == QStringLiteral("CPP"))
+                return true;
+            break;
+        case 'S':
+            if(word.toUpper() == QStringLiteral("STD"))
+                return true;
+            break;
+        }
+        break;
+    case 4:
+        switch(word.at(0).toUpper().toLatin1()) {
+        case 'E':
+            if(word.toUpper() == QStringLiteral("ENUM"))
+                return true;
+            break;
+        }
+        break;
+    case 6:
+        switch(word.at(0).toUpper().toLatin1()) {
+        case 'S':
+            if(word.toUpper() == QStringLiteral("STRUCT"))
+                return true;
+            break;
+        case 'P':
+            if(word.toUpper() == QStringLiteral("PLUGIN"))
+                return true;
+          break;
+        }
+        break;
+    case 7:
+        switch(word.at(0).toUpper().toLatin1()) {
+        case 'D':
+            if(word.toUpper() == QStringLiteral("DOXYGEN"))
+                return true;
+            break;
+        case 'N':
+            if(word.toUpper() == QStringLiteral("NULLPTR"))
+                return true;
+            break;
+        case 'T':
+            if(word.toUpper() == QStringLiteral("TYPEDEF"))
+                return true;
+            break;
+        }
+        break;
+    case 9:
+        switch(word.at(0).toUpper().toLatin1()) {
+        case 'N':
+            if(word.toUpper() == QStringLiteral("NAMESPACE"))
+                return true;
+            break;
+        }
+        break;
+    default:
+        break;
+    }
+    return false;
+}
+//--------------------------------------------------
+
 void IDocumentParser::getWordsFromSplitString(const QStringList &stringList, const Word &word, WordList &wordList)
 {
     /* Now that the words are split, they need to be added to the WordList correctly */
@@ -104,3 +172,4 @@ void IDocumentParser::removeWordsThatAppearInSource(const QStringSet &wordsInSou
 #endif /* USE_MULTI_HASH */
 }
 //--------------------------------------------------
+

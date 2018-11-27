@@ -103,10 +103,8 @@ public:
   /*! \brief Structure for the result type that the future will return. */
   struct ResultType
   {
-    QStringSet wordsInSource; /*!< List of words extracted from the source of
-                               * the document. This is used when the settings
-                               * are applied. */
-    WordTokenList wordTokens; /*!< Word tokens that were extracted by the processor. */
+    HashWords wordHashes; /*!< List of hashes extracted along with words from the hash. */
+    WordList words; /*!< Word tokens that were extracted by the processor. */
   };
   /*! \brief Future Interface alias to simplify some typing and management. */
   using FutureIF = QFutureInterface<ResultType>;

@@ -303,43 +303,15 @@ void CppDocumentParser::futureFinished()
     d->futureWatchers.erase(iter);
     d->filesInProcess.remove(fileName);
 
-    /* Make a local copy of the last list of hashes. A local copy is made and used
-     * as the input the tokenize function, but a new list is returned from the
-     * tokenize function. If this is not done the list of hashes can grow forever
-     * and cause a huge increase in memory. Doing it this way ensure that the
-     * list only contains hashes of tokens that are present in during the last run
-     * and will not contain old and invalid hashes. It will cause the parsing of a
-     * different file than the previous run to be less efficient but if a file is
-     * parsed multiple times, one after the other, it will result in a large speed up
-     * and this will mostly be the case when editing a file. For this reason the initial
-     * project parse on start up can be slower. */
-
-    /* Populate the list of hashes from the tokens that was processed. */
-    HashWords newHashesOut;
-    WordList newSettingsApplied;
-    for(const WordTokens& token: qAsConst(result.wordTokens)) {
-      WordList words = token.words;
-      if(token.newHash == true) {
-        /* The words are new, they were not known in a previous hash
-         * thus the settings must now be applied.
-         * Only words that have already been checked against the settings
-         * gets added to the hash, thus there is no need to apply the settings
-         * again, since this will only waste time. */
-        applySettingsToWords(token.string, words, result.wordsInSource);
-      }
-      newSettingsApplied.append(words);
-      SP_CHECK(token.hash != 0x00);
-      newHashesOut[token.hash] = {token.line, token.column, words};
-    }
     /* Move the new list of hashes to the member data so that
      * it can be used the next time around. Move is made explicit since
      * the LHS can be removed and the RHS will not be used again from
      * here on. */
-    d->tokenHashes = std::move(newHashesOut);
+    d->tokenHashes = std::move(result.wordHashes);
 
     /* Now that we have all of the words from the parser, emit the signal
      * so that they will get spell checked. */
-    emit spellcheckWordsParsed(fileName, newSettingsApplied);
+    emit spellcheckWordsParsed(fileName, result.words);
 }
 //--------------------------------------------------
 
@@ -377,13 +349,13 @@ void CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 }
 //--------------------------------------------------
 
-void CppDocumentParser::applySettingsToWords(const QString &string, WordList &words, const QStringSet &wordsInSource)
+void CppDocumentParser::applySettingsToWords(const CppParserSettings& settings, const QString &string, const QStringSet &wordsInSource, WordList &words)
 {
     using namespace SpellChecker::Parsers::CppParser;
 
     /* Filter out words that appears in the source. They are checked against the list
      * of words parsed from the file before the for loop. */
-    if(d->settings->removeWordsThatAppearInSource == true) {
+    if(settings.removeWordsThatAppearInSource == true) {
         removeWordsThatAppearInSource(wordsInSource, words);
     }
 
@@ -423,7 +395,7 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
             }
         }
 
-        if((removeCurrentWord == false) && (d->settings->checkQtKeywords == false)) {
+        if((removeCurrentWord == false) && (settings.checkQtKeywords == false)) {
             /* Remove the basic Qt Keywords using the isQtKeyword() function in the CppTools */
             if((CppTools::isQtKeyword(QStringRef(&currentWord)) == true)
                     || (CppTools::isQtKeyword(QStringRef(&currentWordCaps)) == true)){
@@ -449,14 +421,14 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
             }
         }
 
-        if((d->settings->removeEmailAddresses == true) && (removeCurrentWord == false)) {
+        if((settings.removeEmailAddresses == true) && (removeCurrentWord == false)) {
             if(emailRe.match(currentWord).hasMatch() == true) {
                 removeCurrentWord = true;
             }
         }
 
         /* Attempt to remove website addresses using the websiteRe Regular Expression. */
-        if((d->settings->removeWebsites == true) && (removeCurrentWord == false)) {
+        if((settings.removeWebsites == true) && (removeCurrentWord == false)) {
             if(websiteRe.match(currentWord).hasMatch() == true) {
                 removeCurrentWord = true;
             } else if (currentWord.contains(websiteCharsRe) == true) {
@@ -469,29 +441,29 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(string, wordsFromSplit, wordsInSource);
+                    applySettingsToWords(settings, string, wordsInSource, wordsFromSplit);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 }
             }
         }
 
-        if((d->settings->checkAllCapsWords == false) && (removeCurrentWord == false)) {
+        if((settings.checkAllCapsWords == false) && (removeCurrentWord == false)) {
             /* Remove words that are all caps */
             if(currentWord == currentWordCaps) {
                 removeCurrentWord = true;
             }
         }
 
-        if((d->settings->wordsWithNumberOption != CppParserSettings::LeaveWordsWithNumbers) && (removeCurrentWord == false)) {
+        if((settings.wordsWithNumberOption != CppParserSettings::LeaveWordsWithNumbers) && (removeCurrentWord == false)) {
             /* Before doing anything, check if the word contains any numbers. If it does then we can go to the
              * settings to handle the word differently */
             static const QRegularExpression numberContainRe(QStringLiteral("[0-9]"));
             static const QRegularExpression numberSplitRe(QStringLiteral("[0-9]+"));
             if(currentWord.contains(numberContainRe) == true) {
                 /* Handle words with numbers based on the setting that is set for them */
-                if(d->settings->wordsWithNumberOption == CppParserSettings::RemoveWordsWithNumbers) {
+                if(settings.wordsWithNumberOption == CppParserSettings::RemoveWordsWithNumbers) {
                     removeCurrentWord = true;
-                } else if(d->settings->wordsWithNumberOption == CppParserSettings::SplitWordsOnNumbers) {
+                } else if(settings.wordsWithNumberOption == CppParserSettings::SplitWordsOnNumbers) {
                     removeCurrentWord = true;
                     QStringList wordsSplitOnNumbers = currentWord.split(numberSplitRe, QString::SkipEmptyParts);
                     WordList wordsFromSplit;
@@ -499,7 +471,7 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(string, wordsFromSplit, wordsInSource);
+                    applySettingsToWords(settings, string, wordsInSource, wordsFromSplit);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
                     /* Should never get here */
@@ -508,12 +480,12 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
             }
         }
 
-        if((d->settings->wordsWithUnderscoresOption != CppParserSettings::LeaveWordsWithUnderscores) && (removeCurrentWord == false)) {
+        if((settings.wordsWithUnderscoresOption != CppParserSettings::LeaveWordsWithUnderscores) && (removeCurrentWord == false)) {
             /* Check to see if the word has underscores in it. If it does then handle according to the settings */
             if(currentWord.contains(QLatin1Char('_')) == true) {
-                if(d->settings->wordsWithUnderscoresOption == CppParserSettings::RemoveWordsWithUnderscores) {
+                if(settings.wordsWithUnderscoresOption == CppParserSettings::RemoveWordsWithUnderscores) {
                     removeCurrentWord = true;
-                } else if(d->settings->wordsWithUnderscoresOption == CppParserSettings::SplitWordsOnUnderscores) {
+                } else if(settings.wordsWithUnderscoresOption == CppParserSettings::SplitWordsOnUnderscores) {
                     removeCurrentWord = true;
                     static const QRegularExpression underscoreSplitRe(QStringLiteral("_+"));
                     QStringList wordsSplitOnUnderScores = currentWord.split(underscoreSplitRe, QString::SkipEmptyParts);
@@ -522,7 +494,7 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(string, wordsFromSplit, wordsInSource);
+                    applySettingsToWords(settings, string, wordsInSource, wordsFromSplit);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
                     /* Should never get here */
@@ -532,7 +504,7 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
         }
 
         /* Settings for CamelCase */
-        if((d->settings->camelCaseWordOption != CppParserSettings::LeaveWordsInCamelCase) && (removeCurrentWord == false)) {
+        if((settings.camelCaseWordOption != CppParserSettings::LeaveWordsInCamelCase) && (removeCurrentWord == false)) {
             /* Check to see if the word appears to be in camelCase. If it does, handle according to the settings */
             /* The check is not precise and accurate science, but a rough estimation of the word is in camelCase. This
              * will probably be updated as this gets tested. The current check checks for one or more lower case letters,
@@ -540,9 +512,9 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
             static const QRegularExpression camelCaseContainsRe(QStringLiteral("[a-z]{1,}[A-Z]{1,}[a-z]{1,}"));
             static const QRegularExpression camelCaseIndexRe(QStringLiteral("[a-z][A-Z]"));
             if(currentWord.contains(camelCaseContainsRe) == true ) {
-                if(d->settings->camelCaseWordOption == CppParserSettings::RemoveWordsInCamelCase) {
+                if(settings.camelCaseWordOption == CppParserSettings::RemoveWordsInCamelCase) {
                     removeCurrentWord = true;
-                } else if(d->settings->camelCaseWordOption == CppParserSettings::SplitWordsOnCamelCase) {
+                } else if(settings.camelCaseWordOption == CppParserSettings::SplitWordsOnCamelCase) {
                     removeCurrentWord = true;
                     QStringList wordsSplitOnCamelCase;
                     /* Search the word for all indexes where there is a lower case letter followed by an upper case
@@ -578,7 +550,7 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(string, wordsFromSplit, wordsInSource);
+                    applySettingsToWords(settings, string, wordsInSource, wordsFromSplit);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
                     /* Should never get here */
@@ -588,12 +560,12 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
         }
 
         /* Words.with.dots */
-        if((d->settings->wordsWithDotsOption != CppParserSettings::LeaveWordsWithDots) && (removeCurrentWord == false)) {
+        if((settings.wordsWithDotsOption != CppParserSettings::LeaveWordsWithDots) && (removeCurrentWord == false)) {
             /* Check to see if the word has dots in it. If it does then handle according to the settings */
             if(currentWord.contains(QLatin1Char('.')) == true) {
-                if(d->settings->wordsWithDotsOption == CppParserSettings::RemoveWordsWithDots) {
+                if(settings.wordsWithDotsOption == CppParserSettings::RemoveWordsWithDots) {
                     removeCurrentWord = true;
-                } else if(d->settings->wordsWithDotsOption == CppParserSettings::SplitWordsOnDots) {
+                } else if(settings.wordsWithDotsOption == CppParserSettings::SplitWordsOnDots) {
                     removeCurrentWord = true;
                     static const QRegularExpression dotsSplitRe(QStringLiteral("\\.+"));
                     QStringList wordsSplitOnDots = currentWord.split(dotsSplitRe, QString::SkipEmptyParts);
@@ -602,7 +574,7 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
                     /* Apply the settings to the words that came from the split to filter out words that does
                      * not belong due to settings. After they have passed the settings, add the words that survived
                      * to the list of words that should be added in the end */
-                    applySettingsToWords(string, wordsFromSplit, wordsInSource);
+                    applySettingsToWords(settings, string, wordsInSource, wordsFromSplit);
                     wordsToAddInTheEnd.append(wordsFromSplit);
                 } else {
                     /* Should never get here */
@@ -625,74 +597,6 @@ void CppDocumentParser::applySettingsToWords(const QString &string, WordList &wo
 }
 //--------------------------------------------------
 
-//--------------------------------------------------
-
-bool CppDocumentParser::isReservedWord(const QString &word)
-{
-    /* Trying to optimize the check using the same method as used
-     * in the cpptoolsreuse.cpp file in the CppTools plugin. */
-    switch (word.length()) {
-    case 3:
-        switch(word.at(0).toUpper().toLatin1()) {
-        case 'C':
-            if(word.toUpper() == QStringLiteral("CPP"))
-                return true;
-            break;
-        case 'S':
-            if(word.toUpper() == QStringLiteral("STD"))
-                return true;
-            break;
-        }
-        break;
-    case 4:
-        switch(word.at(0).toUpper().toLatin1()) {
-        case 'E':
-            if(word.toUpper() == QStringLiteral("ENUM"))
-                return true;
-            break;
-        }
-        break;
-    case 6:
-        switch(word.at(0).toUpper().toLatin1()) {
-        case 'S':
-            if(word.toUpper() == QStringLiteral("STRUCT"))
-                return true;
-            break;
-        case 'P':
-            if(word.toUpper() == QStringLiteral("PLUGIN"))
-                return true;
-          break;
-        }
-        break;
-    case 7:
-        switch(word.at(0).toUpper().toLatin1()) {
-        case 'D':
-            if(word.toUpper() == QStringLiteral("DOXYGEN"))
-                return true;
-            break;
-        case 'N':
-            if(word.toUpper() == QStringLiteral("NULLPTR"))
-                return true;
-            break;
-        case 'T':
-            if(word.toUpper() == QStringLiteral("TYPEDEF"))
-                return true;
-            break;
-        }
-        break;
-    case 9:
-        switch(word.at(0).toUpper().toLatin1()) {
-        case 'N':
-            if(word.toUpper() == QStringLiteral("NAMESPACE"))
-                return true;
-            break;
-        }
-        break;
-    default:
-        break;
-    }
-    return false;
-}
 //--------------------------------------------------
 
 } // namespace Internal

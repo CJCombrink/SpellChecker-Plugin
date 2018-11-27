@@ -19,6 +19,7 @@
 ****************************************************************************/
 
 #include "cppdocumentprocessor.h"
+#include "cppdocumentparser.h"
 
 #include <cppeditor/cppeditordocument.h>
 #include <cplusplus/Overview.h>
@@ -139,7 +140,38 @@ void CppDocumentProcessor::process(CppDocumentProcessor::FutureIF &future)
     }
   }
 
-  future.reportResult(ResultType{std::move(wordsInSource), std::move(wordTokens)});
+  // ----------------------------------
+  /* Make a local copy of the last list of hashes. A local copy is made and used
+   * as the input the tokenize function, but a new list is returned from the
+   * tokenize function. If this is not done the list of hashes can grow forever
+   * and cause a huge increase in memory. Doing it this way ensure that the
+   * list only contains hashes of tokens that are present in during the last run
+   * and will not contain old and invalid hashes. It will cause the parsing of a
+   * different file than the previous run to be less efficient but if a file is
+   * parsed multiple times, one after the other, it will result in a large speed up
+   * and this will mostly be the case when editing a file. For this reason the initial
+   * project parse on start up can be slower. */
+
+  /* Populate the list of hashes from the tokens that was processed. */
+  HashWords newHashesOut;
+  WordList newSettingsApplied;
+  for(const WordTokens& token: qAsConst(wordTokens)) {
+    WordList words = token.words;
+    if(token.newHash == true) {
+      /* The words are new, they were not known in a previous hash
+       * thus the settings must now be applied.
+       * Only words that have already been checked against the settings
+       * gets added to the hash, thus there is no need to apply the settings
+       * again, since this will only waste time. */
+      CppDocumentParser::applySettingsToWords(d->settings, token.string, wordsInSource, words);
+    }
+    newSettingsApplied.append(words);
+    SP_CHECK(token.hash != 0x00);
+    newHashesOut[token.hash] = {token.line, token.column, words};
+  }
+
+  /* Done, report the words that should be spellchecked */
+  future.reportResult(ResultType{std::move(newHashesOut), std::move(newSettingsApplied)});
 }
 //--------------------------------------------------
 
@@ -514,14 +546,13 @@ QVector<WordTokens> CppDocumentProcessor::parseMacros() const
 
 CppDocumentProcessor::TmpOptional CppDocumentProcessor::checkHash(WordTokens tokens, uint32_t hash) const
 {
-  HashWords tokenHashes;
   /* Search if the hash contains the given token. If it does
      * then the words that got extracted previously are used
      * as is, without attempting to extract them again. If the
      * token is not in the hash, it is a new token and must be
      * parsed to get the words from the token. */
-  HashWords::const_iterator iter = tokenHashes.constFind(hash);
-  const HashWords::const_iterator iterEnd = tokenHashes.constEnd();
+  HashWords::const_iterator iter = d->tokenHashes.constFind(hash);
+  const HashWords::const_iterator iterEnd = d->tokenHashes.constEnd();
   if(iter != iterEnd) {
     /* The token was parsed in a previous iteration.
          * Now check if the token moved due to lines being

@@ -48,9 +48,10 @@ public:
     virtual QString displayName() = 0;
     virtual Core::IOptionsPage* optionsPage() = 0;
 
+    static bool isReservedWord(const QString &word);
+    static void getWordsFromSplitString(const QStringList& stringList, const Word& word, WordList& wordList);
+    static void removeWordsThatAppearInSource(const QStringSet &wordsInSource, WordList &words);
 protected:
-    void getWordsFromSplitString(const QStringList& stringList, const Word& word, WordList& wordList);
-    void removeWordsThatAppearInSource(const QStringSet &wordsInSource, WordList &words);
 signals:
     void spellcheckWordsParsed(const QString& fileName, const SpellChecker::WordList& wordlist);
 

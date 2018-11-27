@@ -76,14 +76,12 @@ public:
     void parseCppDocument(CPlusPlus::Document::Ptr docPtr);
     /*! \brief Apply the user Settings to the Words.
      * \param[in] string String that these words belong to.
-     * \param[inout] words words that should be parsed. Words will be removed from this list
-     *                  based on the user settings.
      * \param[in] wordsInSource List of words that appear in the source. Based on the user
      *                  setting words that appear in this list will be removed from the
-     *                  final list of \a words. */
-    void applySettingsToWords(const QString& string, WordList& words, const QStringSet &wordsInSource);
-    static bool isEndOfCurrentWord(const QString& comment, int currentPos, const CppParserSettings &settings);
-    bool isReservedWord(const QString& word);
+     *                  final list of \a words.
+     * \param[inout] words words that should be parsed. Words will be removed from this list
+     *                  based on the user settings.  */
+    static void applySettingsToWords(const CppParserSettings& settings, const QString& string, const QStringSet &wordsInSource, WordList& words);
 
 private:
     friend CppDocumentParserPrivate;
