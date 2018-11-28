@@ -50,8 +50,8 @@
 
 /*! \brief Testing assert that should be used during debugging
  * but should not be made part of a release. */
-//#define SP_CHECK( test ) QTC_CHECK( test )
-#define SP_CHECK( test )
+#define SP_CHECK( test ) QTC_CHECK( test )
+//#define SP_CHECK( test )
 
 namespace SpellChecker {
 namespace CppSpellChecker {
@@ -76,6 +76,12 @@ public:
     CppParserOptionsPage* optionsPage;
     CppParserSettings* settings;
     QStringSet filesInStartupProject;
+    //--
+    QStringSet filesToUpdate;
+    QStringSet filesInProcess; /*!< Number of files that were asked to
+                                * update through the CPP manager.
+                                * Keeping track to try and not update too many
+                                * at a time. */
 
     HashWords tokenHashes;
     QMutex futureMutex;
@@ -83,16 +89,6 @@ public:
                                       * list is used to cancel the futures as needed
                                       * for example when the application closes down,
                                       * the project changes or the settings changes. */
-    QStringSet filesInProcess;       /*!< List of files that are currently processed.
-                                      * The idea is to not create a new future if one
-                                      * is already in process for the same file, but
-                                      * this will not be implemented.
-                                      * TODO: Merge the filesInProcess and the futureWatchers
-                                      * into a QHash so that they are co-located. Also see
-                                      * if there is not a way to restart a processor
-                                      * if the same file gets updated, perhaps the hashes
-                                      * can then be re-used and some unnecessary work can
-                                      * be cancelled. */
 
     CppDocumentParserPrivate() :
         activeProject(nullptr),
@@ -201,12 +197,11 @@ void CppDocumentParser::setActiveProject(ProjectExplorer::Project *activeProject
 void CppDocumentParser::updateProjectFiles(QStringSet filesAdded, QStringSet filesRemoved)
 {
   Q_UNUSED(filesRemoved)
-  /* Only re-parse the files that were added. */
-  CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
 
   const QStringSet fileSet = d->getCppFiles(filesAdded);
   d->filesInStartupProject.unite(fileSet);
-  modelManager->updateSourceFiles(fileSet);
+  d->filesToUpdate.unite(fileSet);
+  queueFilesForUpdate();
 }
 //--------------------------------------------------
 
@@ -241,18 +236,57 @@ void CppDocumentParser::settingsChanged()
 
 void CppDocumentParser::reparseProject()
 {
+    /* Need to cancel all futures in process. */
+    qDebug() << "FUTURES IN FLIGHT: " << d->futureWatchers.count();
+    for(FutureWatcherMapIter iter = d->futureWatchers.begin(); iter != d->futureWatchers.end(); ++iter) {
+      /* Can't use range for or std::for_each due to the way that a Qt QMap works... */
+      iter.key()->cancel();
+    }
+    for(FutureWatcherMapIter iter = d->futureWatchers.begin(); iter != d->futureWatchers.end(); ++iter) {
+      /* Can't use range for or std::for_each due to the way that a Qt QMap works... */
+      iter.key()->waitForFinished();
+    }
+    d->futureWatchers.clear();
+    qDebug() << "FUTURES LEFT: " << d->futureWatchers.count();
+
+
     d->filesInStartupProject.clear();
+    d->filesInProcess.clear();
+    d->filesToUpdate.clear();
     if(d->activeProject == nullptr) {
         return;
     }
-    CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
 
     const Utils::FileNameList projectFiles = d->activeProject->files(ProjectExplorer::Project::SourceFiles);
     const QStringList fileList = Utils::transform(projectFiles, &Utils::FileName::toString);
 
     const QStringSet fileSet = d->getCppFiles(fileList.toSet());
     d->filesInStartupProject = fileSet;
-    modelManager->updateSourceFiles(fileSet);
+    d->filesToUpdate = fileSet;
+
+    queueFilesForUpdate();
+}
+//--------------------------------------------------
+
+void CppDocumentParser::queueFilesForUpdate()
+{
+  /* Only re-parse the files that were added. */
+  static CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
+
+  QStringSet filesToUpdate;
+
+
+//  QSet<QString> a();
+  auto fileIter = d->filesToUpdate.begin();
+  while((d->filesInProcess.count() < 50)
+  && (d->filesToUpdate.isEmpty() == false)){
+    const QString file = (*fileIter);
+    fileIter = d->filesToUpdate.erase(fileIter);
+    d->filesInProcess.insert(file);
+    filesToUpdate.insert(file);
+  }
+
+  modelManager->updateSourceFiles(filesToUpdate);
 }
 //--------------------------------------------------
 
@@ -287,6 +321,7 @@ void CppDocumentParser::futureFinished()
     QFutureWatcher<CppDocumentProcessor::ResultType> *watcher = reinterpret_cast<QFutureWatcher<CppDocumentProcessor::ResultType>*>(sender());
     SP_CHECK(watcher != nullptr);
     if(watcher->isCanceled() == true) {
+      qDebug() << "FUTURE CANCELLED";
         /* Application is shutting down or settings changed etc. */
         return;
     }
@@ -299,15 +334,18 @@ void CppDocumentParser::futureFinished()
     if(iter == d->futureWatchers.end()) {
         return;
     }
-    QString fileName = iter.value();
+    const QString fileName = iter.value();
     d->futureWatchers.erase(iter);
-    d->filesInProcess.remove(fileName);
 
     /* Move the new list of hashes to the member data so that
      * it can be used the next time around. Move is made explicit since
      * the LHS can be removed and the RHS will not be used again from
      * here on. */
     d->tokenHashes = std::move(result.wordHashes);
+
+    d->filesInProcess.remove(fileName);
+    qDebug() << "DONE: " << fileName << "(" << d->filesInProcess.count() << ", " << d->futureWatchers.count() << ", " << d->filesToUpdate.count() << ")";
+    queueFilesForUpdate();
 
     /* Now that we have all of the words from the parser, emit the signal
      * so that they will get spell checked. */
@@ -318,6 +356,7 @@ void CppDocumentParser::futureFinished()
 void CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 {
     const QString fileName = docPtr->fileName();
+    qDebug() << "PARSE: " << fileName << "(" << d->filesInProcess.count() << ")";
     using ResultType = CppDocumentProcessor::ResultType;
     /* Create a document parser and move it to the main thread.
      * Not sure if this is required but it seemed like a good
@@ -341,7 +380,6 @@ void CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
     /* Keep track of the watchers so that they can be cancelled as needed. */
     d->futureWatchers.insert(watcher, fileName);
     /* Add the file that will be processed to the list of files. */
-    d->filesInProcess.insert(fileName);
     /* Run the process function in the threadpool and return the future that
      * will be used by the processor. */
     QFuture<ResultType> future = Utils::runAsync(QThreadPool::globalInstance(), QThread::HighPriority, &CppDocumentProcessor::process, parser);

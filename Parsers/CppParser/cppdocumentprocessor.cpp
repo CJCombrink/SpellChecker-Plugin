@@ -90,6 +90,11 @@ void CppDocumentProcessor::process(CppDocumentProcessor::FutureIF &future)
     wordsInSource = getWordsThatAppearInSource();
   }
 
+  if(future.isCanceled() == true) {
+    future.reportCanceled();
+    return;
+  }
+
   if(d->settings.whatToCheck.testFlag(CppParserSettings::CheckStringLiterals) == true) {
     /* Parse string literals */
     unsigned int tokenCount = d->trUnit->tokenCount();
@@ -111,6 +116,11 @@ void CppDocumentProcessor::process(CppDocumentProcessor::FutureIF &future)
     }
     /* Parse macros */
     wordTokens += parseMacros();
+  }
+
+  if(future.isCanceled() == true) {
+    future.reportCanceled();
+    return;
   }
 
   if(d->settings.whatToCheck.testFlag(CppParserSettings::CheckComments) == true) {
@@ -138,6 +148,11 @@ void CppDocumentProcessor::process(CppDocumentProcessor::FutureIF &future)
       const WordTokens tokens = parseToken(token, type);
       wordTokens.append(tokens);
     }
+  }
+
+  if(future.isCanceled() == true) {
+    future.reportCanceled();
+    return;
   }
 
   // ----------------------------------
@@ -168,6 +183,11 @@ void CppDocumentProcessor::process(CppDocumentProcessor::FutureIF &future)
     newSettingsApplied.append(words);
     SP_CHECK(token.hash != 0x00);
     newHashesOut[token.hash] = {token.line, token.column, words};
+  }
+
+  if(future.isCanceled() == true) {
+    future.reportCanceled();
+    return;
   }
 
   /* Done, report the words that should be spellchecked */
