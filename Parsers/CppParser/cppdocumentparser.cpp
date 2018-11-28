@@ -77,8 +77,9 @@ public:
     CppParserSettings* settings;
     QStringSet filesInStartupProject;
     //--
-    QStringSet filesToUpdate;
-    QStringSet filesInProcess; /*!< Number of files that were asked to
+    QMutex fileQeueMutex;
+    std::set<QString> filesToUpdate;
+    std::set<QString> filesInProcess; /*!< Number of files that were asked to
                                 * update through the CPP manager.
                                 * Keeping track to try and not update too many
                                 * at a time. */
@@ -128,6 +129,14 @@ public:
       return filteredList;
     }
     // ------------------------------------------
+
+    static void eraseIfFound(std::set<QString>& set, const QString& file) {
+      const auto setIter = set.find(file);
+      if(setIter != set.end()) {
+        set.erase(setIter);
+      }
+    }
+    // ------------------------------------------
 };
 //--------------------------------------------------
 //--------------------------------------------------
@@ -159,6 +168,7 @@ CppDocumentParser::CppDocumentParser(QObject *parent) :
     Core::ActionContainer *contextMenu = Core::ActionManager::createMenu(Constants::CONTEXT_MENU_ID);
     cppEditorContextMenu->addSeparator(context);
     cppEditorContextMenu->addMenu(contextMenu);
+    connect(qApp, &QCoreApplication::aboutToQuit, this, &CppDocumentParser::aboutToQuit, Qt::DirectConnection);
 }
 //--------------------------------------------------
 
@@ -187,9 +197,10 @@ void CppDocumentParser::setActiveProject(ProjectExplorer::Project *activeProject
 {
     d->activeProject = activeProject;
     d->filesInStartupProject.clear();
-    if(d->activeProject == nullptr) {
-        return;
-    }
+
+    /* Call reparseProject() to reset and clean up properly.
+     * The logic inside will ensure that parsing is not started again
+     * since there is no active project. */
     reparseProject();
 }
 //--------------------------------------------------
@@ -197,10 +208,12 @@ void CppDocumentParser::setActiveProject(ProjectExplorer::Project *activeProject
 void CppDocumentParser::updateProjectFiles(QStringSet filesAdded, QStringSet filesRemoved)
 {
   Q_UNUSED(filesRemoved)
-
   const QStringSet fileSet = d->getCppFiles(filesAdded);
   d->filesInStartupProject.unite(fileSet);
-  d->filesToUpdate.unite(fileSet);
+  {
+    QMutexLocker locker(&d->fileQeueMutex);
+    d->filesToUpdate.insert(fileSet.cbegin(), fileSet.cend());
+  }
   queueFilesForUpdate();
 }
 //--------------------------------------------------
@@ -218,10 +231,38 @@ void CppDocumentParser::parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr
     }
 
     const QString fileName = docPtr->fileName();
-    if(shouldParseDocument(fileName) == false) {
-        return;
+    const bool shouldParse = shouldParseDocument(fileName);
+
+    bool queueMore;
+    {
+      QMutexLocker locker(&d->fileQeueMutex);
+      /* Remove from the list to update since it will be updated now */
+      d->eraseIfFound(d->filesToUpdate, fileName);
+      /* Always try to queue more if there are more files to update.
+       * The logic inside queueFilesForUpdate() will ensure that there
+       * are no more added than what is desired. */
+      queueMore = (d->filesToUpdate.size() > 0);
+
+      /* If the file should not be parsed, remove it from the list of
+       * files in process. This is needed since the queueFilesForUpdate()
+       * will add it to that list when it queues it.
+       * If the file should be parsed, add it to the list of files that
+       * that are in process, this is used to limit the number of files
+       * processed at the same time. */
+      if(shouldParse == false) {
+          d->eraseIfFound(d->filesInProcess, fileName);
+      } else {
+         d->filesInProcess.insert(fileName);
+      }
     }
-    parseCppDocument(std::move(docPtr));
+
+    if(shouldParse == true) {
+      parseCppDocument(std::move(docPtr));
+    }
+
+    if(queueMore == true) {
+      queueFilesForUpdate();
+    }
 }
 //--------------------------------------------------
 
@@ -237,22 +278,21 @@ void CppDocumentParser::settingsChanged()
 void CppDocumentParser::reparseProject()
 {
     /* Need to cancel all futures in process. */
-    qDebug() << "FUTURES IN FLIGHT: " << d->futureWatchers.count();
-    for(FutureWatcherMapIter iter = d->futureWatchers.begin(); iter != d->futureWatchers.end(); ++iter) {
-      /* Can't use range for or std::for_each due to the way that a Qt QMap works... */
-      iter.key()->cancel();
+    {
+        QMutexLocker locker(&d->futureMutex);
+        qDebug() << "FUTURES IN FLIGHT: " << d->futureWatchers.count();
+        for(FutureWatcherMapIter iter = d->futureWatchers.begin(); iter != d->futureWatchers.end(); ++iter) {
+          /* Can't use range for or std::for_each due to the way that a Qt QMap works... */
+          iter.key()->cancel();
+        }
+        for(FutureWatcherMapIter iter = d->futureWatchers.begin(); iter != d->futureWatchers.end(); ++iter) {
+          /* Can't use range for or std::for_each due to the way that a Qt QMap works... */
+          iter.key()->waitForFinished();
+        }
+        d->futureWatchers.clear();
+        qDebug() << "FUTURES LEFT: " << d->futureWatchers.count();
     }
-    for(FutureWatcherMapIter iter = d->futureWatchers.begin(); iter != d->futureWatchers.end(); ++iter) {
-      /* Can't use range for or std::for_each due to the way that a Qt QMap works... */
-      iter.key()->waitForFinished();
-    }
-    d->futureWatchers.clear();
-    qDebug() << "FUTURES LEFT: " << d->futureWatchers.count();
-
-
     d->filesInStartupProject.clear();
-    d->filesInProcess.clear();
-    d->filesToUpdate.clear();
     if(d->activeProject == nullptr) {
         return;
     }
@@ -262,7 +302,13 @@ void CppDocumentParser::reparseProject()
 
     const QStringSet fileSet = d->getCppFiles(fileList.toSet());
     d->filesInStartupProject = fileSet;
-    d->filesToUpdate = fileSet;
+
+    {
+      QMutexLocker locker(&d->fileQeueMutex);
+      d->filesInProcess.clear();
+      d->filesToUpdate.clear();
+      d->filesToUpdate = Utils::transform<std::set<QString>>(fileSet, [](const QString& string){ return string; });
+    }
 
     queueFilesForUpdate();
 }
@@ -275,15 +321,18 @@ void CppDocumentParser::queueFilesForUpdate()
 
   QStringSet filesToUpdate;
 
-
-//  QSet<QString> a();
-  auto fileIter = d->filesToUpdate.begin();
-  while((d->filesInProcess.count() < 50)
-  && (d->filesToUpdate.isEmpty() == false)){
-    const QString file = (*fileIter);
-    fileIter = d->filesToUpdate.erase(fileIter);
-    d->filesInProcess.insert(file);
-    filesToUpdate.insert(file);
+  {
+    QMutexLocker locker(&d->fileQeueMutex);
+    auto fileIter = d->filesToUpdate.begin();
+    while((d->filesInProcess.size() < 10)
+    && (d->filesToUpdate.empty() == false)){
+      const QString file = (*fileIter);
+      fileIter = d->filesToUpdate.erase(fileIter);
+      if(shouldParseDocument(file) == true) {
+        d->filesInProcess.insert(file);
+        filesToUpdate.insert(file);
+      }
+    }
   }
 
   modelManager->updateSourceFiles(filesToUpdate);
@@ -299,9 +348,6 @@ bool CppDocumentParser::shouldParseDocument(const QString& fileName)
          * file asked about is not the current one, thus do not parse it. */
         return false;
     }
-
-    CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
-    auto snap = modelManager->snapshot();
 
     if((settings->checkExternalFiles) == false) {
         /* Do not check external files so check if the file is part of the
@@ -321,21 +367,23 @@ void CppDocumentParser::futureFinished()
     QFutureWatcher<CppDocumentProcessor::ResultType> *watcher = reinterpret_cast<QFutureWatcher<CppDocumentProcessor::ResultType>*>(sender());
     SP_CHECK(watcher != nullptr);
     if(watcher->isCanceled() == true) {
-      qDebug() << "FUTURE CANCELLED";
         /* Application is shutting down or settings changed etc. */
         return;
     }
     const CppDocumentProcessor::ResultType result    = watcher->result();
 
-    QMutexLocker locker(&d->futureMutex);
-    /* Get the file name associated with this future and the misspelled
-     * words. */
-    FutureWatcherMapIter iter = d->futureWatchers.find(watcher);
-    if(iter == d->futureWatchers.end()) {
-        return;
+    QString fileName;
+    {
+      QMutexLocker locker(&d->futureMutex);
+      /* Get the file name associated with this future and the misspelled
+       * words. */
+      FutureWatcherMapIter iter = d->futureWatchers.find(watcher);
+      if(iter == d->futureWatchers.end()) {
+          return;
+      }
+      fileName = iter.value();
+      d->futureWatchers.erase(iter);
     }
-    const QString fileName = iter.value();
-    d->futureWatchers.erase(iter);
 
     /* Move the new list of hashes to the member data so that
      * it can be used the next time around. Move is made explicit since
@@ -343,8 +391,11 @@ void CppDocumentParser::futureFinished()
      * here on. */
     d->tokenHashes = std::move(result.wordHashes);
 
-    d->filesInProcess.remove(fileName);
-    qDebug() << "DONE: " << fileName << "(" << d->filesInProcess.count() << ", " << d->futureWatchers.count() << ", " << d->filesToUpdate.count() << ")";
+    {
+      QMutexLocker locker(&d->fileQeueMutex);
+      d->eraseIfFound(d->filesInProcess, fileName);
+      qDebug() << "DONE: " << fileName << "(" << d->filesInProcess.size() << ", " << d->futureWatchers.count() << ", " << d->filesToUpdate.size() << ")";
+    }
     queueFilesForUpdate();
 
     /* Now that we have all of the words from the parser, emit the signal
@@ -353,10 +404,15 @@ void CppDocumentParser::futureFinished()
 }
 //--------------------------------------------------
 
+void CppDocumentParser::aboutToQuit()
+{
+  setActiveProject(nullptr);
+}
+//--------------------------------------------------
+
 void CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
 {
     const QString fileName = docPtr->fileName();
-    qDebug() << "PARSE: " << fileName << "(" << d->filesInProcess.count() << ")";
     using ResultType = CppDocumentProcessor::ResultType;
     /* Create a document parser and move it to the main thread.
      * Not sure if this is required but it seemed like a good
@@ -382,7 +438,8 @@ void CppDocumentParser::parseCppDocument(CPlusPlus::Document::Ptr docPtr)
     /* Add the file that will be processed to the list of files. */
     /* Run the process function in the threadpool and return the future that
      * will be used by the processor. */
-    QFuture<ResultType> future = Utils::runAsync(QThreadPool::globalInstance(), QThread::HighPriority, &CppDocumentProcessor::process, parser);
+    const QThread::Priority futurePriority = (fileName == d->currentEditorFileName)? QThread::HighestPriority: QThread::NormalPriority;
+    QFuture<ResultType> future = Utils::runAsync(QThreadPool::globalInstance(), futurePriority, &CppDocumentProcessor::process, parser);
     watcher->setFuture(future);
 }
 //--------------------------------------------------

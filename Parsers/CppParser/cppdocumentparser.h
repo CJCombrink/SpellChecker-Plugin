@@ -49,14 +49,13 @@ protected:
     void setCurrentEditor(const QString& editorFilePath) Q_DECL_OVERRIDE;
     void setActiveProject(ProjectExplorer::Project* activeProject) Q_DECL_OVERRIDE;
     void updateProjectFiles(QStringSet filesAdded, QStringSet filesRemoved) Q_DECL_OVERRIDE;
-    void queueFilesForUpdate(QStringSet files);
+    void queueFilesForUpdate();
 
 protected slots:
     void parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr);
     void settingsChanged();
     void futureFinished();
-
-public:
+    void aboutToQuit();
 
 public:
     void reparseProject();
