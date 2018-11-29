@@ -364,9 +364,22 @@ void SpellCheckerCore::spellcheckWordsFromParser(const QString& fileName, const 
         /* Make sure that the processor gets cleaned up after it has finished processing
          * the words. */
         connect(watcher, &QFutureWatcher<WordList>::finished, processor, &SpellCheckProcessor::deleteLater);
-        /* Run the processor in the background and set a watcher to monitor the progress. */
-        QFuture<WordList> future = Utils::runAsync(QThreadPool::globalInstance(), &SpellCheckProcessor::process, processor);
-        watcher->setFuture(future);
+
+        /* Create a future to process the file.
+         * If the file to process is the current open editor, it is processed in a new
+         * thread with high priority.
+         * If it is not the current file, it is added to the global thread pool
+         * since it can get processed in its own time.
+         * The current one gets a new thread so that it can get processed as
+         * soon as possible and it does not need to get queued along with all other
+         * futures added to the global thread pool. */
+        if(fileName == d->currentFilePath) {
+          QFuture<WordList> future = Utils::runAsync(QThread::HighPriority, &SpellCheckProcessor::process, processor);
+          watcher->setFuture(future);
+        } else {
+          QFuture<WordList> future = Utils::runAsync(QThreadPool::globalInstance(), QThread::LowPriority, &SpellCheckProcessor::process, processor);
+          watcher->setFuture(future);
+        }
     }
 }
 //--------------------------------------------------
@@ -447,7 +460,6 @@ void SpellCheckerCore::cancelFutures()
         iter.key()->future().waitForFinished();
         delete iter.key();
     }
-
     d->futureWatchers.clear();
 }
 

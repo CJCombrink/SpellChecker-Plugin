@@ -49,7 +49,27 @@ protected:
     void setCurrentEditor(const QString& editorFilePath) Q_DECL_OVERRIDE;
     void setActiveProject(ProjectExplorer::Project* activeProject) Q_DECL_OVERRIDE;
     void updateProjectFiles(QStringSet filesAdded, QStringSet filesRemoved) Q_DECL_OVERRIDE;
+
+private:
+    /*! \brief Queue files to be updated.
+     *
+     * Process the files that must still be parsed and queue a number
+     * of them to be parsed. This is done to try and prevent all files in the
+     * project to be parsed at once.
+     *
+     * Normally Qt Creator will parse all files to create the code model. This
+     * queue also helps in removing files from the queue as they are opened
+     * by the C++ plugin. Previous implementations queued all at once and this
+     * caused some files to be parsed more than once for no real benefit or gain.
+     *
+     * If there are more than a set number of files that should still be parsed,
+     * this function will create a progress notification. */
     void queueFilesForUpdate();
+    /*! \brief Cancel all futures.
+     *
+     * This function will block until all futures that were cancelled
+     * have finished. */
+    void cancelFutures();
 
 protected slots:
     void parseCppDocumentOnUpdate(CPlusPlus::Document::Ptr docPtr);
