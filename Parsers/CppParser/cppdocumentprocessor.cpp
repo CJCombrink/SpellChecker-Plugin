@@ -155,6 +155,11 @@ void CppDocumentProcessor::process(CppDocumentProcessor::FutureIF &future)
     return;
   }
 
+  /* At this point the DocPtr can be released since it will no longer be
+   * Used */
+  d->docPtr->releaseSourceAndAST();
+  d->docPtr.reset();
+
   // ----------------------------------
   /* Make a local copy of the last list of hashes. A local copy is made and used
    * as the input the tokenize function, but a new list is returned from the
