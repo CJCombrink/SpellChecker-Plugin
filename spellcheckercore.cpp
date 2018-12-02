@@ -517,7 +517,7 @@ bool SpellCheckerCore::isWordUnderCursorMistake( Word& word ) const
     const Word& currentWord = iter.value();
     if( ( currentWord.lineNumber == line )
         && ( ( currentWord.columnNumber <= column )
-             && ( currentWord.columnNumber + currentWord.length ) >= column ) ) {
+             && ( ( currentWord.columnNumber + currentWord.length ) >= column ) ) ) {
       word = currentWord;
       return true;
     }

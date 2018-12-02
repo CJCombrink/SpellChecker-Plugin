@@ -41,6 +41,9 @@ FORMS += \
 RESOURCES += \
         spellcheckerplugin.qrc
 
+OTHER_FILES += \
+    uncrustify.cfg
+
 # Include a pri file that sets the local paths to needed
 # folders. It is done in this way so that the main pro
 # file does not need to change depending on the environment of the
@@ -76,3 +79,5 @@ PROVIDER = CJC
 }
 
 message(Qt Creator Version: $$QTCREATOR_VERSION)
+
+QMAKE_CXXFLAGS += /Z7 /INCREMENTAL:NO /DEBUG

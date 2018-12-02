@@ -367,7 +367,7 @@ bool CppDocumentProcessor::isEndOfCurrentWord( const QString& comment, int curre
    * Some settings might change what the end of a word actually is.
    * For some settings an underscore will be considered as the end of a word */
   if( ( currentChar.isLetterOrNumber() == true )
-      || currentChar == QLatin1Char( '_' ) ) {
+      || ( currentChar == QLatin1Char( '_' ) ) ) {
     return false;
   }
 

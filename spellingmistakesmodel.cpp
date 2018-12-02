@@ -145,8 +145,9 @@ QModelIndex SpellingMistakesModel::indexOfWord( const Word& word ) const
 int SpellingMistakesModel::rowCount( const QModelIndex& parent ) const
 {
   /* Make sure the hierarchy is correct, there should only be one level */
-  if( parent.isValid() == true )
+  if( parent.isValid() == true ) {
     return 0;
+  }
 
   return d->wordList.count();
 }
@@ -155,8 +156,9 @@ int SpellingMistakesModel::rowCount( const QModelIndex& parent ) const
 int SpellingMistakesModel::columnCount( const QModelIndex& parent ) const
 {
   /* Make sure the hierarchy is correct, there should only be one level */
-  if( parent.isValid() == true )
+  if( parent.isValid() == true ) {
     return 0;
+  }
 
   return Constants::MISTAKE_COLUMN_COUNT;
 }
@@ -224,8 +226,9 @@ QVariant SpellingMistakesModel::headerData( int section, Qt::Orientation orienta
 {
   if( ( orientation == Qt::Vertical )
       || ( role != Qt::DisplayRole )
-      || ( section >= Constants::MISTAKE_COLUMN_COUNT ) )
+      || ( section >= Constants::MISTAKE_COLUMN_COUNT ) ) {
     return QVariant();
+  }
 
   return tr( Constants::MISTAKES_MODEL_COLUMN_NAMES[section] );
 }

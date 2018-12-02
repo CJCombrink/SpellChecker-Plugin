@@ -39,56 +39,65 @@ bool IDocumentParser::isReservedWord( const QString& word )
     case 3:
       switch( word.at( 0 ).toUpper().toLatin1() ) {
         case 'C':
-          if( word.toUpper() == QStringLiteral( "CPP" ) )
+          if( word.toUpper() == QStringLiteral( "CPP" ) ) {
             return true;
+          }
           break;
         case 'S':
-          if( word.toUpper() == QStringLiteral( "STD" ) )
+          if( word.toUpper() == QStringLiteral( "STD" ) ) {
             return true;
+          }
           break;
       }
       break;
     case 4:
       switch( word.at( 0 ).toUpper().toLatin1() ) {
         case 'E':
-          if( word.toUpper() == QStringLiteral( "ENUM" ) )
+          if( word.toUpper() == QStringLiteral( "ENUM" ) ) {
             return true;
+          }
           break;
       }
       break;
     case 6:
       switch( word.at( 0 ).toUpper().toLatin1() ) {
         case 'S':
-          if( word.toUpper() == QStringLiteral( "STRUCT" ) )
+          if( word.toUpper() == QStringLiteral( "STRUCT" ) ) {
             return true;
+          }
           break;
         case 'P':
-          if( word.toUpper() == QStringLiteral( "PLUGIN" ) )
+          if( word.toUpper() == QStringLiteral( "PLUGIN" ) ) {
             return true;
+          }
           break;
       }
       break;
     case 7:
       switch( word.at( 0 ).toUpper().toLatin1() ) {
         case 'D':
-          if( word.toUpper() == QStringLiteral( "DOXYGEN" ) )
+          if( word.toUpper() == QStringLiteral( "DOXYGEN" ) ) {
             return true;
+          }
           break;
         case 'N':
-          if( word.toUpper() == QStringLiteral( "NULLPTR" ) )
+          if( word.toUpper() == QStringLiteral( "NULLPTR" ) ) {
             return true;
+          }
           break;
         case 'T':
-          if( word.toUpper() == QStringLiteral( "TYPEDEF" ) )
+          if( word.toUpper() == QStringLiteral( "TYPEDEF" ) ) {
             return true;
+          }
           break;
       }
       break;
     case 9:
       switch( word.at( 0 ).toUpper().toLatin1() ) {
         case 'N':
-          if( word.toUpper() == QStringLiteral( "NAMESPACE" ) )
+          if( word.toUpper() == QStringLiteral( "NAMESPACE" ) ) {
             return true;
+          }
           break;
       }
       break;
