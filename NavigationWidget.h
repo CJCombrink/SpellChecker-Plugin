@@ -28,7 +28,9 @@
 #include <QTableView>
 #include <QStyledItemDelegate>
 
-namespace Core { class IEditor; }
+namespace Core {
+class IEditor;
+} // namespace Core
 
 namespace SpellChecker {
 namespace Internal {
@@ -46,18 +48,19 @@ class NavigationWidgetFactoryPrivate;
  * For the design and implementation of this functionality the "Bookmarks"
  * and "Open Document" Navigation widgets was referenced.
  */
-class NavigationWidget : public Utils::ListView
+class NavigationWidget
+  : public Utils::ListView
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    explicit NavigationWidget(ProjectMistakesModel* model);
-    ~NavigationWidget();
+  explicit NavigationWidget( ProjectMistakesModel* model );
+  ~NavigationWidget();
 public slots:
-    void updateCurrentItem(Core::IEditor* editor);
+  void updateCurrentItem( Core::IEditor* editor );
 private:
-    NavigationWidgetPrivate* const d;
+  NavigationWidgetPrivate* const d;
 };
-//--------------------------------------------------
+// --------------------------------------------------
 
 /*! \brief The Navigation Widget Factory class.
  *
@@ -67,33 +70,35 @@ private:
  * The factory also manages the actions to sort the files
  * in the navigation widgets created.
  */
-class NavigationWidgetFactory : public Core::INavigationWidgetFactory
+class NavigationWidgetFactory
+  : public Core::INavigationWidgetFactory
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    NavigationWidgetFactory(ProjectMistakesModel* model);
-    ~NavigationWidgetFactory();
+  NavigationWidgetFactory( ProjectMistakesModel* model );
+  ~NavigationWidgetFactory();
 private slots:
-    void sortingActionActivated(QAction* action);
+  void sortingActionActivated( QAction* action );
 private:
-    Core::NavigationView createWidget();
-    NavigationWidgetFactoryPrivate* const d;
+  Core::NavigationView createWidget();
+  NavigationWidgetFactoryPrivate* const d;
 };
-//--------------------------------------------------
+// --------------------------------------------------
 
 /*! \brief The Spelling Mistake Delegate class.
  *
  * Delegate to format the items in the Widget list.
  */
-class SpellingMistakeDelegate : public QStyledItemDelegate
+class SpellingMistakeDelegate
+  : public QStyledItemDelegate
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    SpellingMistakeDelegate(QObject *parent = 0);
+  SpellingMistakeDelegate( QObject* parent = 0 );
 private:
-    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+  void paint( QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const;
 };
-//--------------------------------------------------
+// --------------------------------------------------
 
 } // namespace Internal
 } // namespace SpellChecker

@@ -26,30 +26,31 @@
 namespace SpellChecker {
 namespace Internal {
 
-class SpellCheckerCoreSettings : public QObject
+class SpellCheckerCoreSettings
+  : public QObject
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    SpellCheckerCoreSettings();
-    SpellCheckerCoreSettings(const SpellCheckerCoreSettings& settings);
-    ~SpellCheckerCoreSettings();
+  SpellCheckerCoreSettings();
+  SpellCheckerCoreSettings( const SpellCheckerCoreSettings& settings );
+  ~SpellCheckerCoreSettings();
 
-    void saveToSettings(QSettings* settings) const;
-    void loadFromSettings(QSettings* settings);
+  void saveToSettings( QSettings* settings ) const;
+  void loadFromSettings( QSettings* settings );
 
-    SpellCheckerCoreSettings& operator=(const SpellCheckerCoreSettings& other);
-    bool operator==(const SpellCheckerCoreSettings& other) const;
+  SpellCheckerCoreSettings& operator=( const SpellCheckerCoreSettings& other );
+  bool operator==( const SpellCheckerCoreSettings& other ) const;
 
-    QString activeSpellChecker;
-    bool onlyParseCurrentFile;
-    bool checkExternalFiles;
-    QStringList projectsToIgnore;
-    /*! Replace all occurrences of a misspelled word on the current page when
-     * a suggestion is selected from the right click menu. */
-    bool replaceAllFromRightClick;
+  QString activeSpellChecker;
+  bool onlyParseCurrentFile;
+  bool checkExternalFiles;
+  QStringList projectsToIgnore;
+  /*! Replace all occurrences of a misspelled word on the current page when
+   * a suggestion is selected from the right click menu. */
+  bool replaceAllFromRightClick;
 
 signals:
-    void settingsChanged();
+  void settingsChanged();
 
 };
 

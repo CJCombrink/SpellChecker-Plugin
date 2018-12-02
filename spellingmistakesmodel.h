@@ -30,46 +30,47 @@ namespace SpellChecker {
 namespace Internal {
 
 class SpellingMistakesModelPrivate;
-class SpellingMistakesModel : public QAbstractTableModel
+class SpellingMistakesModel
+  : public QAbstractTableModel
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    SpellingMistakesModel(QObject *parent = 0);
-    ~SpellingMistakesModel();
+  SpellingMistakesModel( QObject* parent = 0 );
+  ~SpellingMistakesModel();
 
-    /*! \ brief Set the words of the model.
-     *
-     * This function clears the previous words and sets the model
-     * to contain the new \a words. This will then be reflected on
-     * all views connected to the model.
-     * \param[in] words List of words that must be set on the model. */
-    void setCurrentSpellingMistakes(const WordList &words);
-    /*! \brief Get the index of the word.
-     *
-     * Get the index of the \a word from the model.
-     * If the word is not in the list of words on this model then
-     * this function will return an invalid index.
-     * \param[in] word Word of which the index must be returned.
-     * \return Index of the given word. */
-    QModelIndex indexOfWord(const Word& word) const;
+  /*! \ brief Set the words of the model.
+   *
+   * This function clears the previous words and sets the model
+   * to contain the new \a words. This will then be reflected on
+   * all views connected to the model.
+   * \param[in] words List of words that must be set on the model. */
+  void setCurrentSpellingMistakes( const WordList& words );
+  /*! \brief Get the index of the word.
+  *
+  * Get the index of the \a word from the model.
+  * If the word is not in the list of words on this model then
+  * this function will return an invalid index.
+  * \param[in] word Word of which the index must be returned.
+  * \return Index of the given word. */
+  QModelIndex indexOfWord( const Word& word ) const;
 
-    int rowCount(const QModelIndex &parent = QModelIndex()) const;
-    int columnCount(const QModelIndex &parent  = QModelIndex()) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-    void sort(int column, Qt::SortOrder order);
+  int rowCount( const QModelIndex& parent = QModelIndex() ) const;
+  int columnCount( const QModelIndex& parent = QModelIndex() ) const;
+  QVariant data( const QModelIndex& index, int role ) const;
+  QVariant headerData( int section, Qt::Orientation orientation, int role ) const;
+  void sort( int column, Qt::SortOrder order );
 
 signals:
-    void mistakesUpdated();
+  void mistakesUpdated();
 public slots:
-    /*! \brief Slot called when the active project changes.
-     *
-     * The path to the active project is used by the model to
-     * show the relative paths to the files with the spelling mistakes.
-     * \param[in] activeProject Pointer to the active project. */
-    void setActiveProject(ProjectExplorer::Project* activeProject);
+  /*! \brief Slot called when the active project changes.
+   *
+   * The path to the active project is used by the model to
+   * show the relative paths to the files with the spelling mistakes.
+   * \param[in] activeProject Pointer to the active project. */
+  void setActiveProject( ProjectExplorer::Project* activeProject );
 private:
-    SpellingMistakesModelPrivate* const d;
+  SpellingMistakesModelPrivate* const d;
 };
 
 } // namespace Internal

@@ -22,8 +22,8 @@
 
 #include <QtGlobal>
 
-#if defined(SPELLCHECKER_LIBRARY)
+#if defined( SPELLCHECKER_LIBRARY )
 #  define SPELLCHECKERSHARED_EXPORT Q_DECL_EXPORT
-#else
+#else // if defined( SPELLCHECKER_LIBRARY )
 #  define SPELLCHECKERSHARED_EXPORT Q_DECL_IMPORT
-#endif
+#endif // if defined( SPELLCHECKER_LIBRARY )

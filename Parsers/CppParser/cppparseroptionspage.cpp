@@ -24,48 +24,46 @@
 
 using namespace SpellChecker::CppSpellChecker::Internal;
 
-CppParserOptionsPage::CppParserOptionsPage(CppParserSettings *settings, QObject *parent) :
-    Core::IOptionsPage(parent),
-    m_settings(settings)
+CppParserOptionsPage::CppParserOptionsPage( CppParserSettings* settings, QObject* parent )
+  : Core::IOptionsPage( parent )
+  , m_settings( settings )
 {
-    setId("SpellChecker::CppDocumentParserSettings");
-    setDisplayName(tr("C++ Parser"));
-    setCategory("SpellChecker");
-    setDisplayCategory(tr("Spell Checker"));
+  setId( "SpellChecker::CppDocumentParserSettings" );
+  setDisplayName( tr( "C++ Parser" ) );
+  setCategory( "SpellChecker" );
+  setDisplayCategory( tr( "Spell Checker" ) );
 }
-//--------------------------------------------------
+// --------------------------------------------------
 
 CppParserOptionsPage::~CppParserOptionsPage()
-{
-}
-//--------------------------------------------------
+{}
+// --------------------------------------------------
 
-bool CppParserOptionsPage::matches(const QString &searchKeyWord) const
+bool CppParserOptionsPage::matches( const QString& searchKeyWord ) const
 {
-    return (searchKeyWord == QLatin1String("SpellChecker"));
+  return ( searchKeyWord == QLatin1String( "SpellChecker" ) );
 }
-//--------------------------------------------------
+// --------------------------------------------------
 
-QWidget *CppParserOptionsPage::widget()
+QWidget* CppParserOptionsPage::widget()
 {
-    if(m_widget == nullptr) {
-        m_widget = new CppParserOptionsWidget(m_settings);
-    }
-    return m_widget;
+  if( m_widget == nullptr ) {
+    m_widget = new CppParserOptionsWidget( m_settings );
+  }
+  return m_widget;
 }
-//--------------------------------------------------
+// --------------------------------------------------
 
 void CppParserOptionsPage::apply()
 {
-    if(m_widget == nullptr) {
-        Q_ASSERT(m_widget != nullptr);
-        return;
-    }
-    *m_settings = m_widget->settings();
+  if( m_widget == nullptr ) {
+    Q_ASSERT( m_widget != nullptr );
+    return;
+  }
+  *m_settings = m_widget->settings();
 }
-//--------------------------------------------------
+// --------------------------------------------------
 
 void CppParserOptionsPage::finish()
-{
-}
-//--------------------------------------------------
+{}
+// --------------------------------------------------

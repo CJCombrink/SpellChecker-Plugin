@@ -27,104 +27,119 @@ namespace SpellChecker {
 namespace CppSpellChecker {
 namespace Internal {
 
-class CppParserSettings : public QObject
+class CppParserSettings
+  : public QObject
 {
-    Q_OBJECT
-    Q_ENUMS(WhatToCheck CommentsToCheck WordsWithNumbersOption WordsWithUnderscoresOption CamelCaseWordOption WordsWithDotsOption)
-    Q_FLAGS(WhatToCheckOptions CommentsToCheckOptions)
+  Q_OBJECT
+  Q_ENUMS( WhatToCheck CommentsToCheck WordsWithNumbersOption WordsWithUnderscoresOption CamelCaseWordOption WordsWithDotsOption )
+  Q_FLAGS( WhatToCheckOptions CommentsToCheckOptions )
 public:
-    CppParserSettings();
-    CppParserSettings(const CppParserSettings& settings);
-    ~CppParserSettings();
+  CppParserSettings();
+  CppParserSettings( const CppParserSettings& settings );
+  ~CppParserSettings();
 
-    enum WhatToCheck {
-        Tokens_NONE         = 0,      /*!< Invalid option but needed for QFLAGS. */
-        CheckComments       = 1 << 0, /*!< Check Comments. */
-        CheckStringLiterals = 1 << 1, /*!< Check String Literals */
-        CheckBoth           = CheckComments | CheckStringLiterals
-    };
-    Q_DECLARE_FLAGS(WhatToCheckOptions, WhatToCheck)
+  enum WhatToCheck {
+    Tokens_NONE = 0,
+    /*!< Invalid option but needed for QFLAGS. */
+    CheckComments = 1 << 0,
+    /*!< Check Comments. */
+    CheckStringLiterals = 1 << 1,
+    /*!< Check String Literals */
+    CheckBoth = CheckComments | CheckStringLiterals
+  };
+  Q_DECLARE_FLAGS( WhatToCheckOptions, WhatToCheck )
 
-    enum CommentsToCheck {
-        Comments_NONE = 0,      /*!< Invalid option but needed for the QFLAGS. */
-        CommentsC     = 1 << 0, /*!< Check C Style comments. */
-        CommentsCpp   = 1 << 1, /*!< Check C++ Style comments. */
-        CommentsBoth  = CommentsC |CommentsCpp
-    };
-    Q_DECLARE_FLAGS(CommentsToCheckOptions, CommentsToCheck)
+  enum CommentsToCheck {
+    Comments_NONE = 0,
+    /*!< Invalid option but needed for the QFLAGS. */
+    CommentsC = 1 << 0,
+    /*!< Check C Style comments. */
+    CommentsCpp = 1 << 1,
+    /*!< Check C++ Style comments. */
+    CommentsBoth = CommentsC | CommentsCpp
+  };
+  Q_DECLARE_FLAGS( CommentsToCheckOptions, CommentsToCheck )
 
-    enum WordsWithNumbersOption {
-        RemoveWordsWithNumbers = 0, /*!< Words containing numbers will not be checked and will be removed from words that should be checked, most spell checkers discard words with numbers in. */
-        SplitWordsOnNumbers    = 1, /*!< Split words on numbers. Thus a word like 'some9word' will result in 2 words, 'some' and 'word' that will get added to the list of words to be checked. */
-        LeaveWordsWithNumbers  = 2  /*!< Leave words with numbers as they are. \note Some spell checkers will discard words with numbers in without checking them. */
-    };
+  enum WordsWithNumbersOption {
+    RemoveWordsWithNumbers = 0,
+    /*!< Words containing numbers will not be checked and will be removed from words that should be checked, most spell checkers discard words with numbers in. */
+    SplitWordsOnNumbers = 1,
+    /*!< Split words on numbers. Thus a word like 'some9word' will result in 2 words, 'some' and 'word' that will get added to the list of words to be checked. */
+    LeaveWordsWithNumbers = 2     /*!< Leave words with numbers as they are. \note Some spell checkers will discard words with numbers in without checking them. */
+  };
 
-    enum WordsWithUnderscoresOption {
-        RemoveWordsWithUnderscores = 0, /*!< Words that contains underscores will be removed and will not be checked by the spell checker. */
-        SplitWordsOnUnderscores    = 1, /*!< Split words on underscores. A word like 'some_word' will result in 2 words, 'some' and 'word' that will be added to the words that will be checked. */
-        LeaveWordsWithUnderscores  = 2  /*!< Leave words with underscores so that the spell checker can check them. This option does not make much sense since there are no words with underscores in the English language. This will be for perhaps some custom words added to a dictionary. */
-    };
+  enum WordsWithUnderscoresOption {
+    RemoveWordsWithUnderscores = 0,
+    /*!< Words that contains underscores will be removed and will not be checked by the spell checker. */
+    SplitWordsOnUnderscores = 1,
+    /*!< Split words on underscores. A word like 'some_word' will result in 2 words, 'some' and 'word' that will be added to the words that will be checked. */
+    LeaveWordsWithUnderscores = 2 /*!< Leave words with underscores so that the spell checker can check them. This option does not make much sense since there are no words with underscores in the English language. This will be for perhaps some custom words added to a dictionary. */
+  };
 
-    enum CamelCaseWordOption {
-        RemoveWordsInCamelCase = 0, /*!< Remove and do not check words in CamelCase. Since most words in camelCase would refer to functions or data in the code this can reduce the checks against such words. This option takes precedence over the option to check words that occur in the source. */
-        SplitWordsOnCamelCase  = 1, /*!< Words are split on camelCase. Thus a word like 'camelCase' will result in 2 words, 'camel' and 'Case' that will get added to the the list of words that will be checked. */
-        LeaveWordsInCamelCase  = 2  /*!< Leave words in camelCase so that the spell checked can check them. This option will in most cases only make sense if the option to check words against those in source is is set. */
-    };
-    enum WordsWithDotsOption {
-        RemoveWordsWithDots = 0, /*!< Remove and do not check words with dots. */
-        SplitWordsOnDots    = 1, /*!< Words are split on dots. */
-        LeaveWordsWithDots  = 2  /*!< Leave words that contain dots. */
-    };
+  enum CamelCaseWordOption {
+    RemoveWordsInCamelCase = 0,
+    /*!< Remove and do not check words in CamelCase. Since most words in camelCase would refer to functions or data in the code this can reduce the checks against such words. This option takes precedence over the option to check words that occur in the source. */
+    SplitWordsOnCamelCase = 1,
+    /*!< Words are split on camelCase. Thus a word like 'camelCase' will result in 2 words, 'camel' and 'Case' that will get added to the the list of words that will be checked. */
+    LeaveWordsInCamelCase = 2     /*!< Leave words in camelCase so that the spell checked can check them. This option will in most cases only make sense if the option to check words against those in source is is set. */
+  };
+  enum WordsWithDotsOption {
+    RemoveWordsWithDots = 0,
+    /*!< Remove and do not check words with dots. */
+    SplitWordsOnDots = 1,
+    /*!< Words are split on dots. */
+    LeaveWordsWithDots = 2        /*!< Leave words that contain dots. */
+  };
 
-    /*! Flag for the setting about what to check in the document. This includes Comments,
-     * String Literals or both. */
-    WhatToCheckOptions whatToCheck;
-    /*! Flag for the settings about what comments to check if the \a whatToCheck setting
-     * includes comments. If comments are not getting checked, this setting does not
-     * apply.
-     * Doxygen comments will always be checked no matter what the setting.
-     * \todo Change the options so that all combinations are selectable, C, Cpp and Doxygen. */
-    CommentsToCheckOptions commentsToCheck;
-    /*! Qt keywords are words in the form where the first letter is a caps 'Q' followed
-     * by a capital letter. Keywords can also start with 'Q_' or words like 'emit',
-     * 'slot', etc. If this is false, such words will be removed from the words to be checked. */
-    bool checkQtKeywords;
-    /*! All caps words are words where the following is true: word == word.toUpper(). If
-     * this is false, such words will be removed from the words to be checked. This
-     * setting takes precedence over words with underscores. Thus a word in all caps that
-     * contains numbers or underscores will be removed if this setting is false, even if
-     * the \a wordsWithNumberOption or \a wordsWithUnderscoresOption would cause such
-     * words to be checked. */
-    bool checkAllCapsWords;
-    WordsWithNumbersOption wordsWithNumberOption;
-    WordsWithUnderscoresOption wordsWithUnderscoresOption;
-    CamelCaseWordOption camelCaseWordOption;
-    bool removeWordsThatAppearInSource;
-    bool removeEmailAddresses;
-    WordsWithDotsOption wordsWithDotsOption;
-    /*! The words with websites uses a very zealous regular expression that
-     * can remove a lot of actual errors in the code. For this reason it
-     * will be false by default. */
-    bool removeWebsites;
+  /*! Flag for the setting about what to check in the document. This includes Comments,
+   * String Literals or both. */
+  WhatToCheckOptions whatToCheck;
+  /*! Flag for the settings about what comments to check if the \a whatToCheck setting
+   * includes comments. If comments are not getting checked, this setting does not
+   * apply.
+   * Doxygen comments will always be checked no matter what the setting.
+   * \todo Change the options so that all combinations are selectable, C, Cpp and Doxygen. */
+  CommentsToCheckOptions commentsToCheck;
+  /*! Qt keywords are words in the form where the first letter is a caps 'Q' followed
+   * by a capital letter. Keywords can also start with 'Q_' or words like 'emit',
+   * 'slot', etc. If this is false, such words will be removed from the words to be checked. */
+  bool checkQtKeywords;
+  /*! All caps words are words where the following is true: word == word.toUpper(). If
+   * this is false, such words will be removed from the words to be checked. This
+   * setting takes precedence over words with underscores. Thus a word in all caps that
+   * contains numbers or underscores will be removed if this setting is false, even if
+   * the \a wordsWithNumberOption or \a wordsWithUnderscoresOption would cause such
+   * words to be checked. */
+  bool checkAllCapsWords;
+  WordsWithNumbersOption wordsWithNumberOption;
+  WordsWithUnderscoresOption wordsWithUnderscoresOption;
+  CamelCaseWordOption camelCaseWordOption;
+  bool removeWordsThatAppearInSource;
+  bool removeEmailAddresses;
+  WordsWithDotsOption wordsWithDotsOption;
+  /*! The words with websites uses a very zealous regular expression that
+   * can remove a lot of actual errors in the code. For this reason it
+   * will be false by default. */
+  bool removeWebsites;
 
-    void loadFromSettings(QSettings *settings);
-    void saveToSetting(QSettings *settings) const;
+  void loadFromSettings( QSettings* settings );
+  void saveToSetting( QSettings* settings ) const;
 
-    CppParserSettings& operator=(const CppParserSettings& other);
-    bool operator==(const CppParserSettings& other) const;
+  CppParserSettings& operator=( const CppParserSettings& other );
+  bool operator==( const CppParserSettings& other ) const;
 
 signals:
-    void settingsChanged();
+  void settingsChanged();
 
 public slots:
 
 protected:
-    void setDefaults();
+  void setDefaults();
 };
 
 } // namespace Internal
 } // namespace CppSpellChecker
 } // namespace SpellChecker
 
-Q_DECLARE_OPERATORS_FOR_FLAGS(SpellChecker::CppSpellChecker::Internal::CppParserSettings::WhatToCheckOptions)
-Q_DECLARE_OPERATORS_FOR_FLAGS(SpellChecker::CppSpellChecker::Internal::CppParserSettings::CommentsToCheckOptions)
+Q_DECLARE_OPERATORS_FOR_FLAGS( SpellChecker::CppSpellChecker::Internal::CppParserSettings::WhatToCheckOptions )
+Q_DECLARE_OPERATORS_FOR_FLAGS( SpellChecker::CppSpellChecker::Internal::CppParserSettings::CommentsToCheckOptions )

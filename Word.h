@@ -39,29 +39,31 @@ using QStringSet = QSet<QString>;
  * contains information about the word, where it is located and suggestions
  * for the word if it was misspelled.
  */
-class Word {
+class Word
+{
 public:
-    Word() {}
-    ~Word() {}
+  Word() {}
+  ~Word() {}
 
-    int start;
-    int end;
-    int length;
+  int start;
+  int end;
+  int length;
 
-    unsigned int lineNumber;
-    unsigned int columnNumber;
-    QString text;
-    QString fileName;
-    QChar charAfter; /*!< Next character after the end of the word in the comment. */
-    bool inComment; /*!< If the word comes from a comment or a String Literal. */
-    QStringList suggestions;
+  unsigned int lineNumber;
+  unsigned int columnNumber;
+  QString text;
+  QString fileName;
+  QChar charAfter; /*!< Next character after the end of the word in the comment. */
+  bool  inComment; /*!< If the word comes from a comment or a String Literal. */
+  QStringList suggestions;
 
-    bool operator==(const Word &other) const {
-        return ((lineNumber      == other.lineNumber)
-                && (columnNumber == other.columnNumber)
-                && (text         == other.text)
-                && (fileName     == other.fileName));
-    }
+  bool operator==( const Word& other ) const
+  {
+    return ( ( lineNumber == other.lineNumber )
+             && ( columnNumber == other.columnNumber )
+             && ( text == other.text )
+             && ( fileName == other.fileName ) );
+  }
 };
 
 /* Define used to use different types of word lists
@@ -71,13 +73,18 @@ public:
  * done in future. */
 #define USE_MULTI_HASH
 #ifdef USE_MULTI_HASH
-class WordList : public QMultiHash<QString, Word>
+class WordList
+  : public QMultiHash<QString, Word>
 {
 public:
-    inline WordList() {}
-    void append(const Word& t) { this->insert(t.text, t); }
-    void append(const WordList& l)
-    { for(const Word& t: l) { append(t); } }
+  inline WordList() {}
+  void append( const Word& t ) { this->insert( t.text, t ); }
+  void append( const WordList& l )
+  {
+    for( const Word& t: l ) {
+      append( t );
+    }
+  }
 };
 
 typedef WordList::iterator WordListIter;
@@ -95,16 +102,17 @@ typedef QHash<QString /* File name */, WordList> FileWordList;
  * for keeping the offset correct if a token moved due to new tokens or text.
  * This is then used to adjust the line and column numbers of the words to the
  * correct locations. */
-class TokenWords {
+class TokenWords
+{
 public:
-    quint32 line;
-    quint32 col;
-    WordList words;
+  quint32  line;
+  quint32  col;
+  WordList words;
 
-    TokenWords(quint32 l = 0, quint32 c = 0, const WordList &w = WordList()) :
-        line(l),
-        col(c),
-        words(w) {}
+  TokenWords( quint32 l = 0, quint32 c = 0, const WordList& w = WordList() )
+    : line( l )
+    , col( c )
+    , words( w ) {}
 };
 /*! \brief Hash of a token and the corresponding list of words that were extracted from the token.
  *
@@ -117,9 +125,9 @@ using HashWords = QHash<quint32, TokenWords>;
 
 } // namespace SpellChecker
 
-inline QDebug operator<<(QDebug debug, const SpellChecker::Word& word)
+inline QDebug operator<<( QDebug debug, const SpellChecker::Word& word )
 {
-    QDebugStateSaver saver(debug);
-    debug.nospace() << word.text << "(" << word.lineNumber << ":" << word.columnNumber << ")";
-    return debug;
+  QDebugStateSaver saver( debug );
+  debug.nospace() << word.text << "(" << word.lineNumber << ":" << word.columnNumber << ")";
+  return debug;
 }

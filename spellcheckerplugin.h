@@ -37,20 +37,21 @@ class CppParserSettings;
 
 namespace Internal {
 class SpellCheckerPluginPrivate;
-class SpellCheckerPlugin : public ExtensionSystem::IPlugin
+class SpellCheckerPlugin
+  : public ExtensionSystem::IPlugin
 {
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "SpellChecker.json")
+  Q_OBJECT
+  Q_PLUGIN_METADATA( IID "org.qt-project.Qt.QtCreatorPlugin" FILE "SpellChecker.json" )
 
 public:
-    SpellCheckerPlugin();
-    ~SpellCheckerPlugin();
+  SpellCheckerPlugin();
+  ~SpellCheckerPlugin();
 
-    bool initialize(const QStringList &arguments, QString *errorString);
-    void extensionsInitialized();
-    ShutdownFlag aboutToShutdown();
+  bool initialize( const QStringList& arguments, QString* errorString );
+  void extensionsInitialized();
+  ShutdownFlag aboutToShutdown();
 private:
-    SpellCheckerPluginPrivate* const d;
+  SpellCheckerPluginPrivate* const d;
 };
 
 } // namespace Internal

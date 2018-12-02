@@ -27,7 +27,9 @@
 
 #include <QFuture>
 
-namespace CPlusPlus { class Overview; }
+namespace CPlusPlus {
+class Overview;
+} // namespace CPlusPlus
 
 namespace SpellChecker {
 namespace CppSpellChecker {
@@ -49,7 +51,8 @@ namespace Internal {
  * The \a newHash flag keeps track if the words were extracted in a
  * previous pass or not, meaning that they were already processed and does not
  * need to be processed further. */
-struct WordTokens {
+struct WordTokens
+{
   enum class Type {
     Comment = 0,
     Doxygen,
@@ -77,13 +80,13 @@ class CppDocumentProcessorPrivate;
  * This processor does some handling of settings, but only those that are
  * significant while working with the document. */
 class CppDocumentProcessor
-    : public QObject
+  : public QObject
 {
   Q_OBJECT
   /*! \brief Deleted copy constructor */
-  CppDocumentProcessor(const CppDocumentProcessor&) = delete;
+  CppDocumentProcessor( const CppDocumentProcessor& ) = delete;
   /*! \brief Deleted assignment operator */
-  CppDocumentProcessor& operator==(const CppDocumentProcessor&) = delete;
+  CppDocumentProcessor& operator==( const CppDocumentProcessor& ) = delete;
 public:
   /*! \brief Alias for a list of Word Tokens. */
   using WordTokenList = QVector<WordTokens>;
@@ -96,7 +99,7 @@ public:
    *    it from getting deleted while the processor still runs.
    * \param hashWords List of hashes that should be used to optimise the parsing.
    * \param cppSettings Settings that should be applied. */
-  CppDocumentProcessor(CPlusPlus::Document::Ptr documentPointer, const HashWords& hashWords, const CppParserSettings& cppSettings);
+  CppDocumentProcessor( CPlusPlus::Document::Ptr documentPointer, const HashWords& hashWords, const CppParserSettings& cppSettings );
   /*! Destructor. */
   ~CppDocumentProcessor();
 
@@ -104,18 +107,18 @@ public:
   struct ResultType
   {
     HashWords wordHashes; /*!< List of hashes extracted along with words from the hash. */
-    WordList words; /*!< Word tokens that were extracted by the processor. */
+    WordList words;       /*!< Word tokens that were extracted by the processor. */
   };
   /*! \brief Future Interface alias to simplify some typing and management. */
   using FutureIF = QFutureInterface<ResultType>;
   /*! \brief Process function that the thread will run with the future that will
    * report the result. */
-  void process(FutureIF& future);
+  void process( FutureIF& future );
 
 private:
   QStringSet getWordsThatAppearInSource() const;
-  QStringSet getListOfWordsFromSourceRecursive(const CPlusPlus::Symbol *symbol, const CPlusPlus::Overview &overview) const;
-  QStringSet getPossibleNamesFromString(const QString& string) const;
+  QStringSet getListOfWordsFromSourceRecursive( const CPlusPlus::Symbol* symbol, const CPlusPlus::Overview& overview ) const;
+  QStringSet getPossibleNamesFromString( const QString& string ) const;
 
   /*! \brief Parse a Token retrieved from the Translation Unit of the document.
    *
@@ -145,7 +148,7 @@ private:
    *              is used to extract words.
    * \return WordTokens structure containing enough information to be useful to
    *              the caller. */
-  WordTokens parseToken(const CPlusPlus::Token& token, WordTokens::Type type) const;
+  WordTokens parseToken( const CPlusPlus::Token& token, WordTokens::Type type ) const;
   /*! \brief Extract Words from the given string.
    *
    * This function takes a string, either a comment or a string literal and
@@ -160,7 +163,7 @@ private:
    *              gets handled later on, and it does not rely on a setting,
    *              it must be done always to remove noise.
    * \return Words that were extracted from the string. */
-  WordList extractWordsFromString(const QString &string, uint32_t stringStart, WordTokens::Type type) const;
+  WordList extractWordsFromString( const QString& string, uint32_t stringStart, WordTokens::Type type ) const;
   /*! \brief Check if the end of a possible word was reached.
    *
    * Utility function to check if the character at the given position is the
@@ -171,7 +174,7 @@ private:
    * \todo Check if isEndOfCurrentWord can not be re-implemented
    * using an iterator instead of an index. This would possibly require
    * rework in the calling function as well, but might be cleaner. */
-  bool isEndOfCurrentWord(const QString &comment, int currentPos) const;
+  bool isEndOfCurrentWord( const QString& comment, int currentPos ) const;
   /*! \brief Parse all macros in the document and extract string literals.
    *
    * Only macros that are functions and have arguments that are string literals
@@ -204,12 +207,12 @@ private:
    * without any more processing on the second string. The usefulness
    * of this is probably not much since strings should not normally repeat.
    * People should use the DRY principal... */
-  TmpOptional checkHash(WordTokens tokens, uint32_t hash) const;
+  TmpOptional checkHash( WordTokens tokens, uint32_t hash ) const;
 
   friend CppDocumentProcessorPrivate;
   CppDocumentProcessorPrivate* const d;
 };
 
-}
-}
-}
+} // namespace Internal
+} // namespace CppSpellChecker
+} // namespace SpellChecker

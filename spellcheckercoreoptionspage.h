@@ -30,23 +30,24 @@ namespace Internal {
 class SpellCheckerCoreSettings;
 class SpellCheckerCoreOptionsWidget;
 
-class SpellCheckerCoreOptionsPage : public Core::IOptionsPage
+class SpellCheckerCoreOptionsPage
+  : public Core::IOptionsPage
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    SpellCheckerCoreOptionsPage(SpellCheckerCoreSettings* settings, QObject *parent = 0);
-    virtual ~SpellCheckerCoreOptionsPage();
+  SpellCheckerCoreOptionsPage( SpellCheckerCoreSettings* settings, QObject* parent = 0 );
+  virtual ~SpellCheckerCoreOptionsPage();
 
-    bool matches(const QString &searchKeyWord) const;
-    QWidget *widget();
-    void apply();
-    void finish();
+  bool matches( const QString& searchKeyWord ) const;
+  QWidget* widget();
+  void apply();
+  void finish();
 signals:
 
 public slots:
 private:
-    SpellCheckerCoreSettings* const m_settings;
-    QPointer<SpellCheckerCoreOptionsWidget> m_widget;
+  SpellCheckerCoreSettings* const m_settings;
+  QPointer<SpellCheckerCoreOptionsWidget> m_widget;
 };
 
 } // namespace Internal

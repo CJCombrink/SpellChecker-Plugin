@@ -27,7 +27,9 @@
 
 #include <QObject>
 
-namespace Core { class IOptionsPage; }
+namespace Core {
+class IOptionsPage;
+} // namespace Core
 
 namespace SpellChecker {
 
@@ -39,52 +41,53 @@ namespace SpellChecker {
  * The document parsers must implement the functionality to check a list of files
  * as well as a single file. For the
  */
-class IDocumentParser : public QObject
+class IDocumentParser
+  : public QObject
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    IDocumentParser(QObject *parent = nullptr);
-    virtual ~IDocumentParser() Q_DECL_OVERRIDE;
-    virtual QString displayName() = 0;
-    virtual Core::IOptionsPage* optionsPage() = 0;
+  IDocumentParser( QObject* parent = nullptr );
+  virtual ~IDocumentParser() Q_DECL_OVERRIDE;
+  virtual QString displayName() = 0;
+  virtual Core::IOptionsPage* optionsPage() = 0;
 
-    static bool isReservedWord(const QString &word);
-    static void getWordsFromSplitString(const QStringList& stringList, const Word& word, WordList& wordList);
-    static void removeWordsThatAppearInSource(const QStringSet &wordsInSource, WordList &words);
+  static bool isReservedWord( const QString& word );
+  static void getWordsFromSplitString( const QStringList& stringList, const Word& word, WordList& wordList );
+  static void removeWordsThatAppearInSource( const QStringSet& wordsInSource, WordList& words );
 protected:
 signals:
-    void spellcheckWordsParsed(const QString& fileName, const SpellChecker::WordList& wordlist);
+  void spellcheckWordsParsed( const QString& fileName, const SpellChecker::WordList& wordlist );
 
 public slots:
-    /*! Slot that will get called when the current editor changes.
-     * If the parser needs to know about the current editor, it should
-     * implement this function.
-     * \note Because of the Qt Signals and slots magic the implementation
-     * of this slot does not have to be a slot for the function to get
-     * called when the editor changes.
-     * \param[in] editorFilePath File path of the current editor. This
-     *      can be empty if there is no current editor. */
-    virtual void setCurrentEditor(const QString& editorFilePath) { Q_UNUSED(editorFilePath) }
-    /*! Slot that will get called when the active project changes.
-     * The active project in Qt Creator is the current project selected as
-     * the "Active Project", or otherwise referred to as the startup project.
-     * \note Because of the Qt Signals and slots magic the implementation
-     * of this slot does not have to be a slot for the function to get
-     * called when the editor changes.
-     * When the active project changes, it might be necessary to re-parse the files
-     * int the current active project.
-     * \param[in] activeProject Project pointer to the current Active
-     *      project. */
-    virtual void setActiveProject(ProjectExplorer::Project* activeProject) { Q_UNUSED(activeProject) }
-    /*! Slot that will get called when the source files in the current
-     * project changes.
-     *
-     * This slot is only for convenience, it is called after the core handled
-     * the ProjectExplorer::ProjectExplorerPlugin::fileListChanged() signal.
-     * The core will already get all the source files from the explorer,
-     * and then it is passed to the parsers. The parsers then does not need
-     * to get the source files as well. */
-    virtual void updateProjectFiles(QStringSet filesAdded, QStringSet filesRemoved) { Q_UNUSED(filesAdded) Q_UNUSED(filesRemoved) }
+  /*! Slot that will get called when the current editor changes.
+   * If the parser needs to know about the current editor, it should
+   * implement this function.
+   * \note Because of the Qt Signals and slots magic the implementation
+   * of this slot does not have to be a slot for the function to get
+   * called when the editor changes.
+   * \param[in] editorFilePath File path of the current editor. This
+   *      can be empty if there is no current editor. */
+  virtual void setCurrentEditor( const QString& editorFilePath ) { Q_UNUSED( editorFilePath ) }
+  /*! Slot that will get called when the active project changes.
+   * The active project in Qt Creator is the current project selected as
+   * the "Active Project", or otherwise referred to as the startup project.
+   * \note Because of the Qt Signals and slots magic the implementation
+   * of this slot does not have to be a slot for the function to get
+   * called when the editor changes.
+   * When the active project changes, it might be necessary to re-parse the files
+   * int the current active project.
+   * \param[in] activeProject Project pointer to the current Active
+   *      project. */
+  virtual void setActiveProject( ProjectExplorer::Project* activeProject ) { Q_UNUSED( activeProject ) }
+  /*! Slot that will get called when the source files in the current
+   * project changes.
+   *
+   * This slot is only for convenience, it is called after the core handled
+   * the ProjectExplorer::ProjectExplorerPlugin::fileListChanged() signal.
+   * The core will already get all the source files from the explorer,
+   * and then it is passed to the parsers. The parsers then does not need
+   * to get the source files as well. */
+  virtual void updateProjectFiles( QStringSet filesAdded, QStringSet filesRemoved ) { Q_UNUSED( filesAdded ) Q_UNUSED( filesRemoved ) }
 };
 
 } // namespace SpellChecker
