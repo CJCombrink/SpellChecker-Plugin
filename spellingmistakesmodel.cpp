@@ -18,9 +18,9 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+#include "spellcheckerconstants.h"
 #include "spellingmistakesmodel.h"
 #include "Word.h"
-#include "spellcheckerconstants.h"
 
 #include <QDir>
 

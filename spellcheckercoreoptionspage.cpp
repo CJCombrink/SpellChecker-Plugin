@@ -18,10 +18,10 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#include "spellcheckercoreoptionspage.h"
-#include "spellcheckercoresettings.h"
-#include "spellcheckercoreoptionswidget.h"
 #include "spellcheckerconstants.h"
+#include "spellcheckercoreoptionspage.h"
+#include "spellcheckercoreoptionswidget.h"
+#include "spellcheckercoresettings.h"
 
 using namespace SpellChecker::Internal;
 

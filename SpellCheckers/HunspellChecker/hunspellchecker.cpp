@@ -19,8 +19,8 @@
 ****************************************************************************/
 
 #include "hunspellchecker.h"
-#include "HunspellConstants.h"
 #include "hunspelloptionswidget.h"
+#include "HunspellConstants.h"
 
 #include "../../spellcheckerconstants.h"
 
@@ -31,8 +31,8 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QSharedPointer>
 #include <QMutex>
+#include <QSharedPointer>
 #include <QTextCodec>
 
 typedef QSharedPointer< ::Hunspell> HunspellPtr;

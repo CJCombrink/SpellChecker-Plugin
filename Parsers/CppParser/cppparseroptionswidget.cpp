@@ -18,10 +18,10 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#include "cppparseroptionswidget.h"
-#include "ui_cppparseroptionswidget.h"
-#include "cppparsersettings.h"
 #include "cppparserconstants.h"
+#include "cppparseroptionswidget.h"
+#include "cppparsersettings.h"
+#include "ui_cppparseroptionswidget.h"
 
 namespace SpellChecker {
 namespace CppSpellChecker {

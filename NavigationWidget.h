@@ -22,11 +22,11 @@
 
 #include "ProjectMistakesModel.h"
 
-#include <utils/itemviews.h>
 #include <coreplugin/inavigationwidgetfactory.h>
+#include <utils/itemviews.h>
 
-#include <QTableView>
 #include <QStyledItemDelegate>
+#include <QTableView>
 
 namespace Core {
 class IEditor;

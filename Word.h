@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include <QString>
-#include <QMultiHash>
 #include <QDebug>
+#include <QMultiHash>
+#include <QString>
 #include <QStringList>
 
 namespace SpellChecker {

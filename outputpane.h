@@ -24,8 +24,8 @@
 
 #include <coreplugin/ioutputpane.h>
 
-#include <QStyledItemDelegate>
 #include <QItemDelegate>
+#include <QStyledItemDelegate>
 #include <QTreeView>
 
 QT_BEGIN_NAMESPACE

@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "cppparsersettings.h"
 #include <QWidget>
+#include "cppparsersettings.h"
 
 namespace SpellChecker {
 namespace CppSpellChecker {

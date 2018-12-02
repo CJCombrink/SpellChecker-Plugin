@@ -22,9 +22,9 @@
 
 #include "Word.h"
 
+#include <QFutureInterface>
 #include <QObject>
 #include <QSettings>
-#include <QFutureInterface>
 
 namespace SpellChecker {
 

@@ -18,11 +18,11 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#include "cppdocumentprocessor.h"
 #include "cppdocumentparser.h"
+#include "cppdocumentprocessor.h"
 
-#include <cppeditor/cppeditordocument.h>
 #include <cplusplus/Overview.h>
+#include <cppeditor/cppeditordocument.h>
 #include <cpptools/cppdoxygen.h>
 
 using namespace SpellChecker;

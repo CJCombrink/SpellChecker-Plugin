@@ -22,8 +22,8 @@
 
 #include "Word.h"
 
-#include <projectexplorer/projectexplorer.h>
 #include <coreplugin/editormanager/ieditor.h>
+#include <projectexplorer/projectexplorer.h>
 
 #include <QObject>
 

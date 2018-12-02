@@ -18,9 +18,9 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#include <cppeditor/cppeditor.h>
-#include "spellcheckquickfix.h"
 #include "spellcheckercore.h"
+#include "spellcheckquickfix.h"
+#include <cppeditor/cppeditor.h>
 
 using namespace SpellChecker;
 

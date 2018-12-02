@@ -18,36 +18,36 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+#include "../../spellcheckerconstants.h"
 #include "../../spellcheckercore.h"
 #include "../../spellcheckercoresettings.h"
-#include "../../spellcheckerconstants.h"
 #include "../../Word.h"
 #include "cppdocumentparser.h"
-#include "cppparsersettings.h"
-#include "cppparseroptionspage.h"
-#include "cppparserconstants.h"
 #include "cppdocumentprocessor.h"
+#include "cppparserconstants.h"
+#include "cppparseroptionspage.h"
+#include "cppparsersettings.h"
 
-#include <coreplugin/icore.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/icore.h>
 #include <coreplugin/progressmanager/progressmanager.h>
-#include <cpptools/cppmodelmanager.h>
-#include <cpptools/cpptoolsreuse.h>
 #include <cppeditor/cppeditorconstants.h>
 #include <cppeditor/cppeditordocument.h>
-#include <texteditor/texteditor.h>
-#include <texteditor/syntaxhighlighter.h>
+#include <cpptools/cppmodelmanager.h>
+#include <cpptools/cpptoolsreuse.h>
 #include <projectexplorer/project.h>
 #include <projectexplorer/session.h>
+#include <texteditor/syntaxhighlighter.h>
+#include <texteditor/texteditor.h>
 #include <utils/algorithm.h>
 #include <utils/mimetypes/mimedatabase.h>
 #include <utils/runextensions.h>
 
-#include <QRegularExpression>
-#include <QTextBlock>
 #include <QApplication>
 #include <QFutureWatcher>
+#include <QRegularExpression>
+#include <QTextBlock>
 
 /*! \brief Testing assert that should be used during debugging
  * but should not be made part of a release. */

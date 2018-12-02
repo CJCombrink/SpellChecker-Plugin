@@ -18,43 +18,43 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#include "spellcheckercore.h"
 #include "idocumentparser.h"
 #include "ISpellChecker.h"
+#include "NavigationWidget.h"
 #include "outputpane.h"
-#include "spellingmistakesmodel.h"
+#include "spellcheckerconstants.h"
+#include "spellcheckercore.h"
 #include "spellcheckercoreoptionspage.h"
 #include "spellcheckercoresettings.h"
-#include "spellcheckerconstants.h"
+#include "spellingmistakesmodel.h"
 #include "suggestionsdialog.h"
-#include "NavigationWidget.h"
 
 #include <coreplugin/icore.h>
 #include <projectexplorer/projectexplorer.h>
 #include <projectexplorer/session.h>
 
-#include <coreplugin/icore.h>
-#include <coreplugin/idocument.h>
-#include <coreplugin/editormanager/ieditor.h>
+#include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
-#include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
-#include <texteditor/texteditor.h>
+#include <coreplugin/editormanager/ieditor.h>
+#include <coreplugin/icore.h>
+#include <coreplugin/idocument.h>
 #include <cpptools/cppmodelmanager.h>
-#include <utils/runextensions.h>
+#include <texteditor/texteditor.h>
 #include <utils/algorithm.h>
 #include <utils/fadingindicator.h>
+#include <utils/runextensions.h>
 
-#include <QPointer>
-#include <QMouseEvent>
-#include <QTextCursor>
-#include <QMenu>
-#include <QtConcurrent>
 #include <QFuture>
 #include <QFutureWatcher>
+#include <QMenu>
+#include <QMouseEvent>
 #include <QMutex>
+#include <QPointer>
+#include <QtConcurrent>
 #include <QTextBlock>
+#include <QTextCursor>
 
 using FutureWatcherMap     = QMap<QFutureWatcher<SpellChecker::WordList>*, QString>;
 using FutureWatcherMapIter = FutureWatcherMap::Iterator;

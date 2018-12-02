@@ -25,11 +25,11 @@
 #include <coreplugin/idocument.h>
 #include <utils/utilsicons.h>
 
+#include <QActionGroup>
 #include <QHeaderView>
+#include <QMenu>
 #include <QPainter>
 #include <QToolButton>
-#include <QActionGroup>
-#include <QMenu>
 
 using namespace SpellChecker::Internal;
 

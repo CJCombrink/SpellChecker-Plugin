@@ -18,11 +18,11 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#include "spellcheckercoreoptionswidget.h"
-#include "ui_spellcheckercoreoptionswidget.h"
-#include "spellcheckercoresettings.h"
-#include "spellcheckercore.h"
 #include "ISpellChecker.h"
+#include "spellcheckercore.h"
+#include "spellcheckercoreoptionswidget.h"
+#include "spellcheckercoresettings.h"
+#include "ui_spellcheckercoreoptionswidget.h"
 
 #include <utils/utilsicons.h>
 

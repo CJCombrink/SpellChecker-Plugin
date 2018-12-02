@@ -19,24 +19,24 @@
 ****************************************************************************/
 
 #include "outputpane.h"
+#include "spellcheckerconstants.h"
 #include "spellcheckercore.h"
 #include "spellingmistakesmodel.h"
-#include "spellcheckerconstants.h"
 
-#include <coreplugin/icore.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
+#include <coreplugin/icore.h>
 #include <utils/utilsicons.h>
 
-#include <QTreeView>
-#include <QHeaderView>
-#include <QToolButton>
 #include <QApplication>
-#include <QFileInfo>
 #include <QCheckBox>
+#include <QFileInfo>
 #include <QHBoxLayout>
+#include <QHeaderView>
 #include <QPushButton>
 #include <QSpacerItem>
+#include <QToolButton>
+#include <QTreeView>
 
 class SpellChecker::Internal::OutputPanePrivate
 {

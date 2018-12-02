@@ -18,12 +18,12 @@
 ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#include "spellcheckerplugin.h"
+#include "NavigationWidget.h"
+#include "outputpane.h"
 #include "spellcheckerconstants.h"
 #include "spellcheckercore.h"
+#include "spellcheckerplugin.h"
 #include "spellcheckquickfix.h"
-#include "outputpane.h"
-#include "NavigationWidget.h"
 
 /* SpellCheckers */
 #include "SpellCheckers/HunspellChecker/hunspellchecker.h"
@@ -32,19 +32,19 @@
 #include "Parsers/CppParser/cppdocumentparser.h"
 #include "Parsers/CppParser/cppparsersettings.h"
 
-#include <coreplugin/dialogs/ioptionspage.h>
-#include <coreplugin/icore.h>
-#include <coreplugin/icontext.h>
+#include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
-#include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
+#include <coreplugin/dialogs/ioptionspage.h>
+#include <coreplugin/icontext.h>
+#include <coreplugin/icore.h>
 #include <texteditor/texteditorconstants.h>
 
 #include <QAction>
-#include <QMessageBox>
 #include <QMainWindow>
 #include <QMenu>
+#include <QMessageBox>
 
 #include <QtPlugin>
 

@@ -19,8 +19,8 @@
  ** along with the SpellChecker Plugin.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#include "cppparsersettings.h"
 #include "cppparserconstants.h"
+#include "cppparsersettings.h"
 
 #include "../../spellcheckerconstants.h"
 

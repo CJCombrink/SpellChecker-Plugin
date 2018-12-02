@@ -19,8 +19,8 @@
 ****************************************************************************/
 
 #include "cppparseroptionspage.h"
-#include "cppparsersettings.h"
 #include "cppparseroptionswidget.h"
+#include "cppparsersettings.h"
 
 using namespace SpellChecker::CppSpellChecker::Internal;
 
