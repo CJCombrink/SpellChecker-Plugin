@@ -78,7 +78,7 @@ void CppDocumentProcessor::process( CppDocumentProcessor::FutureIF& future )
   SP_CHECK( docPtr.isNull() == false );
   SP_CHECK( trUnit != nullptr );
   QStringSet wordsInSource;
-  CppDocumentProcessor::WordTokenList wordTokens;
+  QVector<WordTokens> wordTokens;
   /* If the setting is set to remove words from the list based on words found in the source,
    * parse the source file and then remove all words found in the source files from the list
    * of words that will be checked. */

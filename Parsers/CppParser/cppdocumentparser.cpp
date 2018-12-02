@@ -68,10 +68,219 @@ const char TASK_INDEX[] = "SpellChecker.Task.CppParse";
 // --------------------------------------------------
 // --------------------------------------------------
 // --------------------------------------------------
+/*! \brief Wrapper for HashWords to ensure proper locking.
+ *
+ * Even after a lot of diligence and effort there were still threading
+ * issues with some container. For this reason it was decided to add
+ * wrappers around some aspects to try and force proper usage.
+ *
+ * This should allow for better maintainability by removing the burden of
+ * locking from the user completely and placing it on the maintainer of this
+ * class. */
+class LockedTokenHash
+{
+  LockedTokenHash( const LockedTokenHash& other )      = delete;
+  LockedTokenHash& operator=( const LockedTokenHash& ) = delete;
+public:
+  /*! \brief Constructor. */
+  LockedTokenHash() = default;
+  /*! \brief Get a copy of the HashWords. */
+  HashWords get() const
+  {
+    QMutexLocker locker( &d_mutex );
+    HashWords words = d_tokenHashes;
+    return words;
+  }
+  /*! \brief Clear the hash words.
+   *
+   * This function can probably be removed since one can clear
+   * the hash using the assignment operator with an empty hash, but
+   * for clearness sake the function is kept. */
+  void clear()
+  {
+    QMutexLocker locker( &d_mutex );
+    d_tokenHashes.clear();
+  }
+  /*! \brief Assign a HashWords to the internal hashes. */
+  void operator=( const HashWords& other )
+  {
+    QMutexLocker locker( &d_mutex );
+    d_tokenHashes = other;
+  }
 
-using FutureWatcherMap     = QMap<QFutureWatcher<CppDocumentProcessor::ResultType>*, QString>;
-using FutureWatcherMapIter = FutureWatcherMap::Iterator;
+private:
+  HashWords d_tokenHashes; /*!< The HashWords that are protected. */
+  mutable QMutex d_mutex;  /*!< The lock that guards the hashes. */
+};
 
+/*! \brief The ProgressNotification Wrapper.
+ *
+ * Even after a lot of diligence and effort there were still threading
+ * issues with some container. For this reason it was decided to add
+ * wrappers around some aspects to try and force proper usage.
+ *
+ * This wrapper wraps the QFutureInterface used for progress notifications.
+ * The wrapper uses the update() function to create or destroy the future
+ * as needed.
+ *
+ * This wrapper will probably be added to its own header for re-use if
+ * notifications gets added to other parts of the plugin. */
+class ProgressNotification
+{
+  ProgressNotification( const ProgressNotification& )            = delete;
+  ProgressNotification& operator=( const ProgressNotification& ) = delete;
+public:
+  /*! \brief Constructor. */
+  ProgressNotification() = default;
+  /*! \brief Destructor.
+   *
+   * The destructor will ensure that the future gets cancelled before
+   * destroying it. */
+  ~ProgressNotification()
+  {
+    cancel();
+  }
+  /*! \brief Update the progress indicator.
+   *
+   * Use the supplied arguments along with the current state of the indicator
+   * to update the progress.
+   *
+   * If there are enough files outstanding and the indicator does not exist it
+   * will be created. If there are not enough outstanding and in progress,
+   * the indicator will be removed. If the indicator exists, it will be updated.
+   * The "enough" is a hard coded, thumb-sucked value...
+   *
+   * \param filesInProject Total files that must be processed.
+   * \param outstanding Number of files that must still be processed.
+   * \param inProcess Number of files that are currently in process. */
+  void update( int32_t filesInProject, int32_t outstanding, int32_t inProcess )
+  {
+    /* Thumb-suck value to decide when the future should be created and
+     * when it should be destroyed. */
+    constexpr int32_t cFILE_OUT_COUNT = 10;
+    QMutexLocker locker( &d_mutex );
+    /* If there are more than 10 files in the waiting queue, create a progress
+     * notification. */
+    if( ( outstanding > cFILE_OUT_COUNT )
+        && ( d_progressObject == nullptr ) ) {
+      d_progressObject = std::make_unique<QFutureInterface<void>>();
+      d_progressObject->setProgressRange( 0, filesInProject );
+      /* Add the task. The title and type will become constructor arguments
+       * when this class gets generalised. */
+      Core::ProgressManager::addTask( d_progressObject->future(), CppDocumentParser::tr( "SpellChecker: Parse C/C++ Files" ), TASK_INDEX );
+      d_progressObject->reportStarted();
+      /* Update the progress here and return immediately.
+       * This is done to prevent the check below that should be unnecessary
+       * since the object will be valid and should not be deleted. */
+      d_progressObject->setProgressValue( filesInProject - outstanding - inProcess );
+      return;
+    }
+
+    /* If there is a progress notification, update it */
+    if( d_progressObject != nullptr ) {
+      d_progressObject->setProgressRange( 0, filesInProject );
+      d_progressObject->setProgressValue( filesInProject - outstanding - inProcess );
+      if( ( outstanding + inProcess ) < cFILE_OUT_COUNT ) {
+        /* All done, remove the progress notification. */
+        d_progressObject->reportFinished();
+        d_progressObject.reset();
+      }
+    }
+  }
+  /*! \brief Cancel the notification and destroy the future. */
+  void cancel()
+  {
+    QMutexLocker locker( &d_mutex );
+    /* If there is a progress report, cancel it. */
+    if( d_progressObject != nullptr ) {
+      d_progressObject->reportCanceled();
+      d_progressObject.reset();
+    }
+  }
+
+private:
+  using ProgressObjPtr = std::unique_ptr<QFutureInterface<void>>;
+  ProgressObjPtr d_progressObject; /*!< The progress object. */
+  mutable QMutex d_mutex;          /*!< The lock that guards the future. */
+};
+
+/*! \brief List of Future Watchers that are created.
+ *
+ * Even after a lot of diligence and effort there were still threading
+ * issues with some container. For this reason it was decided to add
+ * wrappers around some aspects to try and force proper usage.
+ *
+ * This wrapper wraps a map containing future watchers that watch the
+ * processor objects.
+ *
+ * An added benefit to proper protection is that once can also change the
+ * storage type of the watchers without having to change the users. */
+class FutureWatchers
+{
+  /* Using declarations to simplify the code a bit. */
+  using FutureWatcher        = CppDocumentProcessor::WatcherPtr;
+  using FutureWatcherMap     = QMap<FutureWatcher, QString>;
+  using FutureWatcherMapIter = FutureWatcherMap::Iterator;
+  /* Prevent copy and assignment */
+  FutureWatchers( const FutureWatchers& )            = delete;
+  FutureWatchers& operator=( const FutureWatchers& ) = delete;
+public:
+  /*! \brief Constructor. */
+  FutureWatchers() = default;
+  /*! \brief Add a new \a watcher and with its \a fileName. */
+  void add( CppDocumentProcessor::WatcherPtr watcher, const QString& fileName )
+  {
+    QMutexLocker locker( &d_mutex );
+    d_futureWatchers.insert( watcher, fileName );
+  }
+  /*! \brief Remove a watcher.
+   *
+   * This function will remove the watcher if it is in the list of
+   * watchers. If it was found, the name of the associated file
+   * will be returned. If it was not found, the name will be empty.
+   *
+   * The reason for returning the name is due to the way that this
+   * object is used. This is probably bad design, but good for speed
+   * compared to first getting the associated name and then calling
+   * remove */
+  QString remove( CppDocumentProcessor::WatcherPtr watcher )
+  {
+    QMutexLocker locker( &d_mutex );
+    QString fileName;
+    /* Get the file name associated with this future and the misspelled
+     * words. */
+    FutureWatcherMapIter iter = d_futureWatchers.find( watcher );
+    SP_CHECK( iter != d_futureWatchers.end() );
+    if( iter != d_futureWatchers.end() ) {
+      fileName = iter.value();
+      d_futureWatchers.erase( iter );
+    }
+    return fileName;
+  }
+  /*! \brief Cancel all futures.
+   *
+   * This function will block until all futures that were cancelled
+   * have finished. The function will also remove all futures from the
+   * list of futures. */
+  void cancell()
+  {
+    QMutexLocker locker( &d_mutex );
+    for( FutureWatcherMapIter iter = d_futureWatchers.begin(); iter != d_futureWatchers.end(); ++iter ) {
+      /* Can't use range for or std::for_each due to the way that a Qt QMap works... */
+      iter.key()->cancel();
+    }
+    for( FutureWatcherMapIter iter = d_futureWatchers.begin(); iter != d_futureWatchers.end(); ++iter ) {
+      /* Can't use range for or std::for_each due to the way that a Qt QMap works... */
+      iter.key()->waitForFinished();
+    }
+    d_futureWatchers.clear();
+  }
+private:
+  FutureWatcherMap d_futureWatchers; /*!< Map of watchers that should be guarded. */
+  mutable QMutex d_mutex;            /*!< The lock that guards the map. */
+};
+
+/*! \brief PIMPL of the CppDocumentParser object. */
 class CppDocumentParserPrivate
 {
 public:
@@ -81,40 +290,48 @@ public:
   CppParserSettings* settings;
   QStringSet filesInStartupProject;
   // --
-  QMutex fileQeueMutex;
-  std::set<QString> filesToUpdate;        /*!< Files added to the waiting queue
-                                           * that must still be parsed. The
-                                           * CppModelManager must still be instructed
-                                           * to parse these files. The idea is not to
-                                           * instruct too many at a time since this
-                                           * can be an issue for large projects.
-                                           * A std::set was used to make threading
-                                           * issues clear, compared to a QSet with
-                                           * COW that hides this (and introduces
-                                           * confusion). */
-  std::set<QString> filesInProcess;       /*!< Files that are in process of being
-                                           * parsed. Either the CppModelManager was
-                                           * instructed to parse the file or there is
-                                           * already a future parsing the file.
-                                           * See above for why a std::set was used. */
-
-  HashWords tokenHashes;
-  QMutex futureMutex;
-  FutureWatcherMap futureWatchers;        /*!< List of future watchers created. This
-                                           * list is used to cancel the futures as needed
-                                           * for example when the application closes down,
-                                           * the project changes or the settings changes. */
-
-  QFutureInterface<void>* progressObject; /*!< The object pointer for the
-                                           * progress indication. It will get
-                                           * created and destroyed as needed
-                                           * by the parser. */
+  QMutex fileQeueMutex;                /*!< Mutex protecting the filesToUpdate and filesInProcess
+                                        * sets. This should also be added to a wrapper, but for
+                                        * now this will be skipped. */
+  std::set<QString> filesToUpdate;     /*!< Files added to the waiting queue
+                                        * that must still be parsed. The
+                                        * CppModelManager must still be instructed
+                                        * to parse these files. The idea is not to
+                                        * instruct too many at a time since this
+                                        * can be an issue for large projects.
+                                        * A std::set was used to make threading
+                                        * issues clear, compared to a QSet with
+                                        * COW that hides this (and introduces
+                                        * confusion). */
+  std::set<QString> filesInProcess;    /*!< Files that are in process of being
+                                        * parsed. Either the CppModelManager was
+                                        * instructed to parse the file or there is
+                                        * already a future parsing the file.
+                                        * See above for why a std::set was used. */
+  LockedTokenHash tokenHashes;         /*!< Tokens and their hashes that are
+                                        * used to speed up processing the
+                                        * current file. The hashes of tokens
+                                        * (comments, literals, etc.) and their
+                                        * words are kept so that if the same token
+                                        * is encountered, the words can be reused
+                                        * without needing to process the token
+                                        * again. */
+  FutureWatchers futureWatchers;       /*!< List of future watchers created. This
+                                        * list is used to cancel the futures as needed
+                                        * for example when the application closes down,
+                                        * the project changes or the settings changes. */
+  ProgressNotification progressObject; /*!< The object pointer for the
+                                        * progress indication. It will get
+                                        * created and destroyed as needed
+                                        * by the parser. */
 
   CppDocumentParserPrivate()
     : activeProject( nullptr )
     , currentEditorFileName()
+    , optionsPage( nullptr )
+    , settings( nullptr )
     , filesInStartupProject()
-    , progressObject( nullptr )
+    , progressObject()
   {}
 
   /*! \brief Get all C++ files from the \a list of files.
@@ -126,7 +343,7 @@ public:
    * custom MIME Type added by this plugin. */
   QStringSet getCppFiles( const QStringSet& list )
   {
-    const QStringSet filteredList = Utils::filtered( list, []( const QString& file ) {
+    return Utils::filtered( list, []( const QString& file ) {
             const CppTools::ProjectFile::Kind kind = CppTools::ProjectFile::classify( file );
             switch( kind ) {
               case CppTools::ProjectFile::Unclassified:
@@ -145,8 +362,6 @@ public:
                 return true;
             }
           } );
-
-    return filteredList;
   }
   // ------------------------------------------
 
@@ -176,14 +391,14 @@ CppDocumentParser::CppDocumentParser( QObject* parent )
   /* Create the settings for this parser */
   d->settings = new SpellChecker::CppSpellChecker::Internal::CppParserSettings();
   d->settings->loadFromSettings( Core::ICore::settings() );
-  connect( d->settings,                              &CppParserSettings::settingsChanged,                                this, &CppDocumentParser::settingsChanged );
+  connect(                d->settings,               &CppParserSettings::settingsChanged,                                this, &CppDocumentParser::settingsChanged );
   connect( SpellCheckerCore::instance()->settings(), &SpellChecker::Internal::SpellCheckerCoreSettings::settingsChanged, this, &CppDocumentParser::settingsChanged );
   /* Crete the options page for the parser */
   d->optionsPage = new CppParserOptionsPage( d->settings, this );
 
   CppTools::CppModelManager* modelManager = CppTools::CppModelManager::instance();
   connect( modelManager, &CppTools::CppModelManager::documentUpdated, this, &CppDocumentParser::parseCppDocumentOnUpdate, Qt::DirectConnection );
-  connect( qApp,         &QApplication::aboutToQuit,                  this, [=]() {
+  connect(         qApp, &QApplication::aboutToQuit,                  this, [=]() {
           /* Disconnect any signals that might still get emitted. */
           modelManager->disconnect( this );
           SpellCheckerCore::instance()->disconnect( this );
@@ -302,34 +517,14 @@ void CppDocumentParser::settingsChanged()
 }
 // --------------------------------------------------
 
-void CppDocumentParser::cancelFutures()
-{
-  QMutexLocker locker( &d->futureMutex );
-  for( FutureWatcherMapIter iter = d->futureWatchers.begin(); iter != d->futureWatchers.end(); ++iter ) {
-    /* Can't use range for or std::for_each due to the way that a Qt QMap works... */
-    iter.key()->cancel();
-  }
-  for( FutureWatcherMapIter iter = d->futureWatchers.begin(); iter != d->futureWatchers.end(); ++iter ) {
-    /* Can't use range for or std::for_each due to the way that a Qt QMap works... */
-    iter.key()->waitForFinished();
-  }
-  d->futureWatchers.clear();
-}
-// --------------------------------------------------
-
 void CppDocumentParser::reparseProject()
 {
-  /* Need to cancel all futures in process. */
-  cancelFutures();
-
+  /* Need to cancel all futures in process.
+   * This function call will block until all are cancelled and done. */
+  d->futureWatchers.cancell();
+  /* Clear other members. */
   d->filesInStartupProject.clear();
-
-  /* If there is a progress report, cancel it. */
-  if( d->progressObject != nullptr ) {
-    d->progressObject->reportCanceled();
-    delete d->progressObject;
-    d->progressObject = nullptr;
-  }
+  d->progressObject.cancel();
 
   /* No active project, do nothing */
   if( d->activeProject == nullptr ) {
@@ -380,31 +575,7 @@ void CppDocumentParser::queueFilesForUpdate()
     filesInProcess   = d->filesInProcess.size();
   }
 
-  /* If there are more than 10 files in the waiting queue, create a progress
-   * notification. */
-  if( ( filesOutstanding > 10 )
-      && ( d->progressObject == nullptr ) ) {
-    d->progressObject = new QFutureInterface<void>;
-    d->progressObject->setProgressRange( 0, d->filesInStartupProject.count() );
-    Core::ProgressManager::addTask( d->progressObject->future(), tr( "SpellChecker: Parse C/C++ Files" ), TASK_INDEX );
-    d->progressObject->reportStarted();
-  }
-
-  /* If there is a progress notification, update it */
-  if( d->progressObject != nullptr ) {
-    const int32_t filesInProject = d->filesInStartupProject.count();
-    const int32_t outstanding    = int32_t( filesOutstanding );
-    const int32_t inProcess      = int32_t( filesInProcess );
-
-    d->progressObject->setProgressRange( 0, filesInProject );
-    d->progressObject->setProgressValue( filesInProject - outstanding - inProcess );
-    if( ( outstanding + inProcess ) == 0 ) {
-      /* All done, remove the progress notification. */
-      d->progressObject->reportFinished();
-      delete d->progressObject;
-      d->progressObject = nullptr;
-    }
-  }
+  d->progressObject.update( d->filesInStartupProject.count(), filesOutstanding, filesInProcess );
 
   modelManager->updateSourceFiles( filesToUpdate );
 }
@@ -435,32 +606,24 @@ void CppDocumentParser::futureFinished()
   /* Get the watcher from the sender() of the signal that invoked this slot.
    * reinterpret_cast is used since qobject_cast is not valid of template
    * classes since the template class does not have the Q_OBJECT macro. */
-  QFutureWatcher<CppDocumentProcessor::ResultType>* watcher = reinterpret_cast<QFutureWatcher<CppDocumentProcessor::ResultType>*>( sender() );
+  auto watcher = reinterpret_cast<CppDocumentProcessor::WatcherPtr>( sender() );
   SP_CHECK( watcher != nullptr );
   if( watcher->isCanceled() == true ) {
-    /* Application is shutting down or settings changed etc. */
+    /* Application is shutting down or settings changed etc.
+     * If a watcher was cancelled, it would already be removed out of
+     * the list of watchers, thus no need to do anything more. */
     return;
   }
   const CppDocumentProcessor::ResultType result = watcher->result();
 
-  QString fileName;
-  {
-    QMutexLocker locker( &d->futureMutex );
-    /* Get the file name associated with this future and the misspelled
-     * words. */
-    FutureWatcherMapIter iter = d->futureWatchers.find( watcher );
-    if( iter == d->futureWatchers.end() ) {
-      return;
-    }
-    fileName = iter.value();
-    d->futureWatchers.erase( iter );
+  const QString fileName = d->futureWatchers.remove( watcher );
+  if( fileName == d->currentEditorFileName ) {
+    /* Move the new list of hashes to the member data so that
+     * it can be used the next time around. Move is made explicit since
+     * the LHS can be removed and the RHS will not be used again from
+     * here on. */
+    d->tokenHashes = std::move( result.wordHashes );
   }
-
-  /* Move the new list of hashes to the member data so that
-   * it can be used the next time around. Move is made explicit since
-   * the LHS can be removed and the RHS will not be used again from
-   * here on. */
-  d->tokenHashes = std::move( result.wordHashes );
 
   {
     QMutexLocker locker( &d->fileQeueMutex );
@@ -482,12 +645,18 @@ void CppDocumentParser::aboutToQuit()
 
 void CppDocumentParser::parseCppDocument( CPlusPlus::Document::Ptr docPtr )
 {
-  const QString fileName = docPtr->fileName();
+  using Watcher    = CppDocumentProcessor::Watcher;
+  using WatcherPtr = CppDocumentProcessor::WatcherPtr;
   using ResultType = CppDocumentProcessor::ResultType;
+  const QString fileName = docPtr->fileName();
+  HashWords hashes;
+  if( fileName == d->currentEditorFileName ) {
+    hashes = d->tokenHashes.get();
+  }
   /* Create a document parser and move it to the main thread.
    * Not sure if this is required but it seemed like a good
    * idea since this will be in a QThreadPool thread. */
-  CppDocumentProcessor* parser = new CppDocumentProcessor( docPtr, d->tokenHashes, *d->settings );
+  CppDocumentProcessor* parser = new CppDocumentProcessor( docPtr, hashes, *d->settings );
   parser->moveToThread( qApp->thread() );
   /* Reset the document pointer so that it can be released as soon as it is
    * done in the processor. The processor makes its own copy to keep it
@@ -499,12 +668,12 @@ void CppDocumentParser::parseCppDocument( CPlusPlus::Document::Ptr docPtr )
    * NB: The moveToThread() call is vital. If the future is not in the
    * main thread, the finished() signals will not be delivered and the
    * processing does not work. */
-  QFutureWatcher<ResultType>* watcher = new QFutureWatcher<ResultType>();
+  WatcherPtr watcher = new Watcher();
   watcher->moveToThread( qApp->thread() );
-  connect( watcher, &QFutureWatcher<ResultType>::finished, this,   &CppDocumentParser::futureFinished, Qt::QueuedConnection );
-  connect( watcher, &QFutureWatcher<ResultType>::finished, parser, &CppDocumentProcessor::deleteLater );
+  connect( watcher, &Watcher::finished, this,   &CppDocumentParser::futureFinished, Qt::QueuedConnection );
+  connect( watcher, &Watcher::finished, parser, &CppDocumentProcessor::deleteLater );
   /* Keep track of the watchers so that they can be cancelled as needed. */
-  d->futureWatchers.insert( watcher, fileName );
+  d->futureWatchers.add( watcher, fileName );
   /* Create a future to process the file.
    * If the file to process is the current open editor, it is parsed in a new
    * thread with high priority.

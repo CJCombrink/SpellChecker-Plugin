@@ -88,8 +88,18 @@ class CppDocumentProcessor
   /*! \brief Deleted assignment operator */
   CppDocumentProcessor& operator==( const CppDocumentProcessor& ) = delete;
 public:
-  /*! \brief Alias for a list of Word Tokens. */
-  using WordTokenList = QVector<WordTokens>;
+  /*! \brief Structure for the result type that the future will return. */
+  struct ResultType
+  {
+    HashWords wordHashes; /*!< List of hashes extracted along with words from the hash. */
+    WordList words;       /*!< Word tokens that were extracted by the processor. */
+  };
+  /*! \brief Alias for the Watcher type. */
+  using Watcher = QFutureWatcher<ResultType>;
+  /*! \brief Alias for the Watcher Pointer type. */
+  using WatcherPtr = Watcher *;
+  /*! \brief Future Interface alias to simplify some typing and management. */
+  using FutureIF = QFutureInterface<ResultType>;
 
   /*! \brief Constructor
    *
@@ -102,15 +112,6 @@ public:
   CppDocumentProcessor( CPlusPlus::Document::Ptr documentPointer, const HashWords& hashWords, const CppParserSettings& cppSettings );
   /*! Destructor. */
   ~CppDocumentProcessor();
-
-  /*! \brief Structure for the result type that the future will return. */
-  struct ResultType
-  {
-    HashWords wordHashes; /*!< List of hashes extracted along with words from the hash. */
-    WordList words;       /*!< Word tokens that were extracted by the processor. */
-  };
-  /*! \brief Future Interface alias to simplify some typing and management. */
-  using FutureIF = QFutureInterface<ResultType>;
   /*! \brief Process function that the thread will run with the future that will
    * report the result. */
   void process( FutureIF& future );

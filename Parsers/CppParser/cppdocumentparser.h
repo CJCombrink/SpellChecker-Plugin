@@ -68,11 +68,6 @@ private:
    * If there are more than a set number of files that should still be parsed,
    * this function will create a progress notification. */
   void queueFilesForUpdate();
-  /*! \brief Cancel all futures.
-   *
-   * This function will block until all futures that were cancelled
-   * have finished. */
-  void cancelFutures();
 
 protected slots:
   void parseCppDocumentOnUpdate( CPlusPlus::Document::Ptr docPtr );
