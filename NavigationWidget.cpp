@@ -204,18 +204,18 @@ void NavigationWidgetFactory::sortingActionActivated( QAction* action )
   SortBy sortOption = static_cast<SortBy>( action->property( ENUM_VAL_PROPERTY ).toInt() );
   /* Sort always the most logic way, the user does not have control over the order. */
   switch( sortOption ) {
-  case SortByFileName:
-    d->model->sort( ProjectMistakesModel::COLUMN_FILE, Qt::AscendingOrder );
-    break;
-  case SortByMistakes:
-    d->model->sort( ProjectMistakesModel::COLUMN_MISTAKES_TOTAL, Qt::DescendingOrder );
-    break;
-  case SortByLiterals:
-    d->model->sort( ProjectMistakesModel::COLUMN_LITERAL_COUNT, Qt::DescendingOrder );
-    break;
-  case SortByFileType:
-    d->model->sort( ProjectMistakesModel::COLUMN_FILE_TYPE, Qt::AscendingOrder );
-    break;
+    case SortByFileName:
+      d->model->sort( ProjectMistakesModel::COLUMN_FILE, Qt::AscendingOrder );
+      break;
+    case SortByMistakes:
+      d->model->sort( ProjectMistakesModel::COLUMN_MISTAKES_TOTAL, Qt::DescendingOrder );
+      break;
+    case SortByLiterals:
+      d->model->sort( ProjectMistakesModel::COLUMN_LITERAL_COUNT, Qt::DescendingOrder );
+      break;
+    case SortByFileType:
+      d->model->sort( ProjectMistakesModel::COLUMN_FILE_TYPE, Qt::AscendingOrder );
+      break;
   }
 }
 // --------------------------------------------------

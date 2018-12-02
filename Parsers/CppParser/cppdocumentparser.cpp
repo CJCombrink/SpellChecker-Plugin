@@ -129,20 +129,20 @@ public:
     const QStringSet filteredList = Utils::filtered( list, []( const QString& file ) {
             const CppTools::ProjectFile::Kind kind = CppTools::ProjectFile::classify( file );
             switch( kind ) {
-            case CppTools::ProjectFile::Unclassified:
-              return false;
-            case CppTools::ProjectFile::Unsupported: {
-              /* Check our doxy MimeType added by this plugin */
-              const Utils::MimeType mimeType = Utils::mimeTypeForFile( file );
-              const QString mt = mimeType.name();
-              if( mt == QLatin1String( MIME_TYPE_CXX_DOX ) ) {
-                return true;
-              } else {
+              case CppTools::ProjectFile::Unclassified:
                 return false;
+              case CppTools::ProjectFile::Unsupported: {
+                /* Check our doxy MimeType added by this plugin */
+                const Utils::MimeType mimeType = Utils::mimeTypeForFile( file );
+                const QString mt = mimeType.name();
+                if( mt == QLatin1String( MIME_TYPE_CXX_DOX ) ) {
+                  return true;
+                } else {
+                  return false;
+                }
               }
-            }
-            default:
-              return true;
+              default:
+                return true;
             }
           } );
 

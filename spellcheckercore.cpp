@@ -568,20 +568,20 @@ void SpellCheckerCore::giveSuggestionsForWordUnderCursor()
   SuggestionsDialog dialog( word.text, word.suggestions, wordsToReplace.count() );
   SuggestionsDialog::ReturnCode code = static_cast<SuggestionsDialog::ReturnCode>( dialog.exec() );
   switch( code ) {
-  case SuggestionsDialog::Rejected:
-    /* Cancel and exit */
-    return;
-  case SuggestionsDialog::Accepted:
-    /* Clear the list and only add the one to replace */
-    wordsToReplace.clear();
-    wordsToReplace.append( word );
-    break;
-  case SuggestionsDialog::AcceptAll:
-    /* Do nothing since the list of words is already valid */
-    break;
-  default:
-    Q_ASSERT( false );
-    return;
+    case SuggestionsDialog::Rejected:
+      /* Cancel and exit */
+      return;
+    case SuggestionsDialog::Accepted:
+      /* Clear the list and only add the one to replace */
+      wordsToReplace.clear();
+      wordsToReplace.append( word );
+      break;
+    case SuggestionsDialog::AcceptAll:
+      /* Do nothing since the list of words is already valid */
+      break;
+    default:
+      Q_ASSERT( false );
+      return;
   }
 
   QString replacement = dialog.replacementWord();
@@ -647,14 +647,14 @@ void SpellCheckerCore::removeWordUnderCursor( RemoveAction action )
   if( wordMistake == true ) {
     QString wordToRemove = word.text;
     switch( action ) {
-    case Ignore:
-      wordRemoved = d->spellChecker->ignoreWord( wordToRemove );
-      break;
-    case Add:
-      wordRemoved = d->spellChecker->addWord( wordToRemove );
-      break;
-    default:
-      break;
+      case Ignore:
+        wordRemoved = d->spellChecker->ignoreWord( wordToRemove );
+        break;
+      case Add:
+        wordRemoved = d->spellChecker->addWord( wordToRemove );
+        break;
+      default:
+        break;
     }
   }
 

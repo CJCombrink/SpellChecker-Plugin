@@ -265,20 +265,20 @@ QVariant ProjectMistakesModel::data( const QModelIndex& index, int role ) const
   }
 
   switch( role ) {
-  case COLUMN_FILE:
-    return QFileInfo( iter.key() ).fileName();
-  case COLUMN_MISTAKES_TOTAL:
-    return ( iter.value().first.count() );
-  case COLUMN_FILEPATH:
-    return iter.key();
-  case COLUMN_FILE_IN_STARTUP:
-    return ( iter.value().second );
-  case COLUMN_LITERAL_COUNT:
-    return countStringLiterals( iter.value().first );
-  case COLUMN_FILE_TYPE:
-    return QFileInfo( iter.key() ).suffix();
-  default:
-    return QVariant();
+    case COLUMN_FILE:
+      return QFileInfo( iter.key() ).fileName();
+    case COLUMN_MISTAKES_TOTAL:
+      return ( iter.value().first.count() );
+    case COLUMN_FILEPATH:
+      return iter.key();
+    case COLUMN_FILE_IN_STARTUP:
+      return ( iter.value().second );
+    case COLUMN_LITERAL_COUNT:
+      return countStringLiterals( iter.value().first );
+    case COLUMN_FILE_TYPE:
+      return QFileInfo( iter.key() ).suffix();
+    default:
+      return QVariant();
   }
 }
 // --------------------------------------------------
@@ -316,36 +316,36 @@ void ProjectMistakesModel::sort( int column, Qt::SortOrder order )
     bool greaterThan = false;
 
     switch( d->sortedColumn ) {
-    case SpellChecker::Internal::ProjectMistakesModel::COLUMN_COUNT:
-      break;
-    case COLUMN_FILE:
-      greaterThan = ( QFileInfo( iterLhs.key() ).fileName().toUpper() < QFileInfo( iterRhs.key() ).fileName().toUpper() );
-      break;
-    case COLUMN_MISTAKES_TOTAL:
-      greaterThan = ( iterLhs.value().first.count() < iterRhs.value().first.count() );
-      break;
-    case COLUMN_FILEPATH:
-      greaterThan = ( iterLhs.key().toUpper() < iterRhs.key().toUpper() );
-      break;
-    case COLUMN_FILE_IN_STARTUP:
-      greaterThan = iterLhs.value().second;
-      break;
-    case COLUMN_LITERAL_COUNT: {
-      int countLhs = countStringLiterals( iterLhs.value().first );
-      int countRhs = countStringLiterals( iterRhs.value().first );
-      greaterThan  = ( countLhs < countRhs );
-      break;
-    }
-    case COLUMN_FILE_TYPE: {
-      const QFileInfo infoRhs = QFileInfo( iterRhs.key() );
-      const QFileInfo infoLhs = QFileInfo( iterLhs.key() );
-      if( infoRhs.suffix().toUpper() == infoLhs.suffix().toUpper() ) {
+      case SpellChecker::Internal::ProjectMistakesModel::COLUMN_COUNT:
+        break;
+      case COLUMN_FILE:
         greaterThan = ( QFileInfo( iterLhs.key() ).fileName().toUpper() < QFileInfo( iterRhs.key() ).fileName().toUpper() );
-      } else {
-        greaterThan = ( infoLhs.suffix().toUpper() < infoRhs.suffix().toUpper() );
+        break;
+      case COLUMN_MISTAKES_TOTAL:
+        greaterThan = ( iterLhs.value().first.count() < iterRhs.value().first.count() );
+        break;
+      case COLUMN_FILEPATH:
+        greaterThan = ( iterLhs.key().toUpper() < iterRhs.key().toUpper() );
+        break;
+      case COLUMN_FILE_IN_STARTUP:
+        greaterThan = iterLhs.value().second;
+        break;
+      case COLUMN_LITERAL_COUNT: {
+        int countLhs = countStringLiterals( iterLhs.value().first );
+        int countRhs = countStringLiterals( iterRhs.value().first );
+        greaterThan  = ( countLhs < countRhs );
+        break;
       }
-      break;
-    }
+      case COLUMN_FILE_TYPE: {
+        const QFileInfo infoRhs = QFileInfo( iterRhs.key() );
+        const QFileInfo infoLhs = QFileInfo( iterLhs.key() );
+        if( infoRhs.suffix().toUpper() == infoLhs.suffix().toUpper() ) {
+          greaterThan = ( QFileInfo( iterLhs.key() ).fileName().toUpper() < QFileInfo( iterRhs.key() ).fileName().toUpper() );
+        } else {
+          greaterThan = ( infoLhs.suffix().toUpper() < infoRhs.suffix().toUpper() );
+        }
+        break;
+      }
     }
     return ( order == Qt::AscendingOrder )
     ? greaterThan
