@@ -575,7 +575,7 @@ void CppDocumentParser::queueFilesForUpdate()
     filesInProcess   = d->filesInProcess.size();
   }
 
-  d->progressObject.update( d->filesInStartupProject.count(), filesOutstanding, filesInProcess );
+  d->progressObject.update( d->filesInStartupProject.count(), int32_t(filesOutstanding), int32_t(filesInProcess) );
 
   modelManager->updateSourceFiles( filesToUpdate );
 }
