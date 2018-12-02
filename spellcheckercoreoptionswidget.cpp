@@ -54,7 +54,7 @@ SpellCheckerCoreOptionsWidget::SpellCheckerCoreOptionsWidget( const SpellChecker
    * The core is implemented in such a way that if one is added and there is
    * none set, the newly added one will be set as the default checker.
    * This logic will ensure that the correct one is selected. */
-  int index = -1;
+  int index                          = -1;
   ISpellChecker* currentSpellChecker = SpellCheckerCore::instance()->spellChecker();
   if( currentSpellChecker != nullptr ) {
     index = ui->comboBoxSpellChecker->findText( currentSpellChecker->name() );
@@ -76,10 +76,10 @@ SpellCheckerCoreOptionsWidget::~SpellCheckerCoreOptionsWidget()
 
 const SpellCheckerCoreSettings& SpellCheckerCoreOptionsWidget::settings()
 {
-  m_settings.activeSpellChecker = ui->comboBoxSpellChecker->currentText();
-  m_settings.onlyParseCurrentFile = ui->checkBoxOnlyCheckCurrent->isChecked();
-  m_settings.checkExternalFiles = ui->checkBoxCheckExternal->isChecked();
-  m_settings.projectsToIgnore = m_projectsToIgnore;
+  m_settings.activeSpellChecker       = ui->comboBoxSpellChecker->currentText();
+  m_settings.onlyParseCurrentFile     = ui->checkBoxOnlyCheckCurrent->isChecked();
+  m_settings.checkExternalFiles       = ui->checkBoxCheckExternal->isChecked();
+  m_settings.projectsToIgnore         = m_projectsToIgnore;
   m_settings.replaceAllFromRightClick = ui->checkBoxReplaceAllRightClick->isChecked();
   return m_settings;
 }
@@ -170,7 +170,7 @@ void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_toolButtonRemoveP
     return;
   }
   QListWidgetItem* item = ui->listWidget->takeItem( row );
-  QString projectName = item->data( Qt::DisplayRole ).toString();
+  QString projectName   = item->data( Qt::DisplayRole ).toString();
   m_projectsToIgnore.removeAll( projectName );
   delete item;
 }

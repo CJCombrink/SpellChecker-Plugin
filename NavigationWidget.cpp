@@ -65,9 +65,9 @@ void SpellingMistakeDelegate::paint( QPainter* painter, const QStyleOptionViewIt
   QString fileName = index.data( ProjectMistakesModel::COLUMN_FILE ).toString();
   /* Elide the text to make it fit into the available space. */
   fileName = fm.elidedText( fileName, Qt::ElideMiddle, textArea );
-  QString nrMistakes = index.data( ProjectMistakesModel::COLUMN_MISTAKES_TOTAL ).toString();
+  QString nrMistakes    = index.data( ProjectMistakesModel::COLUMN_MISTAKES_TOTAL ).toString();
   bool inStartupProject = index.data( ProjectMistakesModel::COLUMN_FILE_IN_STARTUP ).toBool();
-  QString nrLiterals = index.data( ProjectMistakesModel::COLUMN_LITERAL_COUNT ).toString();
+  QString nrLiterals    = index.data( ProjectMistakesModel::COLUMN_LITERAL_COUNT ).toString();
   nrLiterals.append( QLatin1String( "\"" ) );
   nrLiterals.prepend( QLatin1String( "\"" ) );
   if( inStartupProject == false ) {
@@ -125,8 +125,8 @@ void NavigationWidget::updateCurrentItem( Core::IEditor* editor )
     clearSelection();
     return;
   }
-  QString fileName = editor->document()->filePath().toString();
-  int idx = d->model->indexOfFile( fileName );
+  QString fileName       = editor->document()->filePath().toString();
+  int idx                = d->model->indexOfFile( fileName );
   QModelIndex modelIndex = model()->index( idx, 0 );
   if( modelIndex.isValid() == false ) {
     clearSelection();

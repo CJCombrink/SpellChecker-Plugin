@@ -37,17 +37,17 @@ CppParserSettings::CppParserSettings()
 CppParserSettings::CppParserSettings( const CppParserSettings& settings )
   : QObject( nullptr )
 {
-  whatToCheck = settings.whatToCheck;
-  commentsToCheck = settings.commentsToCheck;
-  removeEmailAddresses = settings.removeEmailAddresses;
-  checkQtKeywords = settings.checkQtKeywords;
-  checkAllCapsWords = settings.checkAllCapsWords;
-  wordsWithNumberOption = settings.wordsWithNumberOption;
-  wordsWithUnderscoresOption = settings.wordsWithUnderscoresOption;
-  camelCaseWordOption = settings.camelCaseWordOption;
+  whatToCheck                   = settings.whatToCheck;
+  commentsToCheck               = settings.commentsToCheck;
+  removeEmailAddresses          = settings.removeEmailAddresses;
+  checkQtKeywords               = settings.checkQtKeywords;
+  checkAllCapsWords             = settings.checkAllCapsWords;
+  wordsWithNumberOption         = settings.wordsWithNumberOption;
+  wordsWithUnderscoresOption    = settings.wordsWithUnderscoresOption;
+  camelCaseWordOption           = settings.camelCaseWordOption;
   removeWordsThatAppearInSource = settings.removeWordsThatAppearInSource;
-  wordsWithDotsOption = settings.wordsWithDotsOption;
-  removeWebsites = settings.removeWebsites;
+  wordsWithDotsOption           = settings.wordsWithDotsOption;
+  removeWebsites                = settings.removeWebsites;
 }
 // --------------------------------------------------
 
@@ -63,17 +63,17 @@ void CppParserSettings::loadFromSettings( QSettings* settings )
   settings->beginGroup( QLatin1String( Constants::CORE_PARSERS_GROUP ) );
   settings->beginGroup( QLatin1String( Parsers::CppParser::Constants::CPP_PARSER_GROUP ) );
 
-  whatToCheck = static_cast<WhatToCheckOptions>( settings->value( QLatin1String( Parsers::CppParser::Constants::WHAT_TO_CHECK ), int(whatToCheck) ).toInt() );
-  commentsToCheck = static_cast<CommentsToCheckOptions>( settings->value( QLatin1String( Parsers::CppParser::Constants::COMMENTS_TO_CHECK ), int(commentsToCheck) ).toInt() );
-  checkQtKeywords = settings->value( QLatin1String( Parsers::CppParser::Constants::CHECK_QT_KEYWORDS ), checkQtKeywords ).toBool();
-  checkAllCapsWords = settings->value( QLatin1String( Parsers::CppParser::Constants::CHECK_CAPS ), checkAllCapsWords ).toBool();
-  wordsWithNumberOption = static_cast<WordsWithNumbersOption>( settings->value( QLatin1String( Parsers::CppParser::Constants::CHECK_NUMBERS ), wordsWithNumberOption ).toInt() );
-  wordsWithUnderscoresOption = static_cast<WordsWithUnderscoresOption>( settings->value( QLatin1String( Parsers::CppParser::Constants::CHECK_UNDERSCORES ), wordsWithUnderscoresOption ).toInt() );
-  camelCaseWordOption = static_cast<CamelCaseWordOption>( settings->value( QLatin1String( Parsers::CppParser::Constants::CHECK_CAMELCASE ), camelCaseWordOption ).toInt() );
+  whatToCheck                   = static_cast<WhatToCheckOptions>( settings->value( QLatin1String( Parsers::CppParser::Constants::WHAT_TO_CHECK ), int(whatToCheck) ).toInt() );
+  commentsToCheck               = static_cast<CommentsToCheckOptions>( settings->value( QLatin1String( Parsers::CppParser::Constants::COMMENTS_TO_CHECK ), int(commentsToCheck) ).toInt() );
+  checkQtKeywords               = settings->value( QLatin1String( Parsers::CppParser::Constants::CHECK_QT_KEYWORDS ), checkQtKeywords ).toBool();
+  checkAllCapsWords             = settings->value( QLatin1String( Parsers::CppParser::Constants::CHECK_CAPS ), checkAllCapsWords ).toBool();
+  wordsWithNumberOption         = static_cast<WordsWithNumbersOption>( settings->value( QLatin1String( Parsers::CppParser::Constants::CHECK_NUMBERS ), wordsWithNumberOption ).toInt() );
+  wordsWithUnderscoresOption    = static_cast<WordsWithUnderscoresOption>( settings->value( QLatin1String( Parsers::CppParser::Constants::CHECK_UNDERSCORES ), wordsWithUnderscoresOption ).toInt() );
+  camelCaseWordOption           = static_cast<CamelCaseWordOption>( settings->value( QLatin1String( Parsers::CppParser::Constants::CHECK_CAMELCASE ), camelCaseWordOption ).toInt() );
   removeWordsThatAppearInSource = settings->value( QLatin1String( Parsers::CppParser::Constants::REMOVE_WORDS_SOURCE ), removeWordsThatAppearInSource ).toBool();
-  removeEmailAddresses = settings->value( QLatin1String( Parsers::CppParser::Constants::REMOVE_EMAIL_ADDRESSES ), removeEmailAddresses ).toBool();
-  wordsWithDotsOption  = static_cast<WordsWithDotsOption>( settings->value( QLatin1String( Parsers::CppParser::Constants::CHECK_DOTS ), wordsWithDotsOption ).toInt() );
-  removeWebsites = settings->value( QLatin1String( Parsers::CppParser::Constants::REMOVE_WEBSITES ), removeWebsites ).toBool();
+  removeEmailAddresses          = settings->value( QLatin1String( Parsers::CppParser::Constants::REMOVE_EMAIL_ADDRESSES ), removeEmailAddresses ).toBool();
+  wordsWithDotsOption           = static_cast<WordsWithDotsOption>( settings->value( QLatin1String( Parsers::CppParser::Constants::CHECK_DOTS ), wordsWithDotsOption ).toInt() );
+  removeWebsites                = settings->value( QLatin1String( Parsers::CppParser::Constants::REMOVE_WEBSITES ), removeWebsites ).toBool();
 
   settings->endGroup(); /* CPP_PARSER_GROUP */
   settings->endGroup(); /* CORE_PARSERS_GROUP */
@@ -110,17 +110,17 @@ void CppParserSettings::saveToSetting( QSettings* settings ) const
 
 void CppParserSettings::setDefaults()
 {
-  whatToCheck = CheckBoth;
-  commentsToCheck = CommentsBoth;
-  removeEmailAddresses = true;
-  checkQtKeywords = false;
-  checkAllCapsWords = false;
-  wordsWithNumberOption = SplitWordsOnNumbers;
-  wordsWithUnderscoresOption = SplitWordsOnUnderscores;
-  camelCaseWordOption = SplitWordsOnCamelCase;
+  whatToCheck                   = CheckBoth;
+  commentsToCheck               = CommentsBoth;
+  removeEmailAddresses          = true;
+  checkQtKeywords               = false;
+  checkAllCapsWords             = false;
+  wordsWithNumberOption         = SplitWordsOnNumbers;
+  wordsWithUnderscoresOption    = SplitWordsOnUnderscores;
+  camelCaseWordOption           = SplitWordsOnCamelCase;
   removeWordsThatAppearInSource = true;
-  wordsWithDotsOption = SplitWordsOnDots;
-  removeWebsites = false;
+  wordsWithDotsOption           = SplitWordsOnDots;
+  removeWebsites                = false;
 }
 // --------------------------------------------------
 
@@ -128,17 +128,17 @@ CppParserSettings& CppParserSettings::operator=( const CppParserSettings& other 
 {
   bool settingsSame = ( operator==( other ) );
   if( settingsSame == false ) {
-    this->whatToCheck = other.whatToCheck;
-    this->commentsToCheck = other.commentsToCheck;
-    this->checkQtKeywords = other.checkQtKeywords;
-    this->checkAllCapsWords = other.checkAllCapsWords;
-    this->wordsWithNumberOption = other.wordsWithNumberOption;
-    this->wordsWithUnderscoresOption = other.wordsWithUnderscoresOption;
-    this->camelCaseWordOption = other.camelCaseWordOption;
+    this->whatToCheck                   = other.whatToCheck;
+    this->commentsToCheck               = other.commentsToCheck;
+    this->checkQtKeywords               = other.checkQtKeywords;
+    this->checkAllCapsWords             = other.checkAllCapsWords;
+    this->wordsWithNumberOption         = other.wordsWithNumberOption;
+    this->wordsWithUnderscoresOption    = other.wordsWithUnderscoresOption;
+    this->camelCaseWordOption           = other.camelCaseWordOption;
     this->removeWordsThatAppearInSource = other.removeWordsThatAppearInSource;
-    this->removeEmailAddresses = other.removeEmailAddresses;
-    this->wordsWithDotsOption  = other.wordsWithDotsOption;
-    this->removeWebsites = other.removeWebsites;
+    this->removeEmailAddresses          = other.removeEmailAddresses;
+    this->wordsWithDotsOption           = other.wordsWithDotsOption;
+    this->removeWebsites                = other.removeWebsites;
     emit settingsChanged();
   }
 

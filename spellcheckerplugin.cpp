@@ -122,14 +122,14 @@ bool SpellCheckerPlugin::initialize( const QStringList& arguments, QString* erro
 
   Core::Context textContext( TextEditor::Constants::C_TEXTEDITOR );
   /* Create the menu */
-  QAction* actionSuggest = new QAction( tr( "Give Suggestions" ), this );
-  QAction* actionIgnore  = new QAction( tr( "Ignore Word" ), this );
-  QAction* actionAdd = new QAction( tr( "Add Word" ), this );
-  QAction* actionLucky = new QAction( tr( "Feeling Lucky" ), this );
+  QAction* actionSuggest    = new QAction( tr( "Give Suggestions" ), this );
+  QAction* actionIgnore     = new QAction( tr( "Ignore Word" ), this );
+  QAction* actionAdd        = new QAction( tr( "Add Word" ), this );
+  QAction* actionLucky      = new QAction( tr( "Feeling Lucky" ), this );
   Core::Command* cmdSuggest = Core::ActionManager::registerAction( actionSuggest, Constants::ACTION_SUGGEST_ID, textContext );
   Core::Command* cmdIgnore  = Core::ActionManager::registerAction( actionIgnore, Constants::ACTION_IGNORE_ID, textContext );
-  Core::Command* cmdAdd = Core::ActionManager::registerAction( actionAdd, Constants::ACTION_ADD_ID, textContext );
-  Core::Command* cmdLucky = Core::ActionManager::registerAction( actionLucky, Constants::ACTION_LUCKY_ID, textContext );
+  Core::Command* cmdAdd     = Core::ActionManager::registerAction( actionAdd, Constants::ACTION_ADD_ID, textContext );
+  Core::Command* cmdLucky   = Core::ActionManager::registerAction( actionLucky, Constants::ACTION_LUCKY_ID, textContext );
   cmdSuggest->setDefaultKeySequence( QKeySequence( tr( "Ctrl+Alt+S" ) ) );
   cmdIgnore->setDefaultKeySequence( QKeySequence( tr( "Ctrl+Alt+I" ) ) );
   cmdAdd->setDefaultKeySequence( QKeySequence( tr( "Ctrl+Alt+A" ) ) );
@@ -164,7 +164,7 @@ bool SpellCheckerPlugin::initialize( const QStringList& arguments, QString* erro
   /* Add 5 dummy actions that will be used for spelling mistakes that can be fixed from the context menu */
   QVector<const char*> holderActionIds { Constants::ACTION_HOLDER1_ID, Constants::ACTION_HOLDER2_ID, Constants::ACTION_HOLDER3_ID, Constants::ACTION_HOLDER4_ID, Constants::ACTION_HOLDER5_ID };
   for( int count = 0; count < holderActionIds.size(); ++count ) {
-    QAction* actionHolder = new QAction( QStringLiteral( "" ), this );
+    QAction* actionHolder    = new QAction( QStringLiteral( "" ), this );
     Core::Command* cmdHolder = Core::ActionManager::registerAction( actionHolder, holderActionIds[count], textContext );
     contextMenu->addAction( cmdHolder );
   }

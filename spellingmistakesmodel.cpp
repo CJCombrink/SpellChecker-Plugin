@@ -165,7 +165,7 @@ int SpellingMistakesModel::columnCount( const QModelIndex& parent ) const
 QVariant SpellingMistakesModel::data( const QModelIndex& index, int role ) const
 {
   const int column = index.column();
-  const int row = index.row();
+  const int row    = index.row();
   /* The decoration role on the Literal column is a check icon. */
   if( ( role == Qt::DecorationRole )
       && ( column == Constants::MISTAKE_COLUMN_LITERAL ) ) {

@@ -101,7 +101,7 @@ HunspellChecker::HunspellChecker()
   /* Get the affix dictionary path */
   QString affPath = QString( d->dictionary ).replace( QRegExp( QLatin1String( "\\.dic$" ) ), QLatin1String( ".aff" ) );
   d->hunspell = HunspellPtr( new ::Hunspell( affPath.toLatin1(), d->dictionary.toLatin1() ) );
-  d->codec = QTextCodec::codecForName( d->hunspell->get_dic_encoding() );
+  d->codec    = QTextCodec::codecForName( d->hunspell->get_dic_encoding() );
   loadUserAddedWords();
 }
 // --------------------------------------------------
@@ -127,7 +127,7 @@ void HunspellChecker::loadSettings()
   settings->beginGroup( QLatin1String( Constants::CORE_SETTINGS_GROUP ) );
   settings->beginGroup( QLatin1String( Constants::CORE_SPELLCHECKERS_GROUP ) );
   settings->beginGroup( QLatin1String( SpellCheckers::HunspellChecker::Constants::SETTINGS_GROUP ) );
-  d->dictionary = settings->value( QLatin1String( SpellCheckers::HunspellChecker::Constants::SETTING_DICTIONARY ), QLatin1String( "" ) ).toString();
+  d->dictionary     = settings->value( QLatin1String( SpellCheckers::HunspellChecker::Constants::SETTING_DICTIONARY ), QLatin1String( "" ) ).toString();
   d->userDictionary = settings->value( QLatin1String( SpellCheckers::HunspellChecker::Constants::SETTING_USER_DICTIONARY ), QLatin1String( "" ) ).toString();
   settings->endGroup();
   settings->endGroup();
@@ -178,7 +178,7 @@ bool HunspellChecker::isSpellingMistake( const QString& word ) const
 {
   QMutexLocker lock( &d->mutex );
   HunspellPtr  hunspell = d->hunspell;
-  bool recognised = hunspell->spell( d->encode( word ) );
+  bool recognised       = hunspell->spell( d->encode( word ) );
   return ( recognised == false );
 }
 // --------------------------------------------------

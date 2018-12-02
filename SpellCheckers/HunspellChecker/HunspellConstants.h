@@ -25,8 +25,8 @@ namespace SpellCheckers {
 namespace HunspellChecker {
 namespace Constants {
 
-const char SETTINGS_GROUP[] = "Hunspell";
-const char SETTING_DICTIONARY[] = "Dictionary";
+const char SETTINGS_GROUP[]          = "Hunspell";
+const char SETTING_DICTIONARY[]      = "Dictionary";
 const char SETTING_USER_DICTIONARY[] = "UserDictionary";
 
 } // namespace Constants

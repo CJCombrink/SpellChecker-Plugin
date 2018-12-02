@@ -56,7 +56,7 @@
 #include <QMutex>
 #include <QTextBlock>
 
-using FutureWatcherMap = QMap<QFutureWatcher<SpellChecker::WordList>*, QString>;
+using FutureWatcherMap     = QMap<QFutureWatcher<SpellChecker::WordList>*, QString>;
 using FutureWatcherMapIter = FutureWatcherMap::Iterator;
 
 class SpellChecker::Internal::SpellCheckerCorePrivate
@@ -350,7 +350,7 @@ void SpellCheckerCore::spellcheckWordsFromParser( const QString& fileName, const
     /* There is no background process processing the words for the given file.
      * Create a processor and start processing the spelling mistakes in the
      * background using QtConcurrent and a QFuture. */
-    SpellCheckProcessor* processor = new SpellCheckProcessor( d->spellChecker, fileName, words, previousMistakes );
+    SpellCheckProcessor* processor    = new SpellCheckProcessor( d->spellChecker, fileName, words, previousMistakes );
     QFutureWatcher<WordList>* watcher = new QFutureWatcher<WordList>();
     connect( watcher, &QFutureWatcher<WordList>::finished, this, &SpellCheckerCore::futureFinished, Qt::QueuedConnection );
     /* Keep track of the watchers that are busy and the file that it is working on.
@@ -472,7 +472,7 @@ void SpellCheckerCore::aboutToQuit()
   Core::EditorManager::instance()->disconnect( this );
   ProjectExplorer::SessionManager::instance()->disconnect( this );
   ProjectExplorer::ProjectExplorerPlugin::instance()->disconnect( this );
-  d->shuttingDown = true;
+  d->shuttingDown   = true;
   d->startupProject = nullptr;
   disconnect( this );
   cancelFutures();
@@ -503,15 +503,15 @@ bool SpellCheckerCore::isWordUnderCursorMistake( Word& word ) const
     return false;
   }
 
-  unsigned int column = d->currentEditor->currentColumn();
-  unsigned int line = d->currentEditor->currentLine();
+  unsigned int column     = d->currentEditor->currentColumn();
+  unsigned int line       = d->currentEditor->currentLine();
   QString currentFileName = d->currentEditor->document()->filePath().toString();
   WordList wl;
   wl = d->spellingMistakesModel->mistakesForFile( currentFileName );
   if( wl.isEmpty() == true ) {
     return false;
   }
-  WordList::ConstIterator iter = wl.constBegin();
+  WordList::ConstIterator iter          = wl.constBegin();
   const WordList::ConstIterator iterEnd = wl.constEnd();
   while( iter != iterEnd ) {
     const Word& currentWord = iter.value();

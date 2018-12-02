@@ -63,10 +63,10 @@ void SpellCheckerCoreSettings::saveToSettings( QSettings* settings ) const
 void SpellCheckerCoreSettings::loadFromSettings( QSettings* settings )
 {
   settings->beginGroup( QLatin1String( Constants::CORE_SETTINGS_GROUP ) );
-  activeSpellChecker = settings->value( QLatin1String( Constants::SETTING_ACTIVE_SPELLCHECKER ), activeSpellChecker ).toString();
-  onlyParseCurrentFile = settings->value( QLatin1String( Constants::SETTING_ONLY_PARSE_CURRENT ), onlyParseCurrentFile ).toBool();
-  checkExternalFiles = settings->value( QLatin1String( Constants::SETTING_CHECK_EXTERNAL ), checkExternalFiles ).toBool();
-  projectsToIgnore = settings->value( QLatin1String( Constants::PROJECTS_TO_IGNORE ), projectsToIgnore ).toStringList();
+  activeSpellChecker       = settings->value( QLatin1String( Constants::SETTING_ACTIVE_SPELLCHECKER ), activeSpellChecker ).toString();
+  onlyParseCurrentFile     = settings->value( QLatin1String( Constants::SETTING_ONLY_PARSE_CURRENT ), onlyParseCurrentFile ).toBool();
+  checkExternalFiles       = settings->value( QLatin1String( Constants::SETTING_CHECK_EXTERNAL ), checkExternalFiles ).toBool();
+  projectsToIgnore         = settings->value( QLatin1String( Constants::PROJECTS_TO_IGNORE ), projectsToIgnore ).toStringList();
   replaceAllFromRightClick = settings->value( QLatin1String( Constants::REPLACE_ALL_FROM_RIGHT_CLICK ), replaceAllFromRightClick ).toBool();
   settings->endGroup(); /* CORE_SETTINGS_GROUP */
 }
@@ -76,10 +76,10 @@ SpellCheckerCoreSettings& SpellCheckerCoreSettings::operator=( const SpellChecke
 {
   bool settingsSame = ( operator==( other ) );
   if( settingsSame == false ) {
-    this->activeSpellChecker = other.activeSpellChecker;
-    this->onlyParseCurrentFile = other.onlyParseCurrentFile;
-    this->checkExternalFiles = other.checkExternalFiles;
-    this->projectsToIgnore = other.projectsToIgnore;
+    this->activeSpellChecker       = other.activeSpellChecker;
+    this->onlyParseCurrentFile     = other.onlyParseCurrentFile;
+    this->checkExternalFiles       = other.checkExternalFiles;
+    this->projectsToIgnore         = other.projectsToIgnore;
     this->replaceAllFromRightClick = other.replaceAllFromRightClick;
     emit settingsChanged();
   }

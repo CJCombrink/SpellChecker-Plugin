@@ -69,7 +69,7 @@ const char TASK_INDEX[] = "SpellChecker.Task.CppParse";
 // --------------------------------------------------
 // --------------------------------------------------
 
-using FutureWatcherMap = QMap<QFutureWatcher<CppDocumentProcessor::ResultType>*, QString>;
+using FutureWatcherMap     = QMap<QFutureWatcher<CppDocumentProcessor::ResultType>*, QString>;
 using FutureWatcherMapIter = FutureWatcherMap::Iterator;
 
 class CppDocumentParserPrivate
@@ -134,7 +134,7 @@ public:
               case CppTools::ProjectFile::Unsupported: {
                 /* Check our doxy MimeType added by this plugin */
                 const Utils::MimeType mimeType = Utils::mimeTypeForFile( file );
-                const QString mt = mimeType.name();
+                const QString mt               = mimeType.name();
                 if( mt == QLatin1String( MIME_TYPE_CXX_DOX ) ) {
                   return true;
                 } else {
@@ -192,7 +192,7 @@ CppDocumentParser::CppDocumentParser( QObject* parent )
 
   Core::Context context( CppEditor::Constants::CPPEDITOR_ID );
   Core::ActionContainer* cppEditorContextMenu = Core::ActionManager::createMenu( CppEditor::Constants::M_CONTEXT );
-  Core::ActionContainer* contextMenu = Core::ActionManager::createMenu( Constants::CONTEXT_MENU_ID );
+  Core::ActionContainer* contextMenu          = Core::ActionManager::createMenu( Constants::CONTEXT_MENU_ID );
   cppEditorContextMenu->addSeparator( context );
   cppEditorContextMenu->addMenu( contextMenu );
   connect( qApp, &QCoreApplication::aboutToQuit, this, &CppDocumentParser::aboutToQuit, Qt::DirectConnection );
@@ -337,7 +337,7 @@ void CppDocumentParser::reparseProject()
   }
 
   const Utils::FileNameList projectFiles = d->activeProject->files( ProjectExplorer::Project::SourceFiles );
-  const QStringList fileList = Utils::transform( projectFiles, &Utils::FileName::toString );
+  const QStringList fileList             = Utils::transform( projectFiles, &Utils::FileName::toString );
 
   const QStringSet fileSet = d->getCppFiles( fileList.toSet() );
   d->filesInStartupProject = fileSet;
@@ -377,7 +377,7 @@ void CppDocumentParser::queueFilesForUpdate()
     }
 
     filesOutstanding = d->filesToUpdate.size();
-    filesInProcess = d->filesInProcess.size();
+    filesInProcess   = d->filesInProcess.size();
   }
 
   /* If there are more than 10 files in the waiting queue, create a progress
@@ -393,8 +393,8 @@ void CppDocumentParser::queueFilesForUpdate()
   /* If there is a progress notification, update it */
   if( d->progressObject != nullptr ) {
     const int32_t filesInProject = d->filesInStartupProject.count();
-    const int32_t outstanding = int32_t( filesOutstanding );
-    const int32_t inProcess = int32_t( filesInProcess );
+    const int32_t outstanding    = int32_t( filesOutstanding );
+    const int32_t inProcess      = int32_t( filesInProcess );
 
     d->progressObject->setProgressRange( 0, filesInProject );
     d->progressObject->setProgressValue( filesInProject - outstanding - inProcess );
@@ -550,7 +550,7 @@ void CppDocumentParser::applySettingsToWords( const CppParserSettings& settings,
   /* Iterate through the list of words using an iterator and remove words according to settings */
   WordList::Iterator iter = words.begin();
   while( iter != words.end() ) {
-    QString currentWord = ( *iter ).text;
+    QString currentWord     = ( *iter ).text;
     QString currentWordCaps = currentWord.toUpper();
     bool removeCurrentWord  = false;
 
@@ -698,8 +698,8 @@ void CppDocumentParser::applySettingsToWords( const CppParserSettings& settings,
           QList<int> indexes;
           indexes << 0;
           int currentIdx = 0;
-          int lastIdx = 0;
-          bool finished = false;
+          int lastIdx    = 0;
+          bool finished  = false;
           while( finished == false ) {
             currentIdx = currentWord.indexOf( camelCaseIndexRe, lastIdx );
             if( currentIdx == -1 ) {

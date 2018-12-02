@@ -82,7 +82,7 @@ OutputPane::OutputPane( SpellingMistakesModel* model, QObject* parent )
   connect( this,        &OutputPane::selectionChanged,    d->delegate, &OutputPaneDelegate::rowSelected );
   connect( d->delegate, &OutputPaneDelegate::replaceWord, this,        &OutputPane::replaceWord );
 
-  QHeaderView* header = d->treeView->header();
+  QHeaderView* header                = d->treeView->header();
   QHeaderView::ResizeMode resizeMode = QHeaderView::Interactive;
   header->setSectionHidden( Constants::MISTAKE_COLUMN_IDX, true );
   header->setSectionResizeMode( Constants::MISTAKE_COLUMN_WORD,        resizeMode );
@@ -257,18 +257,18 @@ void OutputPane::goToPrev()
 void OutputPane::loadColumnSizes()
 {
   /* Sensible default values for the column sizes. */
-  int colWord = 200;
+  int colWord    = 200;
   int colLiteral = 45;
-  int colLine = 40;
-  int colColumn = 40;
+  int colLine    = 40;
+  int colColumn  = 40;
 
   QSettings* settings = Core::ICore::settings();
   settings->beginGroup( QLatin1String( Constants::CORE_SETTINGS_GROUP ) );
   settings->beginGroup( QLatin1String( Constants::CORE_SETTINGS_OP_GROUP ) );
-  colWord = settings->value( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_WORD ), colWord ).toInt();
+  colWord    = settings->value( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_WORD ), colWord ).toInt();
   colLiteral = settings->value( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_LITERAL ), colLiteral ).toInt();
-  colLine = settings->value( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_LINE ), colLine ).toInt();
-  colColumn = settings->value( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_COLUMN ), colColumn ).toInt();
+  colLine    = settings->value( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_LINE ), colLine ).toInt();
+  colColumn  = settings->value( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_COLUMN ), colColumn ).toInt();
   settings->endGroup(); /* CORE_SETTINGS_OP_GROUP */
   settings->endGroup(); /* CORE_SETTINGS_GROUP */
 
@@ -329,9 +329,9 @@ void OutputPane::modelMistakesUpdated()
 
 void OutputPane::mistakeSelected( const QModelIndex& index )
 {
-  int row  = index.row();
-  int line = index.sibling( row, Constants::MISTAKE_COLUMN_LINE ).data().toInt();
-  int column = index.sibling( row, Constants::MISTAKE_COLUMN_COLUMN ).data().toInt();
+  int row               = index.row();
+  int line              = index.sibling( row, Constants::MISTAKE_COLUMN_LINE ).data().toInt();
+  int column            = index.sibling( row, Constants::MISTAKE_COLUMN_COLUMN ).data().toInt();
   Core::IEditor* editor = Core::EditorManager::currentEditor();
   if( editor == nullptr ) {
     Q_ASSERT( editor != nullptr );
@@ -426,12 +426,12 @@ QWidget* OutputPaneDelegate::createEditor( QWidget* parent, const QStyleOptionVi
   if( index.column() == Constants::MISTAKE_COLUMN_SUGGESTIONS ) {
     /* Create an editor widget that contains each suggestion as a button to replace the
      * misspelled word with the clicked button. */
-    QWidget* widget = new QWidget( parent );
+    QWidget* widget     = new QWidget( parent );
     QHBoxLayout* layout = new QHBoxLayout();
     widget->setLayout( layout );
     layout->setMargin( 1 );
     layout->setSpacing( 3 );
-    Word word = d->wordSelected;
+    Word word               = d->wordSelected;
     QStringList suggestions = index.data().toString().split( QStringLiteral( ", " ) );
     for( const QString& suggestion: suggestions ) {
       QPushButton* button = new QPushButton();
@@ -485,7 +485,7 @@ void OutputPaneDelegate::rowSelected( const QModelIndex& index, const Word& word
   if( d->buttonsShown == true ) {
     d->buttonsShown = false;
     QModelIndex prevIndex = d->editIndex;
-    d->editIndex = QModelIndex();
+    d->editIndex   = QModelIndex();
     d->selectedRow = -1;
     d->treeView->closePersistentEditor( prevIndex );
   }

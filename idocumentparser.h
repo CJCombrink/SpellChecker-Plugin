@@ -48,7 +48,7 @@ class IDocumentParser
 public:
   IDocumentParser( QObject* parent = nullptr );
   virtual ~IDocumentParser() Q_DECL_OVERRIDE;
-  virtual QString displayName() = 0;
+  virtual QString displayName()             = 0;
   virtual Core::IOptionsPage* optionsPage() = 0;
 
   static bool isReservedWord( const QString& word );

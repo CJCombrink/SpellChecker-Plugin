@@ -50,7 +50,7 @@ void SpellCheckProcessor::process( QFutureInterface<WordList>& future )
   WordListConstIter prevMisspelledIter;
   Word misspelledWord;
   WordList misspelledWords;
-  WordList words = d_wordList;
+  WordList words             = d_wordList;
   WordListConstIter wordIter = words.constBegin();
   bool spellingMistake;
   future.setProgressRange( 0, words.count() + 1 );

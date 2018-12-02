@@ -29,7 +29,7 @@ using namespace SpellChecker::Internal;
 using namespace SpellChecker;
 
 using WordListInternalPair = QPair<SpellChecker::WordList, bool /* In Startup Project */>;
-using FileMistakes = QMap<QString, WordListInternalPair>;
+using FileMistakes         = QMap<QString, WordListInternalPair>;
 
 class SpellChecker::Internal::ProjectMistakesModelPrivate
 {
@@ -166,8 +166,8 @@ void ProjectMistakesModel::projectFilesChanged( QStringSet filesAdded, QStringSe
       if( wordIter != mistakesEnd ) {
         /* Found one */
         wordIter.value().second = true;
-        const int32_t row = indexOfFile( *addedIter );
-        const QModelIndex idx = index( row, COLUMN_FILE_IN_STARTUP );
+        const int32_t row       = indexOfFile( *addedIter );
+        const QModelIndex idx   = index( row, COLUMN_FILE_IN_STARTUP );
         emit dataChanged( idx, idx );
       }
     }
@@ -180,8 +180,8 @@ void ProjectMistakesModel::projectFilesChanged( QStringSet filesAdded, QStringSe
       if( wordIter != mistakesEnd ) {
         /* Found one */
         wordIter.value().second = false;
-        const int32_t row = indexOfFile( *removedIter );
-        const QModelIndex idx = index( row, COLUMN_FILE_IN_STARTUP );
+        const int32_t row       = indexOfFile( *removedIter );
+        const QModelIndex idx   = index( row, COLUMN_FILE_IN_STARTUP );
         emit dataChanged( idx, idx );
       }
     }
@@ -258,7 +258,7 @@ QVariant ProjectMistakesModel::data( const QModelIndex& index, int role ) const
     return QVariant();
   }
 
-  QString file = d->sortedKeys.at( index.row() );
+  QString file                     = d->sortedKeys.at( index.row() );
   FileMistakes::ConstIterator iter = d->spellingMistakes.find( file );
   if( iter == d->spellingMistakes.constEnd() ) {
     return QVariant();
@@ -293,7 +293,7 @@ void ProjectMistakesModel::sort( int column, Qt::SortOrder order )
 {
   beginResetModel();
   d->sortedColumn = static_cast<Columns>( column );
-  d->sortOrder = order;
+  d->sortOrder    = order;
   std::sort( d->sortedKeys.begin(), d->sortedKeys.end(), [=]( const QString& stringLhs, const QString& strinRhs ) -> bool {
     FileMistakes::ConstIterator iterLhs = d->spellingMistakes.find( stringLhs );
     FileMistakes::ConstIterator iterRhs = d->spellingMistakes.find( strinRhs );

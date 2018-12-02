@@ -266,11 +266,11 @@ WordTokens CppDocumentProcessor::parseToken( const CPlusPlus::Token& token, Word
   /* Set up the known parts of the return structure.
    * The rest will be populated as needed below. */
   WordTokens tokens;
-  tokens.hash = hash;
+  tokens.hash   = hash;
   tokens.column = col;
-  tokens.line = line;
+  tokens.line   = line;
   tokens.string = tokenString;
-  tokens.type = type;
+  tokens.type   = type;
 
   TmpOptional wordOpt = checkHash( tokens, hash );
   if( wordOpt.first == true ) {
@@ -279,7 +279,7 @@ WordTokens CppDocumentProcessor::parseToken( const CPlusPlus::Token& token, Word
 
   /* Token was not in the list of hashes.
    * Tokenize the string to extract words that should be checked. */
-  tokens.words = extractWordsFromString( tokenString, commentBegin, type );
+  tokens.words   = extractWordsFromString( tokenString, commentBegin, type );
   tokens.newHash = true;
   return tokens;
 }
@@ -289,9 +289,9 @@ WordList CppDocumentProcessor::extractWordsFromString( const QString& string, ui
 {
   WordList wordTokens;
   const int32_t strLength = string.length();
-  bool busyWithWord = false;
-  int32_t wordStartPos = 0;
-  bool endOfWord = false;
+  bool busyWithWord       = false;
+  int32_t wordStartPos    = 0;
+  bool endOfWord          = false;
 
   /* Iterate through all of the characters in the comment and extract words from them.
    * Words are split up by non-word characters and is checked using the isEndOfCurrentWord()
@@ -317,11 +317,11 @@ WordList CppDocumentProcessor::extractWordsFromString( const QString& string, ui
        */
       SP_CHECK( wordStartPos > 0 );
       Word word;
-      word.fileName = d->fileName;
-      word.text  = string.mid( wordStartPos, currentPos - wordStartPos );
-      word.start = wordStartPos;
-      word.end = currentPos;
-      word.length = currentPos - wordStartPos;
+      word.fileName  = d->fileName;
+      word.text      = string.mid( wordStartPos, currentPos - wordStartPos );
+      word.start     = wordStartPos;
+      word.end       = currentPos;
+      word.length    = currentPos - wordStartPos;
       word.charAfter = ( currentPos < strLength )
                        ? string.at( currentPos )
                        : QLatin1Char( ' ' );
@@ -447,7 +447,7 @@ QVector<WordTokens> CppDocumentProcessor::parseMacros() const
   if( macroUse.count() == 0 ) {
     return {};
   }
-  static CppTools::CppModelManager* cppModelManager = CppTools::CppModelManager::instance();
+  static CppTools::CppModelManager* cppModelManager    = CppTools::CppModelManager::instance();
   CppTools::CppEditorDocumentHandle* cppEditorDocument = cppModelManager->cppEditorDocument( d->docPtr->fileName() );
   if( cppEditorDocument == nullptr ) {
     return {};
@@ -501,10 +501,10 @@ QVector<WordTokens> CppDocumentProcessor::parseMacros() const
      * functionality.*/
     WordTokens tokens;
     tokens.column = mac.utf16charsBegin() - start;
-    tokens.line = line;
+    tokens.line   = line;
     tokens.string = QString::fromUtf8( macroBytes.mid( int32_t( mac.utf16charsBegin() - start ) ) );
-    tokens.hash = qHash( tokens.string );
-    tokens.type = WordTokens::Type::Literal;
+    tokens.hash   = qHash( tokens.string );
+    tokens.type   = WordTokens::Type::Literal;
 
     TmpOptional wordOpt = checkHash( tokens, tokens.hash );
     if( wordOpt.first == true ) {
@@ -541,7 +541,7 @@ QVector<WordTokens> CppDocumentProcessor::parseMacros() const
     QRegularExpressionMatchIterator regExpIter = regExp.globalMatch( QString::fromLatin1( macroBytes ) );
     while( regExpIter.hasNext() == true ) {
       const QRegularExpressionMatch match = regExpIter.next();
-      const QString tokenString = match.captured( 0 );
+      const QString tokenString           = match.captured( 0 );
       SP_CHECK( match.capturedStart( 0 ) >= 0 );
       const uint32_t capStart = uint32_t( match.capturedStart( 0 ) );
       /* Check if the literal starts on the next line from the current one */
@@ -556,7 +556,7 @@ QVector<WordTokens> CppDocumentProcessor::parseMacros() const
       for( Word& word: words ) {
         /* Apply the offsets to the words */
         word.columnNumber += capStart - colOffset;
-        word.lineNumber = line;
+        word.lineNumber    = line;
       }
       tokens.words.append( words );
       /* Get the words from the extracted literal */
@@ -576,7 +576,7 @@ CppDocumentProcessor::TmpOptional CppDocumentProcessor::checkHash( WordTokens to
    * as is, without attempting to extract them again. If the
    * token is not in the hash, it is a new token and must be
    * parsed to get the words from the token. */
-  HashWords::const_iterator iter = d->tokenHashes.constFind( hash );
+  HashWords::const_iterator iter          = d->tokenHashes.constFind( hash );
   const HashWords::const_iterator iterEnd = d->tokenHashes.constEnd();
   if( iter != iterEnd ) {
     /* The token was parsed in a previous iteration.
@@ -588,7 +588,7 @@ CppDocumentProcessor::TmpOptional CppDocumentProcessor::checkHash( WordTokens to
     const TokenWords& tokenWords = ( iter.value() );
     if( ( tokenWords.line == tokens.line )
         && ( tokenWords.col == tokens.column ) ) {
-      tokens.words = tokenWords.words;
+      tokens.words   = tokenWords.words;
       tokens.newHash = false;
       return std::make_pair( true, tokens );
     } else {
@@ -596,8 +596,8 @@ CppDocumentProcessor::TmpOptional CppDocumentProcessor::checkHash( WordTokens to
       /* Token moved, adjust.
        * This will even work for lines that are copied because the
        * hash will be the same but the start will just be different. */
-      const qint32 lineDiff = int32_t( tokenWords.line ) - int32_t( tokens.line );
-      const qint32 colDiff  = int32_t( tokenWords.col ) - int32_t( tokens.column );
+      const qint32 lineDiff    = int32_t( tokenWords.line ) - int32_t( tokens.line );
+      const qint32 colDiff     = int32_t( tokenWords.col ) - int32_t( tokens.column );
       const uint32_t firstLine = tokens.line;
       /* Move the line according to the difference between the
        * known position and the position from the hash.
@@ -614,7 +614,7 @@ CppDocumentProcessor::TmpOptional CppDocumentProcessor::checkHash( WordTokens to
         }
         words.append( word );
       }
-      tokens.words = words;
+      tokens.words   = words;
       tokens.newHash = false;
       return std::make_pair( true, tokens );
     }

@@ -32,18 +32,18 @@ const char WEBSITE_ADDRESS_REGEXP_PATTERN[] = "((http(s)?):\\/\\/)?(\\w+\\.){1,1
 /* Pattern for characters that can be part of a website URL. */
 const char WEBSITE_CHARS_REGEXP_PATTERN[] = "[/:\\?=#%-]";
 
-const char CPP_PARSER_GROUP[] = "CppParser";
-const char WHAT_TO_CHECK[] = "WhatToCheck";
-const char COMMENTS_TO_CHECK[] = "CommentsToCheck";
-const char CHECK_QT_KEYWORDS[] = "CheckQtKeywords";
-const char CHECK_CAPS[] = "checkAllCapsWords";
-const char CHECK_NUMBERS[] = "wordsWithNumberOption";
-const char CHECK_UNDERSCORES[] = "wordsWithUnderscoresOption";
-const char CHECK_CAMELCASE[] = "camelCaseWordOption";
-const char REMOVE_WORDS_SOURCE[] = "removeWordsThatAppearInSource";
+const char CPP_PARSER_GROUP[]       = "CppParser";
+const char WHAT_TO_CHECK[]          = "WhatToCheck";
+const char COMMENTS_TO_CHECK[]      = "CommentsToCheck";
+const char CHECK_QT_KEYWORDS[]      = "CheckQtKeywords";
+const char CHECK_CAPS[]             = "checkAllCapsWords";
+const char CHECK_NUMBERS[]          = "wordsWithNumberOption";
+const char CHECK_UNDERSCORES[]      = "wordsWithUnderscoresOption";
+const char CHECK_CAMELCASE[]        = "camelCaseWordOption";
+const char REMOVE_WORDS_SOURCE[]    = "removeWordsThatAppearInSource";
 const char REMOVE_EMAIL_ADDRESSES[] = "removeEmailAddresses";
-const char CHECK_DOTS[] = "wordsWithDotsOption";
-const char REMOVE_WEBSITES[] = "removeWebsites";
+const char CHECK_DOTS[]             = "wordsWithDotsOption";
+const char REMOVE_WEBSITES[]        = "removeWebsites";
 
 } // namespace Constants
 } // namespace CppParser

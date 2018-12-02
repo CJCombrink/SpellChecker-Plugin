@@ -91,11 +91,11 @@ CppParserOptionsWidget::~CppParserOptionsWidget()
 
 const CppParserSettings& CppParserOptionsWidget::settings()
 {
-  m_settings.removeEmailAddresses = ui->checkBoxRemoveEmailAddresses->isChecked();
-  m_settings.checkQtKeywords = !ui->checkBoxIgnoreKeywords->isChecked();
-  m_settings.checkAllCapsWords = !ui->checkBoxIgnoreCaps->isChecked();
+  m_settings.removeEmailAddresses          = ui->checkBoxRemoveEmailAddresses->isChecked();
+  m_settings.checkQtKeywords               = !ui->checkBoxIgnoreKeywords->isChecked();
+  m_settings.checkAllCapsWords             = !ui->checkBoxIgnoreCaps->isChecked();
   m_settings.removeWordsThatAppearInSource = ui->checkBoxWordsInSource->isChecked();
-  m_settings.removeWebsites = ui->checkBoxWebsiteAddresses->isChecked();
+  m_settings.removeWebsites                = ui->checkBoxWebsiteAddresses->isChecked();
   return m_settings;
 }
 // --------------------------------------------------
