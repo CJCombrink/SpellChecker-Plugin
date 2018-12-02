@@ -359,8 +359,8 @@ void CppDocumentParser::queueFilesForUpdate()
   static CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
 
   QStringSet filesToUpdate;
-  uint32_t filesOutstanding;
-  uint32_t filesInProcess;
+  size_t filesOutstanding;
+  size_t filesInProcess;
 
   {
     QMutexLocker locker(&d->fileQeueMutex);
