@@ -117,7 +117,7 @@ SpellCheckerCore::SpellCheckerCore( QObject* parent )
   connect( this, &SpellCheckerCore::activeProjectChanged, d->mistakesModel, &SpellingMistakesModel::setActiveProject );
 
   d->outputPane = new OutputPane( d->mistakesModel, this );
-  connect( d->spellingMistakesModel, &ProjectMistakesModel::editorOpened, [=]() { d->outputPane->popup( Core::IOutputPane::NoModeSwitch ); } );
+  connect( d->spellingMistakesModel, &ProjectMistakesModel::editorOpened, d->outputPane, [=]() { d->outputPane->popup( Core::IOutputPane::NoModeSwitch ); } );
 
   d->optionsPage = new SpellCheckerCoreOptionsPage( d->settings );
 
@@ -232,14 +232,14 @@ void SpellCheckerCore::addMisspelledWords( const QString& fileName, const WordLi
      * underlined.
      * Again the Columns on the misspelled word is 1 based but
      * the blocks and cursor are 0 based. */
-    const QTextBlock& block = document->findBlockByNumber( word.lineNumber - 1 );
+    const QTextBlock& block = document->findBlockByNumber( int32_t( word.lineNumber ) - 1 );
     if( ( block.isValid() == false )
-        || ( uint32_t( block.length() ) < ( word.columnNumber - 1 + word.length ) ) ) {
+        || ( uint32_t( block.length() ) < ( word.columnNumber - 1 + uint32_t( word.length ) ) ) ) {
       continue;
     }
 
     QTextCursor cursor( block );
-    cursor.setPosition( cursor.position() + word.columnNumber - 1 );
+    cursor.setPosition( cursor.position() + int32_t( word.columnNumber ) - 1 );
     cursor.movePosition( QTextCursor::Right, QTextCursor::KeepAnchor, word.length );
     /* Get the current format from the cursor, this is to make sure that the text font
      * and color stays the same, we just want to underline the mistake. */
@@ -503,9 +503,9 @@ bool SpellCheckerCore::isWordUnderCursorMistake( Word& word ) const
     return false;
   }
 
-  unsigned int column     = d->currentEditor->currentColumn();
-  unsigned int line       = d->currentEditor->currentLine();
-  QString currentFileName = d->currentEditor->document()->filePath().toString();
+  uint32_t column          = uint32_t( d->currentEditor->currentColumn() );
+  uint32_t line            = uint32_t( d->currentEditor->currentLine() );
+  QString  currentFileName = d->currentEditor->document()->filePath().toString();
   WordList wl;
   wl = d->spellingMistakesModel->mistakesForFile( currentFileName );
   if( wl.isEmpty() == true ) {
@@ -517,7 +517,7 @@ bool SpellCheckerCore::isWordUnderCursorMistake( Word& word ) const
     const Word& currentWord = iter.value();
     if( ( currentWord.lineNumber == line )
         && ( ( currentWord.columnNumber <= column )
-             && ( ( currentWord.columnNumber + currentWord.length ) >= column ) ) ) {
+             && ( ( currentWord.columnNumber + uint32_t( currentWord.length ) ) >= column ) ) ) {
       word = currentWord;
       return true;
     }
@@ -579,9 +579,6 @@ void SpellCheckerCore::giveSuggestionsForWordUnderCursor()
     case SuggestionsDialog::AcceptAll:
       /* Do nothing since the list of words is already valid */
       break;
-    default:
-      Q_ASSERT( false );
-      return;
   }
 
   QString replacement = dialog.replacementWord();
@@ -696,9 +693,9 @@ void SpellCheckerCore::replaceWordsInCurrentEditor( const WordList& wordsToRepla
   QTextCursor cursor = editorWidget->textCursor();
   /* Iterate the words and replace all one by one */
   for( const Word& wordToReplace: wordsToReplace ) {
-    editorWidget->gotoLine( wordToReplace.lineNumber, wordToReplace.columnNumber - 1 );
+    editorWidget->gotoLine( int32_t( wordToReplace.lineNumber ), int32_t( wordToReplace.columnNumber ) - 1 );
     int wordStartPos = editorWidget->textCursor().position();
-    editorWidget->gotoLine( wordToReplace.lineNumber, wordToReplace.columnNumber + wordToReplace.length - 1 );
+    editorWidget->gotoLine( int32_t( wordToReplace.lineNumber ), int32_t( wordToReplace.columnNumber ) + wordToReplace.length - 1 );
     int wordEndPos = editorWidget->textCursor().position();
 
     cursor.beginEditBlock();
@@ -836,7 +833,7 @@ void SpellCheckerCore::updateContextMenu()
   }
   QStringList list = word.suggestions;
   /* Iterate the commands and */
-  for( Core::Command* cmd: d->contextMenuHolderCommands ) {
+  for( Core::Command* cmd: qAsConst( d->contextMenuHolderCommands ) ) {
     Q_ASSERT( cmd != nullptr );
     if( list.size() > 0 ) {
       /* Disconnect the previous connection made, otherwise it will also trigger */
@@ -848,7 +845,7 @@ void SpellCheckerCore::updateContextMenu()
       cmd->action()->setVisible( true );
       /* Connect to lambda function to call to replace the words if the
        * action is triggered. */
-      connect( cmd->action(), &QAction::triggered, [this, word, cmd, replacementWord]() {
+      connect( cmd->action(), &QAction::triggered, this, [this, word, replacementWord]() {
         WordList wordsToReplace;
         if( d->settings->replaceAllFromRightClick == true ) {
           this->getAllOccurrencesOfWord( word, wordsToReplace );
