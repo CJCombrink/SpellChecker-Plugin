@@ -35,7 +35,7 @@ class HunspellChecker
   Q_OBJECT
 public:
   HunspellChecker();
-  ~HunspellChecker();
+  ~HunspellChecker() override;
 
   QString name() const Q_DECL_OVERRIDE;
   bool isSpellingMistake( const QString& word ) const Q_DECL_OVERRIDE;

@@ -35,25 +35,67 @@
 #include <QSharedPointer>
 #include <QTextCodec>
 
-typedef QSharedPointer< ::Hunspell> HunspellPtr;
-
-class SpellChecker::Checker::Hunspell::HunspellCheckerPrivate
+namespace {
+/*! \brief Wrapper around Hunspell object */
+class HunspellWrapper
 {
 public:
-  HunspellPtr hunspell;
-  QString dictionary;
-  QString userDictionary;
-  QMutex  mutex;
-  QTextCodec* codec;
+  /*! \brief Construct the wrapper and set up the hunspell object.
+   *
+   * The dictionary name (full path and name) is needed to set up the
+   * hunspell object. From the supplied dictionary file, the associated
+   * .aff file is derived, which is also needed by Hunspell and must be
+   * co-located with the dictionary file. */
+  HunspellWrapper( const QString& dictionary )
+  {
+    /* Get the affix dictionary path */
+    QString affPath = QString( dictionary ).replace( QRegExp( QLatin1String( "\\.dic$" ) ), QLatin1String( ".aff" ) );
+    d_hunspell = HunspellPtr( new ::Hunspell( affPath.toLatin1(), dictionary.toLatin1() ) );
+    d_codec    = QTextCodec::codecForName( d_hunspell->get_dic_encoding() );
+  }
+  /*! \brief Check if the supplied \a word is a spelling mistake or not.
+   *
+   * A spelling mistake is a word that is not recognised by the Hunspell
+   * object. */
+  bool isSpellingMistake( const QString& word ) const
+  {
+    QMutexLocker lock( &d_mutex );
+    HunspellPtr  hunspell = d_hunspell;
+    bool recognised       = hunspell->spell( encode( word ) );
+    return ( recognised == false );
+  }
+  /*! \brief Get the list of suggestions for the given word.
+   *
+   * It is assumed that the \a word is a spelling mistake, thus
+   * this is not checked again. */
+  QStringList getSuggestionsForWord( const QString& word ) const
+  {
+    QStringList suggestionsList;
+    QMutexLocker lock( &d_mutex );
+    HunspellPtr  hunspell = d_hunspell;
+    char** suggestions;
+    int numSuggestions = d_hunspell->suggest( &suggestions, encode( word ) );
+    suggestionsList.reserve( numSuggestions );
+    for( int i = 0; i < numSuggestions; ++i ) {
+      suggestionsList << decode( suggestions[i] );
+    }
+    hunspell->free_list( &suggestions, numSuggestions );
+    return suggestionsList;
+  }
+  /*! \brief Add the given word to the Hunspell object.
+   *
+   * A word that is added will not be considered a spelling mistake.
+   * Words added to the object will only be remembered for the lifetime
+   * of the object. To remember a word between runs, external functionality
+   * must be used. */
+  void addWord( const QString& word )
+  {
+    QMutexLocker lock( &d_mutex );
+    HunspellPtr  hunspell = d_hunspell;
+    d_hunspell->add( encode( word ).constData() );
+  }
 
-  HunspellCheckerPrivate()
-    : hunspell( nullptr )
-    , dictionary()
-    , userDictionary()
-    , codec()
-  {}
-  ~HunspellCheckerPrivate() {}
-
+private:
   /*! \brief Encode a word into the encoding of the selected dictionary.
    *
    * If the selected dictionary uses a different encoding than the one
@@ -63,10 +105,10 @@ public:
    *
    * If the codec is not set or valid the word is converted to
    * its Latin-1 representation. */
-  QByteArray encode( const QString& word )
+  QByteArray encode( const QString& word ) const
   {
-    if( codec != nullptr ) {
-      return codec->fromUnicode( word );
+    if( d_codec != nullptr ) {
+      return d_codec->fromUnicode( word );
     }
     return word.toLatin1();
   }
@@ -79,13 +121,38 @@ public:
    *
    * If the codec is not set or invalid the word is converted to
    * its Latin-1 representation. */
-  QString decode( const QByteArray& word )
+  QString decode( const QByteArray& word ) const
   {
-    if( codec != nullptr ) {
-      return codec->toUnicode( word );
+    if( d_codec != nullptr ) {
+      return d_codec->toUnicode( word );
     }
     return QLatin1String( word );
   }
+
+private:
+  using HunspellPtr = QSharedPointer< ::Hunspell>;
+  HunspellPtr d_hunspell;
+  QTextCodec* d_codec;
+  mutable QMutex d_mutex;
+};
+
+} // namespace
+
+
+class SpellChecker::Checker::Hunspell::HunspellCheckerPrivate
+{
+  using HunspellWrapperPtr = std::unique_ptr<HunspellWrapper>;
+public:
+  QString dictionary;
+  QString userDictionary;
+  QMutex  fileMutex;
+  HunspellWrapperPtr hunspell;
+
+  HunspellCheckerPrivate()
+    : dictionary()
+    , userDictionary()
+  {}
+  ~HunspellCheckerPrivate() {}
 };
 // --------------------------------------------------
 // --------------------------------------------------
@@ -98,10 +165,7 @@ HunspellChecker::HunspellChecker()
   , d( new HunspellCheckerPrivate() )
 {
   loadSettings();
-  /* Get the affix dictionary path */
-  QString affPath = QString( d->dictionary ).replace( QRegExp( QLatin1String( "\\.dic$" ) ), QLatin1String( ".aff" ) );
-  d->hunspell = HunspellPtr( new ::Hunspell( affPath.toLatin1(), d->dictionary.toLatin1() ) );
-  d->codec    = QTextCodec::codecForName( d->hunspell->get_dic_encoding() );
+  d->hunspell = std::make_unique<HunspellWrapper>( d->dictionary );
   loadUserAddedWords();
 }
 // --------------------------------------------------
@@ -176,46 +240,34 @@ void HunspellChecker::saveSettings() const
 
 bool HunspellChecker::isSpellingMistake( const QString& word ) const
 {
-  QMutexLocker lock( &d->mutex );
-  HunspellPtr  hunspell = d->hunspell;
-  bool recognised       = hunspell->spell( d->encode( word ) );
-  return ( recognised == false );
+  return d->hunspell->isSpellingMistake( word );
 }
 // --------------------------------------------------
 
 void HunspellChecker::getSuggestionsForWord( const QString& word, QStringList& suggestionsList ) const
 {
-  QMutexLocker lock( &d->mutex );
-  HunspellPtr  hunspell = d->hunspell;
-  char** suggestions;
-  int numSuggestions = hunspell->suggest( &suggestions, d->encode( word ) );
-  suggestionsList.reserve( numSuggestions );
-  for( int i = 0; i < numSuggestions; ++i ) {
-    suggestionsList << d->decode( suggestions[i] );
-  }
-  hunspell->free_list( &suggestions, numSuggestions );
-  return;
+  suggestionsList = d->hunspell->getSuggestionsForWord( word );
 }
 // --------------------------------------------------
 
 bool HunspellChecker::addWord( const QString& word )
 {
-  QMutexLocker lock( &d->mutex );
-  HunspellPtr  hunspell = d->hunspell;
+  // HunspellPtr  hunspell = d->hunspell;*/
   /* Save the word to the user dictionary */
   if( d->userDictionary.isEmpty() == true ) {
     qDebug() << "User dictionary name empty";
     return false;
   }
 
+  QMutexLocker lock( &d->fileMutex );
   QFileInfo( d->userDictionary ).dir().mkpath( "." );
   QFile dictionary( d->userDictionary );
   if( dictionary.open( QIODevice::Append ) == false ) {
     qDebug() << "Could not open user dictionary file: " << d->userDictionary;
     return false;
   }
-  /* Only add the word to the spellchecker if the previous checkers passed. */
-  hunspell->add( d->encode( word ).constData() );
+  /* Only add the word to the spellchecker if the previous checks passed. */
+  d->hunspell->addWord( word );
 
   QTextStream stream( &dictionary );
   stream << word << endl;
@@ -226,9 +278,9 @@ bool HunspellChecker::addWord( const QString& word )
 
 bool HunspellChecker::ignoreWord( const QString& word )
 {
-  QMutexLocker lock( &d->mutex );
-  HunspellPtr  hunspell = d->hunspell;
-  hunspell->add( d->encode( word ).constData() );
+  /* The word is only added for this run of the IDE.
+   * For this reason it is not added to the file. */
+  d->hunspell->addWord( word );
   return true;
 }
 // --------------------------------------------------
