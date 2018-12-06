@@ -35,6 +35,8 @@
 #include <QSharedPointer>
 #include <QTextCodec>
 
+#include <memory>
+
 namespace {
 /*! \brief Wrapper around Hunspell object */
 class HunspellWrapper
