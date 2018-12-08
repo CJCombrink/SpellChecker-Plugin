@@ -20,6 +20,7 @@
 
 #include "cppdocumentparser.h"
 #include "cppdocumentprocessor.h"
+#include "cppparserconstants.h"
 
 #include <cplusplus/Overview.h>
 #include <cppeditor/cppeditordocument.h>
@@ -429,7 +430,7 @@ bool CppDocumentProcessor::isEndOfCurrentWord( const QString& comment, int curre
    * that are not always desired.
    * This setting might require some rework in the future. */
   if( d->settings.removeWebsites == true ) {
-    static const QRegularExpression websiteChars( QStringLiteral( "\\/|:|\\?|\\=|#|%|\\w|\\-" ) );
+    static const QRegularExpression websiteChars( QStringLiteral( "\\w|" ) + QLatin1String( Parsers::CppParser::Constants::WEBSITE_CHARS_REGEXP_PATTERN ) );
     if( websiteChars.match( currentChar ).hasMatch() == true ) {
       if( ( currentPos == 0 ) || ( currentPos == ( comment.length() - 1 ) ) ) {
         return true;
