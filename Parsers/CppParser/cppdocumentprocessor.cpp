@@ -516,11 +516,12 @@ QVector<WordTokens> CppDocumentProcessor::parseMacros() const
      * macro due to edits before the macro can be handled using the hash
      * functionality.*/
     WordTokens tokens;
-    tokens.column = mac.utf16charsBegin() - start;
-    tokens.line   = line;
-    tokens.string = QString::fromUtf8( macroBytes.mid( int32_t( mac.utf16charsBegin() - start ) ) );
-    tokens.hash   = qHash( tokens.string );
-    tokens.type   = WordTokens::Type::Literal;
+    tokens.column  = mac.utf16charsBegin() - start;
+    tokens.line    = line;
+    tokens.string  = QString::fromUtf8( macroBytes.mid( int32_t( mac.utf16charsBegin() - start ) ) );
+    tokens.hash    = qHash( tokens.string );
+    tokens.type    = WordTokens::Type::Literal;
+    tokens.newHash = true;
 
     TmpOptional wordOpt = checkHash( tokens, tokens.hash );
     if( wordOpt.first == true ) {

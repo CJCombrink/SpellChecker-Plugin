@@ -60,11 +60,11 @@ struct WordTokens
   };
 
   HashWords::key_type hash;
-  uint32_t line;
-  uint32_t column;
+  uint32_t line   = 0;
+  uint32_t column = 0;
   QString string;
   WordList words;
-  bool newHash;
+  bool newHash = true;
   Type type;
 };
 
