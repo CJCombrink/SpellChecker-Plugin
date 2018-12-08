@@ -61,9 +61,9 @@ public:
     SplitWordsOnNumbers    = 1,     /*!< Split words on numbers. Thus a word like 'some9word' will
                                      * result in 2 words, 'some' and 'word' that will get added to
                                      * the list of words to be checked. */
-    LeaveWordsWithNumbers  = 2      /*!< Leave words with numbers as they are. \note Some spell
-                                     * checkers will discard words with numbers in without checking
-                                     * them. */
+    LeaveWordsWithNumbers  = 2      /*!< Leave words with numbers as they are.
+                                     * \note Some spell checkers will discard words with numbers in
+                                     * without checking them. */
   };
 
   enum WordsWithUnderscoresOption {
@@ -107,34 +107,34 @@ public:
                                            * the \a whatToCheck setting includes comments. If
                                            * comments are not getting checked, this setting does not
                                            * apply. Doxygen comments will always be checked no
-                                           * matter what the setting. \todo Change the options so
-                                           * that all combinations are selectable, C, Cpp and
-                                           * Doxygen. */
+                                           * matter what the setting.
+                                           * \todo Change the options so that all combinations are
+                                           * selectable, C, Cpp and Doxygen. */
   bool checkQtKeywords;                   /*!< Qt keywords are words in the form where the first
                                            * letter is a caps 'Q' followed by a capital letter.
                                            * Keywords can also start with 'Q_' or words like 'emit',
                                            * 'slot', etc. If this is false, such words will be
                                            * removed from the words to be checked. */
-  bool checkAllCapsWords;                 /*!< All caps words are words where the following is true:
-                                           *   word == word.toUpper(). If this is false, such words
-                                           * will be removed from the words to be checked. This
-                                           * setting takes precedence over words with underscores.
-                                           * Thus a word in all caps that contains numbers or
-                                           * underscores will be removed if this setting is false,
-                                           * even if the \a wordsWithNumberOption or \a
-                                           * wordsWithUnderscoresOption would cause such words to be
-                                           * checked. */
+  bool checkAllCapsWords;                 /*!< All caps words are words where the following is
+                                           * true:
+                                           *   word == word.toUpper().
+                                           * If this is false, such words will be removed from the
+                                           * words to be checked. This setting takes precedence over
+                                           * words with underscores. Thus a word in all caps that
+                                           * contains numbers or underscores will be removed if this
+                                           * setting is false, even if the \a wordsWithNumberOption
+                                           * or \a wordsWithUnderscoresOption would cause such words
+                                           * to be checked. */
   WordsWithNumbersOption wordsWithNumberOption;
   WordsWithUnderscoresOption wordsWithUnderscoresOption;
   CamelCaseWordOption camelCaseWordOption;
   bool removeWordsThatAppearInSource;
   bool removeEmailAddresses;
   WordsWithDotsOption wordsWithDotsOption;
-
-  bool removeWebsites;                    /*! The words with websites uses a very zealous regular
+  bool removeWebsites;                    /*!< The words with websites uses a very zealous regular
                                            * expression that can remove a lot of actual errors in
-                                           * the code. For this reason it will be false by default.
-                                           * */
+                                           * the code.
+                                           * For this reason it will be false by default. */
 
   void loadFromSettings( QSettings* settings );
   void saveToSetting( QSettings* settings ) const;
