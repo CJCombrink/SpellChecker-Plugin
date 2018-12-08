@@ -346,7 +346,7 @@ WordList CppDocumentProcessor::extractWordsFromString( const QString& string, ui
         const QChar charBeforeStart = string.at( wordStartPos - 1 );
         if( ( charBeforeStart == QLatin1Char( '\\' ) )
             || ( charBeforeStart == QLatin1Char( '@' ) ) ) {
-          const QString currentWord = word.text;
+          const QString& currentWord = word.text;
           /* Classify it */
           const int32_t doxyClass = CppTools::classifyDoxygenTag( currentWord.unicode(), currentWord.size() );
           if( doxyClass != CppTools::T_DOXY_IDENTIFIER ) {
