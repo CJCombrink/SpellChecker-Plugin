@@ -44,6 +44,7 @@ const char REMOVE_WORDS_SOURCE[]    = "removeWordsThatAppearInSource";
 const char REMOVE_EMAIL_ADDRESSES[] = "removeEmailAddresses";
 const char CHECK_DOTS[]             = "wordsWithDotsOption";
 const char REMOVE_WEBSITES[]        = "removeWebsites";
+const char REMOVE_FIRST_COMMENT[]   = "removeFirstComment";
 
 } // namespace Constants
 } // namespace CppParser

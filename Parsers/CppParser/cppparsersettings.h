@@ -135,6 +135,17 @@ public:
                                            * expression that can remove a lot of actual errors in
                                            * the code.
                                            * For this reason it will be false by default. */
+  bool removeFirstComment;                /*!< Remove the first comment in a file. This option is
+                                           * useful to prevent parsing the first comment in a file.
+                                           * Most often the very first comment in the file is a
+                                           * license header, and should be the same for each file.
+                                           * If this comment is ignored, a lot of processing is
+                                           * skipped.
+                                           * Also this can remove more false positives like names
+                                           * and websites.
+                                           * Doxygen comments that are the first comment in a file
+                                           * will not be ignored. This is to handle pure doxygen
+                                           * docs files that might start without a file header. */
 
   void loadFromSettings( QSettings* settings );
   void saveToSetting( QSettings* settings ) const;

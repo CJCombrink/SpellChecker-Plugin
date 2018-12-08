@@ -65,7 +65,7 @@
         <x>0</x>
         <y>0</y>
         <width>804</width>
-        <height>1178</height>
+        <height>1286</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -387,6 +387,82 @@
             </property>
             <property name="text">
              <string>Check both /* */ and // comments. For any option Doxygen Comments will always be checked. </string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_13">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>First Comment</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
+         </property>
+         <property name="checkable">
+          <bool>false</bool>
+         </property>
+         <layout class="QFormLayout" name="formLayout_12">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+          </property>
+          <property name="verticalSpacing">
+           <number>0</number>
+          </property>
+          <item row="0" column="0" colspan="2">
+           <widget class="QCheckBox" name="checkBoxRemoveFirstComment">
+            <property name="text">
+             <string>Remove first comment in file</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <spacer name="horizontalSpacer_18">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>16</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="labelDescriptionFirstComment">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <italic>true</italic>
+             </font>
+            </property>
+            <property name="text">
+             <string>Remove the first comment in a file. In many circumstances the first comment in a file is a file or license header.
+If this option is checked, this comment will be ignored by the checker. This option only applies to a comment that starts at line 1, column 1 and will apply irrespective of the comment style (but not Doxygen comments).
+A multi-line C++ comment will not behave as expected since all lines are interpreted as separate comments.</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -1415,8 +1491,8 @@ The match pattern used is: %1</string>
      <y>18</y>
     </hint>
     <hint type="destinationlabel">
-     <x>479</x>
-     <y>625</y>
+     <x>521</x>
+     <y>616</y>
     </hint>
    </hints>
   </connection>
@@ -1431,8 +1507,8 @@ The match pattern used is: %1</string>
      <y>19</y>
     </hint>
     <hint type="destinationlabel">
-     <x>482</x>
-     <y>708</y>
+     <x>524</x>
+     <y>673</y>
     </hint>
    </hints>
   </connection>
@@ -1447,8 +1523,8 @@ The match pattern used is: %1</string>
      <y>25</y>
     </hint>
     <hint type="destinationlabel">
-     <x>500</x>
-     <y>744</y>
+     <x>542</x>
+     <y>715</y>
     </hint>
    </hints>
   </connection>
@@ -1463,8 +1539,8 @@ The match pattern used is: %1</string>
      <y>17</y>
     </hint>
     <hint type="destinationlabel">
-     <x>537</x>
-     <y>780</y>
+     <x>579</x>
+     <y>745</y>
     </hint>
    </hints>
   </connection>
@@ -1479,8 +1555,8 @@ The match pattern used is: %1</string>
      <y>21</y>
     </hint>
     <hint type="destinationlabel">
-     <x>586</x>
-     <y>859</y>
+     <x>628</x>
+     <y>814</y>
     </hint>
    </hints>
   </connection>
@@ -1491,12 +1567,12 @@ The match pattern used is: %1</string>
    <slot>setHidden(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>358</x>
-     <y>28</y>
+     <x>369</x>
+     <y>27</y>
     </hint>
     <hint type="destinationlabel">
-     <x>628</x>
-     <y>899</y>
+     <x>670</x>
+     <y>844</y>
     </hint>
    </hints>
   </connection>
@@ -1511,8 +1587,8 @@ The match pattern used is: %1</string>
      <y>23</y>
     </hint>
     <hint type="destinationlabel">
-     <x>687</x>
-     <y>935</y>
+     <x>729</x>
+     <y>874</y>
     </hint>
    </hints>
   </connection>
@@ -1527,8 +1603,8 @@ The match pattern used is: %1</string>
      <y>27</y>
     </hint>
     <hint type="destinationlabel">
-     <x>538</x>
-     <y>1009</y>
+     <x>580</x>
+     <y>943</y>
     </hint>
    </hints>
   </connection>
@@ -1543,8 +1619,8 @@ The match pattern used is: %1</string>
      <y>25</y>
     </hint>
     <hint type="destinationlabel">
-     <x>465</x>
-     <y>1054</y>
+     <x>507</x>
+     <y>973</y>
     </hint>
    </hints>
   </connection>
@@ -1559,8 +1635,8 @@ The match pattern used is: %1</string>
      <y>21</y>
     </hint>
     <hint type="destinationlabel">
-     <x>438</x>
-     <y>1090</y>
+     <x>480</x>
+     <y>1003</y>
     </hint>
    </hints>
   </connection>
@@ -1575,8 +1651,8 @@ The match pattern used is: %1</string>
      <y>19</y>
     </hint>
     <hint type="destinationlabel">
-     <x>534</x>
-     <y>1176</y>
+     <x>576</x>
+     <y>1085</y>
     </hint>
    </hints>
   </connection>
@@ -1591,8 +1667,8 @@ The match pattern used is: %1</string>
      <y>25</y>
     </hint>
     <hint type="destinationlabel">
-     <x>724</x>
-     <y>1257</y>
+     <x>766</x>
+     <y>1152</y>
     </hint>
    </hints>
   </connection>
@@ -1607,8 +1683,8 @@ The match pattern used is: %1</string>
      <y>25</y>
     </hint>
     <hint type="destinationlabel">
-     <x>794</x>
-     <y>1293</y>
+     <x>804</x>
+     <y>1184</y>
     </hint>
    </hints>
   </connection>
@@ -1623,8 +1699,8 @@ The match pattern used is: %1</string>
      <y>24</y>
     </hint>
     <hint type="destinationlabel">
-     <x>361</x>
-     <y>1342</y>
+     <x>403</x>
+     <y>1214</y>
     </hint>
    </hints>
   </connection>
@@ -1639,8 +1715,8 @@ The match pattern used is: %1</string>
      <y>20</y>
     </hint>
     <hint type="destinationlabel">
-     <x>522</x>
-     <y>1412</y>
+     <x>564</x>
+     <y>1290</y>
     </hint>
    </hints>
   </connection>
@@ -1655,8 +1731,8 @@ The match pattern used is: %1</string>
      <y>22</y>
     </hint>
     <hint type="destinationlabel">
-     <x>231</x>
-     <y>427</y>
+     <x>273</x>
+     <y>465</y>
     </hint>
    </hints>
   </connection>
@@ -1671,8 +1747,8 @@ The match pattern used is: %1</string>
      <y>20</y>
     </hint>
     <hint type="destinationlabel">
-     <x>208</x>
-     <y>97</y>
+     <x>250</x>
+     <y>86</y>
     </hint>
    </hints>
   </connection>
@@ -1687,8 +1763,8 @@ The match pattern used is: %1</string>
      <y>24</y>
     </hint>
     <hint type="destinationlabel">
-     <x>252</x>
-     <y>136</y>
+     <x>294</x>
+     <y>116</y>
     </hint>
    </hints>
   </connection>
@@ -1703,8 +1779,8 @@ The match pattern used is: %1</string>
      <y>24</y>
     </hint>
     <hint type="destinationlabel">
-     <x>283</x>
-     <y>170</y>
+     <x>325</x>
+     <y>146</y>
     </hint>
    </hints>
   </connection>
@@ -1731,8 +1807,8 @@ The match pattern used is: %1</string>
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>404</x>
-     <y>111</y>
+     <x>424</x>
+     <y>103</y>
     </hint>
     <hint type="destinationlabel">
      <x>386</x>
@@ -1747,8 +1823,8 @@ The match pattern used is: %1</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>411</x>
-     <y>149</y>
+     <x>431</x>
+     <y>133</y>
     </hint>
     <hint type="destinationlabel">
      <x>410</x>
@@ -1767,8 +1843,8 @@ The match pattern used is: %1</string>
      <y>25</y>
     </hint>
     <hint type="destinationlabel">
-     <x>424</x>
-     <y>244</y>
+     <x>466</x>
+     <y>215</y>
     </hint>
    </hints>
   </connection>
@@ -1783,8 +1859,8 @@ The match pattern used is: %1</string>
      <y>20</y>
     </hint>
     <hint type="destinationlabel">
-     <x>371</x>
-     <y>286</y>
+     <x>413</x>
+     <y>245</y>
     </hint>
    </hints>
   </connection>
@@ -1799,8 +1875,72 @@ The match pattern used is: %1</string>
      <y>22</y>
     </hint>
     <hint type="destinationlabel">
-     <x>336</x>
-     <y>326</y>
+     <x>378</x>
+     <y>275</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBoxDescriptions</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>labelDescriptionFirstComment</receiver>
+   <slot>setHidden(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>201</x>
+     <y>17</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>198</x>
+     <y>356</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButtonWhatBoth</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>groupBox_13</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>152</x>
+     <y>128</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>120</x>
+     <y>298</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButtonWhatLiterals</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>groupBox_13</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>143</x>
+     <y>95</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>156</x>
+     <y>313</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButtonWhatComments</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>groupBox_13</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>92</x>
+     <y>68</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>96</x>
+     <y>298</y>
     </hint>
    </hints>
   </connection>

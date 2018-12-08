@@ -96,6 +96,7 @@ const CppParserSettings& CppParserOptionsWidget::settings()
   m_settings.checkAllCapsWords             = !ui->checkBoxIgnoreCaps->isChecked();
   m_settings.removeWordsThatAppearInSource = ui->checkBoxWordsInSource->isChecked();
   m_settings.removeWebsites                = ui->checkBoxWebsiteAddresses->isChecked();
+  m_settings.removeFirstComment            = ui->checkBoxRemoveFirstComment->isChecked();
   return m_settings;
 }
 // --------------------------------------------------
@@ -167,6 +168,7 @@ void CppParserOptionsWidget::updateWithSettings( const CppParserSettings* const 
   QRadioButton* dotsButtons[] = { ui->radioButtonDotsRemove, ui->radioButtonDotsSplit, ui->radioButtonDotsLeave };
   dotsButtons[settings->wordsWithDotsOption]->setChecked( true );
   ui->checkBoxWebsiteAddresses->setChecked( settings->removeWebsites );
+  ui->checkBoxRemoveFirstComment->setChecked( settings->removeFirstComment );
 }
 // --------------------------------------------------
 

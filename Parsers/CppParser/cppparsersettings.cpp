@@ -48,6 +48,7 @@ CppParserSettings::CppParserSettings( const CppParserSettings& settings )
   removeWordsThatAppearInSource = settings.removeWordsThatAppearInSource;
   wordsWithDotsOption           = settings.wordsWithDotsOption;
   removeWebsites                = settings.removeWebsites;
+  removeFirstComment            = settings.removeFirstComment;
 }
 // --------------------------------------------------
 
@@ -74,6 +75,7 @@ void CppParserSettings::loadFromSettings( QSettings* settings )
   removeEmailAddresses          = settings->value( QLatin1String( Parsers::CppParser::Constants::REMOVE_EMAIL_ADDRESSES ), removeEmailAddresses ).toBool();
   wordsWithDotsOption           = static_cast<WordsWithDotsOption>( settings->value( QLatin1String( Parsers::CppParser::Constants::CHECK_DOTS ), wordsWithDotsOption ).toInt() );
   removeWebsites                = settings->value( QLatin1String( Parsers::CppParser::Constants::REMOVE_WEBSITES ), removeWebsites ).toBool();
+  removeFirstComment            = settings->value( QLatin1String( Parsers::CppParser::Constants::REMOVE_FIRST_COMMENT ), removeFirstComment ).toBool();
 
   settings->endGroup(); /* CPP_PARSER_GROUP */
   settings->endGroup(); /* CORE_PARSERS_GROUP */
@@ -100,6 +102,7 @@ void CppParserSettings::saveToSetting( QSettings* settings ) const
   settings->setValue( QLatin1String( Parsers::CppParser::Constants::REMOVE_EMAIL_ADDRESSES ), removeEmailAddresses );
   settings->setValue( QLatin1String( Parsers::CppParser::Constants::CHECK_DOTS ),             wordsWithDotsOption );
   settings->setValue( QLatin1String( Parsers::CppParser::Constants::REMOVE_WEBSITES ),        removeWebsites );
+  settings->setValue( QLatin1String( Parsers::CppParser::Constants::REMOVE_FIRST_COMMENT ),   removeFirstComment );
 
   settings->endGroup(); /* CPP_PARSER_GROUP */
   settings->endGroup(); /* CORE_PARSERS_GROUP */
@@ -121,6 +124,7 @@ void CppParserSettings::setDefaults()
   removeWordsThatAppearInSource = true;
   wordsWithDotsOption           = SplitWordsOnDots;
   removeWebsites                = false;
+  removeFirstComment            = false;
 }
 // --------------------------------------------------
 
@@ -139,6 +143,7 @@ CppParserSettings& CppParserSettings::operator=( const CppParserSettings& other 
     this->removeEmailAddresses          = other.removeEmailAddresses;
     this->wordsWithDotsOption           = other.wordsWithDotsOption;
     this->removeWebsites                = other.removeWebsites;
+    this->removeFirstComment            = other.removeFirstComment;
     emit settingsChanged();
   }
 
@@ -160,6 +165,7 @@ bool CppParserSettings::operator==( const CppParserSettings& other ) const
   different = different | ( removeEmailAddresses != other.removeEmailAddresses );
   different = different | ( wordsWithDotsOption != other.wordsWithDotsOption );
   different = different | ( removeWebsites != other.removeWebsites );
+  different = different | ( removeFirstComment != other.removeFirstComment );
   return ( different == false );
 }
 // --------------------------------------------------

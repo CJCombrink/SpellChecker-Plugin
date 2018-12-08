@@ -76,6 +76,7 @@ The parser also has settings that affects how the following types of words will 
 - Words that appear in source
 - Words.with.dots
 - Website Addresses
+- First comment in file (File license headers)
 
 Apart from these settings, the plugin also attempts to remove Doxygen Tags in Doxygen comments, in an effort to reduce the number of false positives. 
 
@@ -132,3 +133,4 @@ The following list is a list with a hint into priority of some outstanding tasks
   - [x] Make releases for other OS's.
 - [x] Spell check string literals
 - [x] Update to Hunspell 1.3.3
+- [x] Add checking for QML files.

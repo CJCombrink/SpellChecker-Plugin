@@ -254,15 +254,29 @@ QStringSet CppDocumentProcessor::getPossibleNamesFromString( const QString& stri
 
 WordTokens CppDocumentProcessor::parseToken( const CPlusPlus::Token& token, WordTokens::Type type ) const
 {
+  uint32_t line;
+  uint32_t col;
+  /* Get the index of the token. The index is used to get the position of the token.
+   * Doing this first so that the token can be ignored if it is the first comment */
+  const uint32_t tokenBegin = token.utf16charsBegin();
+  d->trUnit->getPosition( tokenBegin, &line, &col );
+  /* Check if the first comment should be be returned.
+   * This will be checked for every token, including literals and doxygen
+   * comments. The check relies on early return of the if, thus the options
+   * that are most likely to result in the check failing is first.
+   * Doxygen comments are ignored since they normally are not used for headers
+   * and if they are they might contain more than just the license. */
+  if( ( type == WordTokens::Type::Comment )
+      && ( line == 1 )
+      && ( col == 1 )
+      && ( d->settings.removeFirstComment == true ) ) {
+    return {};
+  }
   /* Get the token string */
   const QString tokenString = QString::fromUtf8( d->docPtr->utf8Source().mid( int32_t( token.bytesBegin() ), int32_t( token.bytes() ) ).trimmed() );
   /* Calculate the hash of the token string */
   const uint32_t hash = qHash( tokenString );
-  /* Get the index of the token */
-  const uint32_t commentBegin = token.utf16charsBegin();
-  uint32_t line;
-  uint32_t col;
-  d->trUnit->getPosition( commentBegin, &line, &col );
+
   /* Set up the known parts of the return structure.
    * The rest will be populated as needed below. */
   WordTokens tokens;
@@ -279,7 +293,7 @@ WordTokens CppDocumentProcessor::parseToken( const CPlusPlus::Token& token, Word
 
   /* Token was not in the list of hashes.
    * Tokenize the string to extract words that should be checked. */
-  tokens.words   = extractWordsFromString( tokenString, commentBegin, type );
+  tokens.words   = extractWordsFromString( tokenString, tokenBegin, type );
   tokens.newHash = true;
   return tokens;
 }
