@@ -51,8 +51,8 @@
 
 /*! \brief Testing assert that should be used during debugging
  * but should not be made part of a release. */
-#define SP_CHECK( test ) QTC_CHECK( test )
-// #define SP_CHECK( test )
+// #define SP_CHECK( test ) QTC_CHECK( test )
+#define SP_CHECK( test )
 
 namespace SpellChecker {
 namespace CppSpellChecker {
