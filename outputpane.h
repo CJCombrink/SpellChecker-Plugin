@@ -79,8 +79,8 @@ private slots:
   /*! \brief Slot called by the OutputPaneDelegate when a suggestion button is pressed
    * for the current misspelled word.
    *
-   * \param[in] index The index is used to update the selection to go to the next index in the model. This
-   * allows the user to replace words one after the other without much interaction with
+   * \param[in] index The index is used to update the selection to go to the next index in the
+   * model. This allows the user to replace words one after the other without much interaction with
    * other buttons or the editor.
    * \param[in] word The word that must be replaced.
    * \param[in] suggestion Suggestion that was selected by the user. */

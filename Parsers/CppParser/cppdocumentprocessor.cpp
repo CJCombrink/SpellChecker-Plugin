@@ -435,12 +435,13 @@ QVector<WordTokens> CppDocumentProcessor::parseMacros() const
 {
   /* Get the macros from the document pointer. The arguments of the macro will then be parsed
    * and checked for spelling mistakes.
-   * Since the TranslationUnit::getPosition() is not usable with the Macro Uses a manual method to extract
-   * the literals and their line and column positions are implemented. This involves getting the unprocessed
-   * source from the document for the macro and tracking the byte offsets manually from there.
-   * An alternative implementation can involve using the Snapshot::preprocessedDocument(), which makes use of the FastPreprocessor
-   * and the AST visitors.
-   * For more information around a discussion on the mailing list around this issue refer to the following
+   * Since the TranslationUnit::getPosition() is not usable with the Macro Uses a manual method to
+   * extract the literals and their line and column positions are implemented. This involves getting
+   * the unprocessed source from the document for the macro and tracking the byte offsets manually
+   * from there. An alternative implementation can involve using the
+   * Snapshot::preprocessedDocument(), which makes use of the FastPreprocessor and the AST visitors.
+   * For more information around a discussion on the mailing list around this issue refer to the
+   * following
    * link: http://comments.gmane.org/gmane.comp.lib.qt.creator/11853 */
   QVector<WordTokens> tokenizedWords;
   QList<CPlusPlus::Document::MacroUse> macroUse = d->docPtr->macroUses();

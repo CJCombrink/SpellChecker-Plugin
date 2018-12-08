@@ -116,11 +116,12 @@ public:
 };
 /*! \brief Hash of a token and the corresponding list of words that were extracted from the token.
  *
- * The quint32 is result of the qHash(QString, 0) and stored in the hash for each token, along with the
- * list of words that were extracted from that comment. The hash of the token is used instead of the string
- * because there is no need for the extra memory in the hash to store the actual token. If the hash was
- * defined as QHash<QString, CommentWords> the hash would store the full token in memory so that it can
- * be obtained using the QHash::key() function. Some token can be long and the overhead is not needed. */
+ * The quint32 is result of the qHash(QString, 0) and stored in the hash for each token, along with
+ * the list of words that were extracted from that comment. The hash of the token is used instead of
+ * the string because there is no need for the extra memory in the hash to store the actual token.
+ * If the hash was defined as QHash<QString, CommentWords> the hash would store the full token in
+ * memory so that it can be obtained using the QHash::key() function. Some token can be long and the
+ * overhead is not needed. */
 using HashWords = QHash<quint32, TokenWords>;
 
 } // namespace SpellChecker

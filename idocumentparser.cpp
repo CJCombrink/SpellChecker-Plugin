@@ -125,7 +125,8 @@ void IDocumentParser::getWordsFromSplitString( const QStringList& stringList, co
     newWord.end          = newWord.start + newWord.length;
     newWord.inComment    = word.inComment;
     currentPos           = currentPos + newWord.length;
-    /* Add the word to the end of the word list so that it can be checked against the settings later on */
+    /* Add the word to the end of the word list so that it can be checked against the
+     * settings later on */
     wordList.append( newWord );
   }
 }
@@ -142,14 +143,14 @@ void IDocumentParser::removeWordsThatAppearInSource( const QStringSet& wordsInSo
    * search for the word in the wordsInSource list. The reasoning is that the first compare will be
    * faster than the search in the wordsInSource list. But with this the overhead is added that now
    * there is perhaps one more compare for each word that is not present in the source. Perhaps this
-   * can then be slower because the probability is that there will be more words not in the source than
-   * there are duplicate words that are in the source. For now this will be left this way but more
-   * benchmarking needs to be done to optimize.
+   * can then be slower because the probability is that there will be more words not in the source
+   * than there are duplicate words that are in the source. For now this will be left this way but
+   * more benchmarking needs to be done to optimize.
    *
-   * An initial test using QTime::start() and QTime::elapsed() showed the same speed of 3ms for either
-   * option for about 1425 potential words checked in 98 words occurring in the source. 148 Words were
-   * removed for this test case. NOTE: Due to the inaccuracy of the timer on windows a better test
-   * will be performed in future. */
+   * An initial test using QTime::start() and QTime::elapsed() showed the same speed of 3ms for
+   * either option for about 1425 potential words checked in 98 words occurring in the source. 148
+   * Words were removed for this test case. NOTE: Due to the inaccuracy of the timer on windows a
+   * better test will be performed in future. */
 #ifdef USE_MULTI_HASH
   WordList::Iterator iter = words.begin();
   QString lastWordRemoved;
