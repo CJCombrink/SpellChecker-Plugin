@@ -10,10 +10,10 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
 - script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    sudo apt install -y build-essential libgl1-mesa-dev
+    sudo apt install -y qt5-default
+  displayName: 'Install Qt'
+
+- script: qmake --version
+  displayName: 'qmake version'
