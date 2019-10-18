@@ -60,8 +60,8 @@ struct WordTokens
   };
 
   HashWords::key_type hash;
-  uint32_t line   = 0;
-  uint32_t column = 0;
+  int32_t line   = 0;
+  int32_t column = 0;
   QString string;
   WordList words;
   bool newHash = true;
@@ -164,7 +164,7 @@ private:
    *              gets handled later on, and it does not rely on a setting,
    *              it must be done always to remove noise.
    * \return Words that were extracted from the string. */
-  WordList extractWordsFromString( const QString& string, uint32_t stringStart, WordTokens::Type type ) const;
+  WordList extractWordsFromString(const QString& string, int32_t stringStart, WordTokens::Type type ) const;
   /*! \brief Check if the end of a possible word was reached.
    *
    * Utility function to check if the character at the given position is the

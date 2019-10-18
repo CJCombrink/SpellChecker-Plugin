@@ -255,11 +255,11 @@ QStringSet CppDocumentProcessor::getPossibleNamesFromString( const QString& stri
 
 WordTokens CppDocumentProcessor::parseToken( const CPlusPlus::Token& token, WordTokens::Type type ) const
 {
-  uint32_t line;
-  uint32_t col;
+  int32_t line;
+  int32_t col;
   /* Get the index of the token. The index is used to get the position of the token.
    * Doing this first so that the token can be ignored if it is the first comment */
-  const uint32_t tokenBegin = token.utf16charsBegin();
+  const int32_t tokenBegin = token.utf16charsBegin();
   d->trUnit->getPosition( tokenBegin, &line, &col );
   /* Check if the first comment should be be returned.
    * This will be checked for every token, including literals and doxygen
@@ -274,7 +274,7 @@ WordTokens CppDocumentProcessor::parseToken( const CPlusPlus::Token& token, Word
     return {};
   }
   /* Get the token string */
-  const QString tokenString = QString::fromUtf8( d->docPtr->utf8Source().mid( int32_t( token.bytesBegin() ), int32_t( token.bytes() ) ).trimmed() );
+  const QString tokenString = QString::fromUtf8( d->docPtr->utf8Source().mid( token.bytesBegin(), token.bytes() ).trimmed() );
   /* Calculate the hash of the token string */
   const uint32_t hash = qHash( tokenString );
 
@@ -300,7 +300,7 @@ WordTokens CppDocumentProcessor::parseToken( const CPlusPlus::Token& token, Word
 }
 // --------------------------------------------------
 
-WordList CppDocumentProcessor::extractWordsFromString( const QString& string, uint32_t stringStart, WordTokens::Type type ) const
+WordList CppDocumentProcessor::extractWordsFromString( const QString& string, int32_t stringStart, WordTokens::Type type ) const
 {
   WordList wordTokens;
   const int32_t strLength = string.length();

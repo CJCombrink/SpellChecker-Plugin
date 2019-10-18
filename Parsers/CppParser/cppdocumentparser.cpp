@@ -531,8 +531,8 @@ void CppDocumentParser::reparseProject()
     return;
   }
 
-  const Utils::FileNameList projectFiles = d->activeProject->files( ProjectExplorer::Project::SourceFiles );
-  const QStringList fileList             = Utils::transform( projectFiles, &Utils::FileName::toString );
+  const Utils::FilePathList projectFiles = d->activeProject->files( ProjectExplorer::Project::SourceFiles );
+  const QStringList fileList             = Utils::transform( projectFiles, &Utils::FilePath::toString );
 
   const QStringSet fileSet = d->getCppFiles( fileList.toSet() );
   d->filesInStartupProject = fileSet;

@@ -45,12 +45,12 @@ public:
   Word() {}
   ~Word() {}
 
-  int start;
-  int end;
-  int length;
+  int32_t start;
+  int32_t end;
+  int32_t length;
 
-  unsigned int lineNumber;
-  unsigned int columnNumber;
+  int32_t lineNumber;
+  int32_t columnNumber;
   QString text;
   QString fileName;
   QChar charAfter; /*!< Next character after the end of the word in the comment. */
@@ -105,11 +105,11 @@ typedef QHash<QString /* File name */, WordList> FileWordList;
 class TokenWords
 {
 public:
-  quint32  line;
-  quint32  col;
+  int32_t line;
+  int32_t col;
   WordList words;
 
-  TokenWords( quint32 l = 0, quint32 c = 0, const WordList& w = WordList() )
+  TokenWords( int32_t l = 0, int32_t c = 0, const WordList& w = WordList() )
     : line( l )
     , col( c )
     , words( w ) {}

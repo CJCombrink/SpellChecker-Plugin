@@ -45,6 +45,7 @@
 #include <utils/algorithm.h>
 #include <utils/fadingindicator.h>
 #include <utils/runextensions.h>
+#include <utils/fileutils.h>
 
 #include <QFuture>
 #include <QFutureWatcher>
@@ -503,8 +504,8 @@ bool SpellCheckerCore::isWordUnderCursorMistake( Word& word ) const
     return false;
   }
 
-  uint32_t column          = uint32_t( d->currentEditor->currentColumn() );
-  uint32_t line            = uint32_t( d->currentEditor->currentLine() );
+  int32_t column           = d->currentEditor->currentColumn();
+  int32_t line             = d->currentEditor->currentLine();
   QString  currentFileName = d->currentEditor->document()->filePath().toString();
   WordList wl;
   wl = d->spellingMistakesModel->mistakesForFile( currentFileName );
@@ -517,7 +518,7 @@ bool SpellCheckerCore::isWordUnderCursorMistake( Word& word ) const
     const Word& currentWord = iter.value();
     if( ( currentWord.lineNumber == line )
         && ( ( currentWord.columnNumber <= column )
-             && ( ( currentWord.columnNumber + uint32_t( currentWord.length ) ) >= column ) ) ) {
+             && ( ( currentWord.columnNumber + currentWord.length ) >= column ) ) ) {
       word = currentWord;
       return true;
     }
@@ -724,7 +725,7 @@ void SpellCheckerCore::startupProjectChanged( ProjectExplorer::Project* startupP
   if( startupProject != nullptr ) {
     /* Check if the current project is not set to be ignored by the settings. */
     if( d->settings->projectsToIgnore.contains( startupProject->displayName() ) == false ) {
-      d->filesInStartupProject = Utils::transform( startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FileName::toString ).toSet();
+      d->filesInStartupProject = Utils::transform( startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FilePath::toString ).toSet();
     } else {
       /* The Project should be ignored and not be spell checked. */
       d->startupProject = nullptr;
@@ -747,7 +748,7 @@ void SpellCheckerCore::fileListChanged()
   }
 
   const QStringSet oldFiles = d->filesInStartupProject;
-  const QStringSet newFiles = Utils::transform( d->startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FileName::toString ).toSet();
+  const QStringSet newFiles = Utils::transform( d->startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FilePath::toString ).toSet();
 
   /* Compare the two sets with each other to get the lists of files
    * added and removed.
