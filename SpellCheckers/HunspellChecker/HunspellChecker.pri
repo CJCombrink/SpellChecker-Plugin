@@ -10,14 +10,19 @@ HEADERS +=  \
 FORMS += \
         $$PWD/hunspelloptionswidget.ui
 
-win32|!isEmpty(LOCAL_HUNSPELL_LIB_DIR) {
+win32|!isEmpty(LOCAL_HUNSPELL_SRC_DIR) {
   win32-msvc*:HUNSPELL_LIB_NAME=libhunspell
   win32-g++  :HUNSPELL_LIB_NAME=hunspell
   unix       :HUNSPELL_LIB_NAME=hunspell
   INCLUDEPATH += $${LOCAL_HUNSPELL_SRC_DIR}/
-  LIBS        += -L$${LOCAL_HUNSPELL_LIB_DIR} -l$${HUNSPELL_LIB_NAME}
+
+  isEmpty(HUNSPELL_STATIC_LIB) {
+    LIBS += -L$${LOCAL_HUNSPELL_LIB_DIR} -l$${HUNSPELL_LIB_NAME}
+  } else {
+    LIBS += $${HUNSPELL_STATIC_LIB}
+  }
 }
-unix:isEmpty(LOCAL_HUNSPELL_LIB_DIR) {
+unix:isEmpty(LOCAL_HUNSPELL_SRC_DIR) {
   CONFIG += link_pkgconfig
   PKGCONFIG += hunspell
 }
