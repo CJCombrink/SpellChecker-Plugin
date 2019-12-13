@@ -78,4 +78,4 @@ PROVIDER = CJC
     error(Could not include QtCreator Plugin PRI File, make sure the correct paths are specified.)
 }
 
-message(Qt Creator Version: $$QTCREATOR_VERSION)
+!build_pass:message(Qt Creator Version: $$QTCREATOR_VERSION)
