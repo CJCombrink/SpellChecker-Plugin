@@ -75,7 +75,7 @@ include(spellchecker_dependencies.pri)
 #
 PROVIDER = CJC
 !include($$QTCREATOR_SOURCES/src/qtcreatorplugin.pri) {
-    error(Could not include QtCreator Plugin PRI File, make sure the correct paths are specified.)
+    error("Could not include QtCreator Plugin PRI File, make sure the correct paths are specified.")
 }
 
 !build_pass:message(Qt Creator Version: $$QTCREATOR_VERSION)
