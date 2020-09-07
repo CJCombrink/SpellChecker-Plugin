@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/spellcheckerplugin">
+        <file>images/optionspageicon.png</file>
+        <file>images/clover.png</file>
+    </qresource>
+</RCC>

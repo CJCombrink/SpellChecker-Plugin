@@ -2,44 +2,8 @@ DEFINES += SPELLCHECKER_LIBRARY
 
 # SpellChecker files
 
-SOURCES += \
-        spellcheckerplugin.cpp \
-        spellcheckercore.cpp \
-        idocumentparser.cpp \
-        spellingmistakesmodel.cpp \
-        outputpane.cpp \
-        ISpellChecker.cpp \
-        spellcheckercoreoptionspage.cpp \
-        spellcheckercoresettings.cpp \
-        spellcheckercoreoptionswidget.cpp \
-        suggestionsdialog.cpp \
-        NavigationWidget.cpp \
-        ProjectMistakesModel.cpp \
-        spellcheckquickfix.cpp
-
-HEADERS += spellcheckerplugin.h\
-        spellchecker_global.h\
-        spellcheckerconstants.h \
-        spellcheckercore.h \
-        idocumentparser.h \
-        Word.h \
-        spellingmistakesmodel.h \
-        outputpane.h \
-        ISpellChecker.h \
-        spellcheckercoreoptionspage.h \
-        spellcheckercoresettings.h \
-        spellcheckercoreoptionswidget.h \
-        suggestionsdialog.h \
-        NavigationWidget.h \
-        ProjectMistakesModel.h \
-        spellcheckquickfix.h
-
-FORMS += \
-        spellcheckercoreoptionswidget.ui \
-        suggestionsdialog.ui
-
 RESOURCES += \
-        spellcheckerplugin.qrc
+        resources/spellcheckerplugin.qrc
 
 OTHER_FILES += \
     uncrustify.cfg
@@ -51,10 +15,9 @@ exists(spellchecker_local_paths.pri) {
     # system building the plugin.
     include(spellchecker_local_paths.pri)
 }
-# Include a pri file with the list of parsers
-include(Parsers/Parsers.pri)
-# Include a pri file with the list of spell checkers
-include(SpellCheckers/SpellCheckers.pri)
+
+# Include the sources
+include(src/src.pri)
 
 # Qt Creator linking
 ## set the QTC_SOURCE environment variable to override the setting here
