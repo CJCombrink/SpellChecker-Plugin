@@ -1,0 +1,307 @@
+# SpellChecker-Plugin Workflow
+# Used the following repos as inspiration
+#  - https://github.com/OneMoreGres/qtc-dbviewer/blob/4.13.0/.github/workflows/build.yml
+#  - https://www.qt.io/blog/building-qt-creator-plugins-with-github-actions
+# Using PowerShell Core since I am trying to learn using it, seemed like a good fit for cross platform scripting.
+
+name: Build SpellChecker-Plugin
+
+# Controls when the action will run. Triggers the workflow on any push event.
+on: [push]
+
+env:
+  QT_VERSION: 5.15.0
+  QT_CREATOR_VERSION: 4.13
+
+# The Jobs
+jobs:
+  # The release job.
+  # If the github.ref contains /tags/v a release will be set up.
+  # This is done before the builds to simplify the logic to upload the build artifacts to the release.
+  # The release stage a file that contains the URL of where the build artifacts must go.
+  # It is also executed only once, on one agent.
+  release:
+    name: Create release
+    if: contains(github.ref, '/tags/v')
+    runs-on: ubuntu-16.04
+    steps:
+      - name: Create release
+        if: contains(github.ref, '/tags/v')
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          body: |
+            Release for Qt Creator $${{QT_CREATOR_VERSION}}.
+
+            Download the correct file based on Operating system and architect of Qt Creator.
+
+            To deploy into Qt Creator, extract the archive into the root folder of where Qt Creator is installed.
+
+            Please refer to the main page of the project for usage information.
+
+            On Windows, make sure to download the correct version for the Qt Creator used, not the architecture of the Operating System.
+            To check this: From Qt Creator, go to "Help" -> "About Qt Creator..."
+          draft: false
+          prerelease: false
+
+      - name: Store release url
+        shell: pwsh
+        run: Write-Output "${{ steps.create_release.outputs.upload_url }}" > ./release_upload_url.txt
+
+      - name: Upload release url
+        uses: actions/upload-artifact@v1
+        with:
+          path: ./release_upload_url.txt
+          name: release_upload_url.txt
+
+  # Build the plugin and upload the archives
+  build:
+    name: Build ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    env:
+      OS: ${{ matrix.config.name }}
+    strategy:
+      matrix:
+        config:
+          - { name: "win64", os: windows-latest, sys: "windows", arch: "x64", hunspell: "hunspell:x64-windows", qt_arch: "win64_msvc2019_64", qtc_platform: "windows_x64"}
+          - { name: "win32", os: windows-latest, sys: "windows", arch: "x86", hunspell: "hunspell:x86-windows", qt_arch: "win32_msvc2019",    qtc_platform: "windows_x86"}
+          - { name: "linux", os: ubuntu-16.04,   sys: "linux",   arch: "x64", hunspell: "hunspell",             qt_arch: "",                  qtc_platform: "linux_x64"}
+          - { name: "macos", os: macos-latest,   sys: "osx",     arch: "x64", hunspell: "hunspell",             qt_arch: "",                  qtc_platform: "mac_x64"}
+      fail-fast: false
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE/SpellChecker-Plugin, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          path: SpellChecker-Plugin
+
+      # Install vcpkg and Hunspell for the correct compiler and OS.
+      - name: Vcpkg - Hunspell
+        uses: lukka/run-vcpkg@v3
+        with:
+          vcpkgArguments: ${{matrix.config.hunspell}}
+          vcpkgGitCommitId: 56fffbe49dfb4dd8fae0940f272c5fd2b86be991
+
+      # Download and set up Qt Creator
+      - name: Donwload Qt Creator
+        shell: pwsh
+        run: |
+          ${QTC_BASE_URL} = "https://download.qt.io/official_releases/qtcreator/${env:QT_CREATOR_VERSION}/${env:QT_CREATOR_VERSION}.0"
+
+          # FROM: https://winblog.it.umn.edu/2018/05/19/getting-redirected-uris-in-powershell/
+          function Get-RedirectedUri {
+            <#
+            .SYNOPSIS
+                Gets the real download URL from the redirection.
+            .DESCRIPTION
+                Used to get the real URL for downloading a file, this will not work if downloading the file directly.
+            .EXAMPLE
+                Get-RedirectedURL -URL "https://download.mozilla.org/?product=firefox-latest&os=win&lang=en-US"
+            .PARAMETER URL
+                URL for the redirected URL to be un-obfuscated
+            .NOTES
+                Code from: Redone per issue #2896 in core https://github.com/PowerShell/PowerShell/issues/2896
+            #>
+
+            [CmdletBinding()]
+            param (
+                [Parameter(Mandatory = $true)]
+                [string]$Uri
+            )
+            process {
+                do {
+                    try {
+                        $request = Invoke-WebRequest -Method Head -Uri $Uri
+                        if ($request.BaseResponse.ResponseUri -ne $null) {
+                            # This is for Powershell 5
+                            $redirectUri = $request.BaseResponse.ResponseUri.AbsoluteUri
+                        }
+                        elseif ($request.BaseResponse.RequestMessage.RequestUri -ne $null) {
+                            # This is for Powershell core
+                            $redirectUri = $request.BaseResponse.RequestMessage.RequestUri.AbsoluteUri
+                        }
+
+                        $retry = $false
+                    }
+                    catch {
+                        if (($_.Exception.GetType() -match "HttpResponseException") -and ($_.Exception -match "302")) {
+                            $Uri = $_.Exception.Response.Headers.Location.AbsoluteUri
+                            $retry = $true
+                        }
+                        else {
+                            throw $_
+                        }
+                    }
+                } while ($retry)
+
+                $redirectUri
+            }
+          }
+
+          function Get-Archive {
+            param (
+                [Parameter(Mandatory)]
+                [string]${url},
+                [Parameter(Mandatory)]
+                [string]${archive},
+                [Parameter(Mandatory)]
+                [string]${extracted}
+            )
+
+            Write-Output "<+> Downloading Archive: ${archive}"
+            Write-Output "  <-> URL: ${url}"
+            ${URL_RESOLVED} = Get-RedirectedUri -Uri ${url}
+            Write-Output "  <-> Resolved URL: ${URL_RESOLVED}"
+            Invoke-WebRequest -Uri "${URL_RESOLVED}" -OutFile "${archive}"
+            Write-Output "  <-> Extracting archive"
+            7z x "${archive}" -aoa -o"${extracted}"
+            Write-Output "  <-> Done"
+          }
+
+          ${QTC_PACKAGES} = "qtcreator", "qtcreator_dev"
+          foreach (${QTC_PACKAGE} in ${QTC_PACKAGES}) {
+            Write-Output "<+> Downloading Package: ${QTC_PACKAGE}"
+            ${QTC_7Z}  = "${QTC_PACKAGE}.7z"
+            ${QTC_URL} = "${QTC_BASE_URL}/installer_source/${{matrix.config.qtc_platform}}/${QTC_7Z}"
+            Get-Archive -url "${QTC_URL}" -archive "${QTC_7Z}" -extracted "qtcreator"
+          }
+
+          Write-Output "::set-env name=QTC_BIN_DIR::${{github.workspace}}/qtcreator/bin"
+          Write-Output "::set-env name=QTC_SOURCE::${{github.workspace}}/qtcreator"
+          Write-Output "::set-env name=QTC_BUILD::${{github.workspace}}/qtcreator"
+
+          switch ("${{runner.os}}")
+          {
+              "Windows" {
+                # Jom is used to build on Windows.
+                Write-Output "<+> Getting jom"
+                ${JOM_URL} = "https://download.qt.io/official_releases/jom/jom_1_1_3.zip"
+                Get-Archive -url "${JOM_URL}" -archive "jom.zip" -extracted "jom"
+                Write-Output "::set-env name=JOM_DIR::${{github.workspace}}/jom"
+              }
+              "macOS" {
+                New-Item -ItemType Directory "qtcreator/bin"
+                New-Item -ItemType SymbolicLink -Path "${{github.workspace}}/qtcreator/bin/Qt Creator.app" -Target "${{github.workspace}}/qtcreator/Qt Creator.app"
+              }
+              Default {}
+          }
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v2
+        with:
+          version: ${{env.QT_VERSION}}
+          arch: ${{matrix.config.qt_arch}}
+
+      - name: Build Plugin
+        shell: pwsh
+        run: |
+          ${VCPKG_INSTALLED} = "${env:VCPKG_ROOT}/installed/${{matrix.config.arch}}-${{matrix.config.sys}}"
+          ${HUNSPELL_SRC}    = "${VCPKG_INSTALLED}/include"
+          ${HUNSPELL_LIB}    = "${VCPKG_INSTALLED}/lib"
+          Write-Output "::set-env name=VCPKG_INSTALLED_DIR::${VCPKG_INSTALLED}"
+
+          switch ("${{runner.os}}")
+          {
+              "Windows" {
+                  Write-Output "<+> Setting up MSBuild"
+                  # https://github.com/microsoft/terminal/issues/3821#issuecomment-651506501
+                  # The setup-msbuild action is not used since it does not set up the path to 'cl'
+                  # see: https://github.com/microsoft/setup-msbuild/issues/24
+                  ${VS_INST_PATH} = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationPath
+                  Write-Output "  <-> VS Install Path: ${VS_INST_PATH}"
+                  Import-Module ${VS_INST_PATH}/Common7/Tools/Microsoft.VisualStudio.DevShell.dll
+                  Enter-VsDevShell -VsInstallPath ${VS_INST_PATH} -SkipAutomaticLocation -DevCmdArguments '-arch=${{matrix.config.arch}} -no_logo'
+                  ${MAKE_CMD} = "${env:JOM_DIR}/jom"
+              }
+              Default {
+                  ${MAKE_CMD} = "make"
+                  ${QMAKE_EXTRA_ARGS} = "HUNSPELL_STATIC_LIB=${HUNSPELL_LIB}/liblibhunspell.a"
+              }
+          }
+
+          # Run Qmake
+          qmake "SpellChecker-Plugin\spellchecker.pro" "LOCAL_HUNSPELL_SRC_DIR=${HUNSPELL_SRC}" "LOCAL_HUNSPELL_LIB_DIR=${HUNSPELL_LIB}" ${QMAKE_EXTRA_ARGS}
+          # Build
+          & "${MAKE_CMD}"
+
+      - name: Collect Binaries
+        shell: pwsh
+        run: |
+          ${PLUGIN_DIR_BASE} = "Plugin/"
+          ${PLUGIN_ARCHIVE}  = "SpellChecker-Plugin_QtC${env:QT_CREATOR_VERSION}_${env:OS}_${{matrix.config.arch}}"
+
+          switch ("${{runner.os}}")
+          {
+              "Windows" {
+                ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/lib/qtcreator/plugins"
+                ${PLUGIN_DIR_BIN} = "${PLUGIN_DIR_BASE}/bin/"
+                New-Item -ItemType Directory "${PLUGIN_DIR_OUT}" -Force
+                New-Item -ItemType Directory "${PLUGIN_DIR_BIN}" -Force
+                Copy-Item -Path "${env:QTC_BUILD}/lib/qtcreator/plugins/SpellChecker4.dll" -Destination "${PLUGIN_DIR_OUT}/"
+                Copy-Item -Path "${env:VCPKG_INSTALLED_DIR}/bin/libhunspell.dll" -Destination "${PLUGIN_DIR_BIN}/"
+                Push-Location ${PLUGIN_DIR_BASE}
+                ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.zip"
+                7z a "${env:PLUGIN_ARCHIVE_NAME}" bin lib
+                Pop-Location
+              }
+              "Linux" {
+                ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/lib/qtcreator/plugins"
+                New-Item -ItemType Directory "${PLUGIN_DIR_OUT}" -Force
+                Copy-Item -Path "${env:QTC_BUILD}/lib/qtcreator/plugins/libSpellChecker.so" -Destination "${PLUGIN_DIR_OUT}/"
+                Push-Location ${PLUGIN_DIR_BASE}
+                ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.tar.gz"
+                7z a -ttar "${PLUGIN_ARCHIVE}.tar" lib
+                7z a -tgzip "${env:PLUGIN_ARCHIVE_NAME}" "${PLUGIN_ARCHIVE}.tar"
+                Pop-Location
+              }
+              "macOS" {
+                ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/bin/Qt Creator.app/Contents/PlugIns"
+                New-Item -ItemType Directory "${PLUGIN_DIR_OUT}" -Force
+                Copy-Item -Path "${env:QTC_BUILD}/bin/Qt Creator.app/Contents/PlugIns/libSpellChecker.dylib" -Destination "${PLUGIN_DIR_OUT}/"
+                Push-Location ${PLUGIN_DIR_BASE}
+                ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.tar.gz"
+                7z a -ttar "${PLUGIN_ARCHIVE}.tar" lib
+                7z a -tgzip "${env:PLUGIN_ARCHIVE_NAME}" "${PLUGIN_ARCHIVE}.tar"
+                Pop-Location
+              }
+          }
+          ${env:PLUGIN_ARCHIVE_FULL} = "${PLUGIN_DIR_BASE}/${env:PLUGIN_ARCHIVE_NAME}"
+
+          Write-Output "::set-env name=PLUGIN_ARCHIVE_FULL::${{github.workspace}}/${env:PLUGIN_ARCHIVE_FULL}"
+          Write-Output "::set-env name=PLUGIN_ARCHIVE_NAME::${env:PLUGIN_ARCHIVE_NAME}"
+
+      - uses: actions/upload-artifact@v1
+        id: upload_artifact
+        with:
+          path: ${{env.PLUGIN_ARCHIVE_FULL}}
+          name: ${{env.PLUGIN_ARCHIVE_NAME}}
+
+      - name: Download release url
+        if: contains(github.ref, '/tags/v')
+        uses: actions/download-artifact@v1
+        with:
+          name: release_upload_url.txt
+          path: ./
+
+      - name: Set Release Var
+        if: contains(github.ref, '/tags/v')
+        shell: pwsh
+        run: |
+          ${RELEASE_URL} = Get-Content ./release_upload_url.txt
+          Write-Output "Release URL: ${RELEASE_URL}"
+          Write-Output "::set-env name=RELEASE_URL::${RELEASE_URL}"
+
+      - name: Upload release artifacts
+        if: contains(github.ref, '/tags/v')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{env.RELEASE_URL}}
+          asset_path: ${{env.PLUGIN_ARCHIVE_FULL}}
+          asset_name: ${{env.PLUGIN_ARCHIVE_NAME}}
+          asset_content_type: application/zip
