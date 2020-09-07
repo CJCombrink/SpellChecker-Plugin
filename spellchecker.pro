@@ -44,11 +44,13 @@ RESOURCES += \
 OTHER_FILES += \
     uncrustify.cfg
 
-# Include a pri file that sets the local paths to needed
-# folders. It is done in this way so that the main pro
-# file does not need to change depending on the environment of the
-# system building the plugin.
-include(spellchecker_local_paths.pri)
+exists(spellchecker_local_paths.pri) {
+    # Include a pri file that sets the local paths to needed
+    # folders. It is done in this way so that the main pro
+    # file does not need to change depending on the environment of the
+    # system building the plugin.
+    include(spellchecker_local_paths.pri)
+}
 # Include a pri file with the list of parsers
 include(Parsers/Parsers.pri)
 # Include a pri file with the list of spell checkers
