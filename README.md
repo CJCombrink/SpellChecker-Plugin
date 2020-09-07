@@ -87,17 +87,17 @@ will reflect the steps needed to build on different systems. This section will d
 build steps broadly.
 
 1. Install compiler and build tools.
-   - **Windows**: msbuil
+   - **Windows**: msbuild
    - **Linux**: gcc
    - **MacOS**: clang
 1. Get and build vcpkg
    - vcpkg is used to build hunspell.
-   - At the time of writing, versio 2020.07 of vcpkg was used.
-   - The specific version of vcpkg is not as important, the important part is the version of Hunspell port.
+   - At the time of writing, version 2020.07 of vcpkg was used.
+   - The specific version of vcpkg is not as important, the important part is the version of the included Hunspell port.
 1. Install Hunspell
-   - At the time of writing, version 1.7.0 of Hunspell was used.
+   - At the time of writing, the version of the Hunspell port in vcpkg is 1.7.0.
    - Hunspell is installed as a dynamic library on Windows and a static library on Linux and MacOS.
-      - Static is ideal on all but there are issues building a dynamic library and linking in a static library using msvc.
+      - Static is ideal on all but there are issues building a dynamic library (the plugin) and linking in a static library (hunspell) using msvc.
    - Install through vcpkg using the following port and triplet:
       - **Windows 32bit**: hunspell:x86-windows
       - **Windows 64bit**: hunspell:x64-windows
@@ -114,17 +114,10 @@ build steps broadly.
       - Or pass in the paths as arguments to qmake.
       - The file makes managing and keeping these changes easier in case QtCreator decides to forgot its configuration.
    - Build the plugin
-   - Run Qtreator and verify that the plugin is loaded.
+   - Run Qt Creator and verify that the plugin is loaded.
    -  In the running Qt Creator, go to "*Help*" -> "*About Plugins...*". Under Utilities "*SpellChecker*" should be listed and enabled (enable it if it was not enabled).
 
 ## TODO
 The following list is a list with a hint into priority of some outstanding tasks I want to do.
-- [x] Get correct Qt Versions to make deployment versions and upload somewhere (Under Releases).
-- [x] Get all spelling mistakes for a active project. The idea was to 1st finish this before releasing, this has changed to start to track the code and get it into a repository.
-- [x] Underline words that are spelling mistakes (red squiggly lines, did attempt once, but did not work).
 - [ ] Parse and ignore website URLs correctly. (Some work done on this but needs more testing/tweaks)
-- [x] Test in other OS's (Linux, etc.)
-  - [x] Make releases for other OS's.
-- [x] Spell check string literals
-- [x] Update to Hunspell 1.3.3
-- [x] Add checking for QML files.
+- [ ] Add checking for QML files.

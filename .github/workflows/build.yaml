@@ -35,7 +35,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
           body: |
-            Release for Qt Creator $${{QT_CREATOR_VERSION}}.
+            Release for Qt Creator $${{env.QT_CREATOR_VERSION}}.
 
             Download the correct file based on Operating system and architect of Qt Creator.
 
