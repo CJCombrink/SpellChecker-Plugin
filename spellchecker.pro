@@ -3,7 +3,7 @@ DEFINES += SPELLCHECKER_LIBRARY
 # SpellChecker files
 
 RESOURCES += \
-        resources/spellcheckerplugin.qrc
+        $${PWD}/Resources/spellcheckerplugin.qrc
 
 OTHER_FILES += \
     uncrustify.cfg
