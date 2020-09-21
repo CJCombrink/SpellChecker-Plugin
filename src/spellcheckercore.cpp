@@ -257,7 +257,7 @@ void SpellCheckerCore::addMisspelledWords( const QString& fileName, const WordLi
     selection.format = format;
     selections.append( selection );
   }
-  editorWidget->setExtraSelections( Core::Id( SpellChecker::Constants::SPELLCHECK_MISTAKE_ID ), selections );
+  editorWidget->setExtraSelections( Utils::Id( SpellChecker::Constants::SPELLCHECK_MISTAKE_ID ), selections );
 
   /* The model updated, check if the word under the cursor is now a mistake
    * and notify the rest of the checker with this information. */
