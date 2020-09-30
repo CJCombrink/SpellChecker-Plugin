@@ -259,9 +259,10 @@ jobs:
                 Pop-Location
               }
               "macOS" {
-                ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/bin/Qt` Creator.app/Contents/PlugIns"
-                New-Item -ItemType Directory "${PLUGIN_DIR_OUT}" -Force
-                Copy-Item -Path "${env:QTC_BUILD}/bin/Qt` Creator.app/Contents/PlugIns/libSpellChecker.dylib" -Destination "${PLUGIN_DIR_OUT}/"
+                ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/bin/Qt Creator.app/Contents/PlugIns"
+                New-Item -ItemType Directory "'${PLUGIN_DIR_OUT}'" -Force
+                Copy-Item -Path "${env:QTC_BUILD}/bin/Qt Creator.app/Contents/PlugIns/libSpellChecker.dylib" -Destination "${PLUGIN_DIR_OUT}/"
+                Get-ChildItem "'${PLUGIN_DIR_OUT}'"
                 Push-Location ${PLUGIN_DIR_BASE}
                 ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.tar.gz"
                 7z a -ttar "${PLUGIN_ARCHIVE}.tar" lib
