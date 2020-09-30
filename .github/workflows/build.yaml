@@ -265,7 +265,7 @@ jobs:
                 Get-ChildItem "${PLUGIN_DIR_OUT}"
                 Push-Location ${PLUGIN_DIR_BASE}
                 ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.tar.gz"
-                7z a -ttar "${PLUGIN_ARCHIVE}.tar" lib
+                7z a -ttar "${PLUGIN_ARCHIVE}.tar" bin
                 7z a -tgzip "${env:PLUGIN_ARCHIVE_NAME}" "${PLUGIN_ARCHIVE}.tar"
                 Pop-Location
               }
