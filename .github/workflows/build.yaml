@@ -69,7 +69,7 @@ jobs:
         config:
           - { name: "win64", os: windows-latest, sys: "windows", arch: "x64", hunspell: "hunspell:x64-windows", qt_arch: "win64_msvc2019_64", qtc_platform: "windows_x64"}
           - { name: "win32", os: windows-latest, sys: "windows", arch: "x86", hunspell: "hunspell:x86-windows", qt_arch: "win32_msvc2019",    qtc_platform: "windows_x86"}
-          - { name: "linux", os: ubuntu-16.04,   sys: "linux",   arch: "x64", hunspell: "hunspell",             qt_arch: "",                  qtc_platform: "linux_x64"}
+          - { name: "linux", os: ubuntu-latest,   sys: "linux",   arch: "x64", hunspell: "hunspell",             qt_arch: "",                  qtc_platform: "linux_x64"}
           - { name: "macos", os: macos-latest,   sys: "osx",     arch: "x64", hunspell: "hunspell",             qt_arch: "",                  qtc_platform: "mac_x64"}
       fail-fast: false
 
@@ -191,7 +191,7 @@ jobs:
                 Write-Output "JOM_DIR=${{github.workspace}}/jom" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
               }
               "macOS" {
-                New-Item -ItemType Directory "qtcreator/bin"
+                New-Item -ItemType Directory "qtcreator/bin" -Force
                 New-Item -ItemType SymbolicLink -Path "${{github.workspace}}/qtcreator/bin/Qt Creator.app" -Target "${{github.workspace}}/qtcreator/Qt Creator.app"
               }
               Default {}
