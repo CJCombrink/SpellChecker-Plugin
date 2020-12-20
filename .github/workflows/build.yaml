@@ -170,9 +170,9 @@ jobs:
             Get-Archive -url "${QTC_URL}" -archive "${QTC_7Z}" -extracted "qtcreator"
           }
 
-          Write-Output "::set-env name=QTC_BIN_DIR::${{github.workspace}}/qtcreator/bin"
-          Write-Output "::set-env name=QTC_SOURCE::${{github.workspace}}/qtcreator"
-          Write-Output "::set-env name=QTC_BUILD::${{github.workspace}}/qtcreator"
+          Write-Output "{QTC_BIN_DIR}={${{github.workspace}}/qtcreator/bin}" >> $GITHUB_ENV
+          Write-Output "{QTC_SOURCE}={${{github.workspace}}/qtcreator}" >> $GITHUB_ENV
+          Write-Output "{QTC_BUILD}={${{github.workspace}}/qtcreator}" >> $GITHUB_ENV
 
           switch ("${{runner.os}}")
           {
@@ -181,7 +181,7 @@ jobs:
                 Write-Output "<+> Getting jom"
                 ${JOM_URL} = "https://download.qt.io/official_releases/jom/jom_1_1_3.zip"
                 Get-Archive -url "${JOM_URL}" -archive "jom.zip" -extracted "jom"
-                Write-Output "::set-env name=JOM_DIR::${{github.workspace}}/jom"
+                Write-Output "{JOM_DIR}={${{github.workspace}}/jom}" >> $GITHUB_ENV
               }
               "macOS" {
                 New-Item -ItemType Directory "qtcreator/bin"
@@ -202,7 +202,7 @@ jobs:
           ${VCPKG_INSTALLED} = "${env:VCPKG_ROOT}/installed/${{matrix.config.arch}}-${{matrix.config.sys}}"
           ${HUNSPELL_SRC}    = "${VCPKG_INSTALLED}/include"
           ${HUNSPELL_LIB}    = "${VCPKG_INSTALLED}/lib"
-          Write-Output "::set-env name=VCPKG_INSTALLED_DIR::${VCPKG_INSTALLED}"
+          Write-Output "{VCPKG_INSTALLED_DIR}={${VCPKG_INSTALLED}}" >> $GITHUB_ENV
 
           switch ("${{runner.os}}")
           {
@@ -272,8 +272,8 @@ jobs:
           }
           ${env:PLUGIN_ARCHIVE_FULL} = "${PLUGIN_DIR_BASE}/${env:PLUGIN_ARCHIVE_NAME}"
 
-          Write-Output "::set-env name=PLUGIN_ARCHIVE_FULL::${{github.workspace}}/${env:PLUGIN_ARCHIVE_FULL}"
-          Write-Output "::set-env name=PLUGIN_ARCHIVE_NAME::${env:PLUGIN_ARCHIVE_NAME}"
+          Write-Output "{PLUGIN_ARCHIVE_FULL}={${{github.workspace}}/${env:PLUGIN_ARCHIVE_FULL}}" >> $GITHUB_ENV
+          Write-Output "{PLUGIN_ARCHIVE_NAME}={${env:PLUGIN_ARCHIVE_NAME}}" >> $GITHUB_ENV
 
       - uses: actions/upload-artifact@v1
         id: upload_artifact
@@ -294,7 +294,7 @@ jobs:
         run: |
           ${RELEASE_URL} = Get-Content ./release_upload_url.txt
           Write-Output "Release URL: ${RELEASE_URL}"
-          Write-Output "::set-env name=RELEASE_URL::${RELEASE_URL}"
+          Write-Output "{RELEASE_URL}={${RELEASE_URL}}" >> $GITHUB_ENV
 
       - name: Upload release artifacts
         if: contains(github.ref, '/tags/v')
