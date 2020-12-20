@@ -166,8 +166,8 @@ jobs:
           ${QTC_SRC_ARCH_BASE} = "qt-creator-opensource-src-${{env.QT_CREATOR_VERSION}}.0"
           ${QTC_SRC_ARCH}      = "${QTC_SRC_ARCH_BASE}.zip"
           ${QTC_SRC_URL}       = "${QTC_BASE_URL}/${QTC_SRC_ARCH}"
-          Get-Archive -url "${QTC_SRC_URL}" -archive "qtcreator.zip" -extracted "."
-          Remove-Item -Path "qtcreator.zip"
+          Get-Archive -url "${QTC_SRC_URL}" -archive "${QTC_SRC_ARCH}" -extracted "."
+          Move-Item -Path ${QTC_SRC_ARCH_BASE} -Destination qtcreator
 
           ${QTC_PACKAGES} = "qtcreator", "qtcreator_dev"
           foreach (${QTC_PACKAGE} in ${QTC_PACKAGES}) {
