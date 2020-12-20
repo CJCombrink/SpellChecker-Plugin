@@ -158,9 +158,16 @@ jobs:
             Write-Output "  <-> Resolved URL: ${URL_RESOLVED}"
             Invoke-WebRequest -Uri "${URL_RESOLVED}" -OutFile "${archive}"
             Write-Output "  <-> Extracting archive"
-            7z x "${archive}" -aoa -o"${extracted}"
+            7z x "${archive}" -aoa -o"${extracted}" -y
             Write-Output "  <-> Done"
           }
+
+          Write-Output "<+> Downloading Package: Source"
+          ${QTC_SRC_ARCH_BASE} = "qt-creator-opensource-src-${{env.QT_CREATOR_VERSION}}.0"
+          ${QTC_SRC_ARCH}      = "${QTC_SRC_ARCH_BASE}.zip"
+          ${QTC_SRC_URL}       = "${QTC_BASE_URL}/${QTC_SRC_ARCH}"
+          Get-Archive -url "${QTC_SRC_URL}" -archive "qtcreator.zip" -extracted "."
+          Remove-Item -Path "qtcreator.zip"
 
           ${QTC_PACKAGES} = "qtcreator", "qtcreator_dev"
           foreach (${QTC_PACKAGE} in ${QTC_PACKAGES}) {
