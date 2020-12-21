@@ -45,6 +45,8 @@ jobs:
 
             On Windows, make sure to download the correct version for the Qt Creator used, not the architecture of the Operating System.
             To check this: From Qt Creator, go to "Help" -> "About Qt Creator..."
+            NOTE: From Qt Creator version 4.14 only 64 bit binaries are provided for Windows since Qt does not ship a 32 bit version of Qt Creator anymore. If this
+            is a problem please file a bug and I can see if I can provide binaries in the mean time.
           draft: false
           prerelease: false
 
@@ -68,8 +70,7 @@ jobs:
       matrix:
         config:
           - { name: "win64", os: windows-latest, sys: "windows", arch: "x64", hunspell: "hunspell:x64-windows", qt_arch: "win64_msvc2019_64", qtc_platform: "windows_x64"}
-          - { name: "win32", os: windows-latest, sys: "windows", arch: "x86", hunspell: "hunspell:x86-windows", qt_arch: "win32_msvc2019",    qtc_platform: "windows_x86"}
-          - { name: "linux", os: ubuntu-16.04,   sys: "linux",   arch: "x64", hunspell: "hunspell",             qt_arch: "",                  qtc_platform: "linux_x64"}
+          - { name: "linux", os: ubuntu-latest,   sys: "linux",   arch: "x64", hunspell: "hunspell",             qt_arch: "",                  qtc_platform: "linux_x64"}
           - { name: "macos", os: macos-latest,   sys: "osx",     arch: "x64", hunspell: "hunspell",             qt_arch: "",                  qtc_platform: "mac_x64"}
       fail-fast: false
 
@@ -81,7 +82,7 @@ jobs:
 
       # Install vcpkg and Hunspell for the correct compiler and OS.
       - name: Vcpkg - Hunspell
-        uses: lukka/run-vcpkg@v3
+        uses: lukka/run-vcpkg@v6
         with:
           vcpkgArguments: ${{matrix.config.hunspell}}
           vcpkgGitCommitId: 56fffbe49dfb4dd8fae0940f272c5fd2b86be991
@@ -158,9 +159,16 @@ jobs:
             Write-Output "  <-> Resolved URL: ${URL_RESOLVED}"
             Invoke-WebRequest -Uri "${URL_RESOLVED}" -OutFile "${archive}"
             Write-Output "  <-> Extracting archive"
-            7z x "${archive}" -aoa -o"${extracted}"
+            7z x "${archive}" -aoa -o"${extracted}" -y
             Write-Output "  <-> Done"
           }
+
+          Write-Output "<+> Downloading Package: Source"
+          ${QTC_SRC_ARCH_BASE} = "qt-creator-opensource-src-${{env.QT_CREATOR_VERSION}}.0"
+          ${QTC_SRC_ARCH}      = "${QTC_SRC_ARCH_BASE}.zip"
+          ${QTC_SRC_URL}       = "${QTC_BASE_URL}/${QTC_SRC_ARCH}"
+          Get-Archive -url "${QTC_SRC_URL}" -archive "${QTC_SRC_ARCH}" -extracted "."
+          Move-Item -Path ${QTC_SRC_ARCH_BASE} -Destination qtcreator
 
           ${QTC_PACKAGES} = "qtcreator", "qtcreator_dev"
           foreach (${QTC_PACKAGE} in ${QTC_PACKAGES}) {
@@ -170,9 +178,9 @@ jobs:
             Get-Archive -url "${QTC_URL}" -archive "${QTC_7Z}" -extracted "qtcreator"
           }
 
-          Write-Output "::set-env name=QTC_BIN_DIR::${{github.workspace}}/qtcreator/bin"
-          Write-Output "::set-env name=QTC_SOURCE::${{github.workspace}}/qtcreator"
-          Write-Output "::set-env name=QTC_BUILD::${{github.workspace}}/qtcreator"
+          Write-Output "QTC_BIN_DIR=${{github.workspace}}/qtcreator/bin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Output "QTC_SOURCE=${{github.workspace}}/qtcreator" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Output "QTC_BUILD=${{github.workspace}}/qtcreator" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
           switch ("${{runner.os}}")
           {
@@ -181,10 +189,15 @@ jobs:
                 Write-Output "<+> Getting jom"
                 ${JOM_URL} = "https://download.qt.io/official_releases/jom/jom_1_1_3.zip"
                 Get-Archive -url "${JOM_URL}" -archive "jom.zip" -extracted "jom"
-                Write-Output "::set-env name=JOM_DIR::${{github.workspace}}/jom"
+                Write-Output "JOM_DIR=${{github.workspace}}/jom" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+                # Windows workaround for issue with libs not ending with 4.lib
+                Get-ChildItem -Path .\qtcreator\lib\qtcreator\ -Recurse |
+                  Where {$_.Name -Match '[^4].lib$'} |
+                  Rename-Item -NewName {$_.name -replace '.lib$', '4.lib' }
               }
               "macOS" {
-                New-Item -ItemType Directory "qtcreator/bin"
+                New-Item -ItemType Directory "qtcreator/bin" -Force
                 New-Item -ItemType SymbolicLink -Path "${{github.workspace}}/qtcreator/bin/Qt Creator.app" -Target "${{github.workspace}}/qtcreator/Qt Creator.app"
               }
               Default {}
@@ -202,7 +215,7 @@ jobs:
           ${VCPKG_INSTALLED} = "${env:VCPKG_ROOT}/installed/${{matrix.config.arch}}-${{matrix.config.sys}}"
           ${HUNSPELL_SRC}    = "${VCPKG_INSTALLED}/include"
           ${HUNSPELL_LIB}    = "${VCPKG_INSTALLED}/lib"
-          Write-Output "::set-env name=VCPKG_INSTALLED_DIR::${VCPKG_INSTALLED}"
+          Write-Output "VCPKG_INSTALLED_DIR=${VCPKG_INSTALLED}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
           switch ("${{runner.os}}")
           {
@@ -272,8 +285,8 @@ jobs:
           }
           ${env:PLUGIN_ARCHIVE_FULL} = "${PLUGIN_DIR_BASE}/${env:PLUGIN_ARCHIVE_NAME}"
 
-          Write-Output "::set-env name=PLUGIN_ARCHIVE_FULL::${{github.workspace}}/${env:PLUGIN_ARCHIVE_FULL}"
-          Write-Output "::set-env name=PLUGIN_ARCHIVE_NAME::${env:PLUGIN_ARCHIVE_NAME}"
+          Write-Output "PLUGIN_ARCHIVE_FULL=${{github.workspace}}/${env:PLUGIN_ARCHIVE_FULL}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Output "PLUGIN_ARCHIVE_NAME=${env:PLUGIN_ARCHIVE_NAME}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - uses: actions/upload-artifact@v1
         id: upload_artifact
@@ -294,7 +307,7 @@ jobs:
         run: |
           ${RELEASE_URL} = Get-Content ./release_upload_url.txt
           Write-Output "Release URL: ${RELEASE_URL}"
-          Write-Output "::set-env name=RELEASE_URL::${RELEASE_URL}"
+          Write-Output "RELEASE_URL=${RELEASE_URL}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Upload release artifacts
         if: contains(github.ref, '/tags/v')
