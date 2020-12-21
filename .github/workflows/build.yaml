@@ -45,6 +45,8 @@ jobs:
 
             On Windows, make sure to download the correct version for the Qt Creator used, not the architecture of the Operating System.
             To check this: From Qt Creator, go to "Help" -> "About Qt Creator..."
+            NOTE: From Qt Creator version 4.14 only 64 bit binaries are provided for Windows since Qt does not ship a 32 bit version of Qt Creator anymore. If this
+            is a problem please file a bug and I can see if I can provide binaries in the mean time.
           draft: false
           prerelease: false
 
@@ -68,7 +70,6 @@ jobs:
       matrix:
         config:
           - { name: "win64", os: windows-latest, sys: "windows", arch: "x64", hunspell: "hunspell:x64-windows", qt_arch: "win64_msvc2019_64", qtc_platform: "windows_x64"}
-          - { name: "win32", os: windows-latest, sys: "windows", arch: "x86", hunspell: "hunspell:x86-windows", qt_arch: "win32_msvc2019",    qtc_platform: "windows_x86"}
           - { name: "linux", os: ubuntu-latest,   sys: "linux",   arch: "x64", hunspell: "hunspell",             qt_arch: "",                  qtc_platform: "linux_x64"}
           - { name: "macos", os: macos-latest,   sys: "osx",     arch: "x64", hunspell: "hunspell",             qt_arch: "",                  qtc_platform: "mac_x64"}
       fail-fast: false
