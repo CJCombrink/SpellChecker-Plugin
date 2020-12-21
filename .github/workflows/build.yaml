@@ -191,7 +191,7 @@ jobs:
                 Write-Output "JOM_DIR=${{github.workspace}}/jom" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
                 # Windows workaround for issue with libs not ending with 4.lib
-                Get-ChildItem -Path .\qtcreator_dev\lib\qtcreator\ -Recurse |
+                Get-ChildItem -Path .\qtcreator\lib\qtcreator\ -Recurse |
                   Where {$_.Name -Match '[^4].lib$'} |
                   Rename-Item -NewName {$_.name -replace '.lib$', '4.lib' }
               }
