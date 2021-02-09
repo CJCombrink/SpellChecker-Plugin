@@ -20,8 +20,12 @@ I did look a lot at the code in the TODO plugin as a basis for my own implementa
 I do create pre-build releases for each version of the plugin that I tag. The latest release can be obtained from the "Releases" page. Read the README.txt file associated with the release for information on how to install the plugin into the relevant Release version of Qt Creator.
 
 Although I try to create binaries for the latest version of QtCreator, there is a bit of a delay from when a new version of QtCreator is released and a new version of the plugin is released.
+I started using GitHub Actions to build and package the releases and hope this will reduce the delay.
 
 ## 3. Using The Plugin
+For a video demonstrating how to set up and use the plugin check out the following link: https://youtu.be/3Dg5u1Mrj0I (Thank you Jesper from KDAB).
+
+If you want to read the steps yourself (probably with spelling mistakes):
 After opening Qt Creator and the plugin loaded successfully the following steps must be performed before starting to use the SpellChecker plugin:
 1. Make sure the plugin is enabled
    - Go to "*Help*" -> "*About Plugins...*" and make sure the SpellChecker plugin under Utilities is enabled.
@@ -81,8 +85,8 @@ The parser also has settings that affects how the following types of words will 
 Apart from these settings, the plugin also attempts to remove Doxygen Tags in Doxygen comments, in an effort to reduce the number of false positives.
 
 ## 6. Building The Plugin
-Since version 2.0.7 GitHub actions are used to build the plugin in the cloud.<br>
-For the most accurate steps to build, refer to the GitHub actions workflow file since it
+Since version 2.0.7 GitHub Actions are used to build the plugin in the cloud.<br>
+For the most accurate steps to build, refer to the GitHub Actions workflow file since it
 will reflect the steps needed to build on different systems. This section will describe the
 build steps broadly.
 
