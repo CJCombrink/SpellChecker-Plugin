@@ -110,7 +110,7 @@
       <item row="3" column="0">
        <widget class="QCheckBox" name="checkBoxReplaceAllRightClick">
         <property name="text">
-         <string>Replace all occurances of selected word from suggestion on Right Click menu </string>
+         <string>Replace all occurrence of selected word from suggestion on Right Click menu </string>
         </property>
        </widget>
       </item>
