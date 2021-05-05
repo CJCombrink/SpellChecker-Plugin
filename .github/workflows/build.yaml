@@ -47,6 +47,9 @@ jobs:
             To check this: From Qt Creator, go to "Help" -> "About Qt Creator..."
             NOTE: From Qt Creator version 4.14 only 64 bit binaries are provided for Windows since Qt does not ship a 32 bit version of Qt Creator anymore. If this
             is a problem please file a bug and I can see if I can provide binaries in the mean time.
+
+            Note 2: From next month I might start using Qt Creator again as my primary IDE at work (moving Jobs). This means that I might get back to
+            development on the pugin instead of just maintenance and releases since I will start using the plugin again.
           draft: false
           prerelease: false
 
