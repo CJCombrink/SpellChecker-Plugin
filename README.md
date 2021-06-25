@@ -1,6 +1,7 @@
 # SpellChecker Plugin
 
 ## 1. Introduction
+
 The SpellChecker Plugin is a spellchecker plugin for the Qt Creator IDE.
 This plugin spell checks Comments and String Literals in source files for spelling mistakes and suggest the correct spelling for misspelled words, if possible.
 
@@ -16,13 +17,15 @@ contribute to such a project.
 
 I did look a lot at the code in the TODO plugin as a basis for my own implementation. I do not think that I have violated any licenses doing so since I have never just copied code from the plugin. If there are any places that can be problematic regarding any licenses, please contact me so that I can resolve the issues. I want to contribute to the Open Source Community, but it is not my intention to step on any toes in the process.
 
-## 2. Pre-Build Plugins
-I do create pre-build releases for each version of the plugin that I tag. The latest release can be obtained from the "Releases" page. Read the README.txt file associated with the release for information on how to install the plugin into the relevant Release version of Qt Creator.
+## 2. Pre-Built Plugins
+
+I do create pre-built releases for each version of the plugin that I tag. The latest release can be obtained from the ["Releases"](releases/) page. Read the README.txt file associated with the release for information on how to install the plugin into the relevant Release version of Qt Creator.
 
 Although I try to create binaries for the latest version of QtCreator, there is a bit of a delay from when a new version of QtCreator is released and a new version of the plugin is released.
 I started using GitHub Actions to build and package the releases and hope this will reduce the delay.
 
 ## 3. Using The Plugin
+
 For a video demonstrating how to set up and use the plugin check out the following link: https://youtu.be/3Dg5u1Mrj0I (Thank you Jesper from KDAB).
 
 If you want to read the steps yourself (probably with spelling mistakes):
@@ -34,7 +37,7 @@ After opening Qt Creator and the plugin loaded successfully the following steps 
    - In the Options page, go to the "*Spell Checker*" options page.
    - On the "*SpellChecker*" tab, select the required Spell Checker in the dropdown box.
       Currently only the Hunspell Spell Checker will be available, but perhaps in future more might be added.
-   - Set the "*Dictionary*" and "*User Dictionary*" paths for the spell checker to use. <br>
+   - Set the "*Dictionary*" and "*User Dictionary*" paths for the spell checker to use.
       - English Dictionaries can be downloaded from: http://cgit.freedesktop.org/libreoffice/dictionaries/tree/en
       - Both the *.dic and *.aff files for the selected dictionary must be downloaded to the same folder.
       - **NB**: Make sure to use the `"plain"` link on the above page when downloading the dictionary files and not the file names directly.
@@ -54,20 +57,28 @@ After opening Qt Creator and the plugin loaded successfully the following steps 
    - Under "*Tools*" -> "*Spell Checker*" the above actions can also be performed.
 
 ## 4. Useful Widgets
+
 The following useful widgets are added to the QtCreator user interface to allows the user to interact with the plugin:
 - **Output Pane** at the bottom of the IDE that shows the number of mistakes in the current editor, the misspelled words as well as suggestions for the words. From the pane there are controls to handle the mistakes.
 - **Navigation Widget** that can be added that shows all documents that have mistakes along with the number of mistakes on that page. Note that this widget will only show parsed files based on the "Only check current editor" setting of the plugin.
 - **Give Suggestions Widget** will give the user the option to replace all occurrences of a mistake in the current file with the specified word.
 
 ## 5. Settings
+
 The following settings are available to the plugin
+
 ### 5.1. Parse current file vs current project
+
 On the "SpellChecker" tab of the Spell Checker Options page is a setting "Only check current editor". If this setting is set the plugin will only parse the current open editor, reparsing it when changes are made. The results of parsed files will be remembered and still get listed in the Navigation Widget when a new file is opened.
 
 When this setting is not set the plugin will parse all files in the project when a new project is switched to. For large projects this might take a bit of time to parse all files in the project. This has been successfully tested with the QtCreator sources.
+
 ### 5.2. Projects to ignore
-A list of projects that will not be checked for spelling mistakes if opened, even of the setting is enabled to scan complete projetcs.
+
+A list of projects that will not be checked for spelling mistakes if opened, even of the setting is enabled to scan complete projects.
+
 ### 5.3. C++ Document Parser
+
 The C++ parser can be configured to parse only Comments, only String Literals or both.
 
 The parser also has settings that affects how the following types of words will be handled:
@@ -85,7 +96,9 @@ The parser also has settings that affects how the following types of words will 
 Apart from these settings, the plugin also attempts to remove Doxygen Tags in Doxygen comments, in an effort to reduce the number of false positives.
 
 ## 6. Building The Plugin
-Since version 2.0.7 GitHub Actions are used to build the plugin in the cloud.<br>
+
+Since version 2.0.7 GitHub Actions are used to build the plugin in the cloud.
+
 For the most accurate steps to build, refer to the GitHub Actions workflow file since it
 will reflect the steps needed to build on different systems. This section will describe the
 build steps broadly.
@@ -122,6 +135,7 @@ build steps broadly.
    -  In the running Qt Creator, go to "*Help*" -> "*About Plugins...*". Under Utilities "*SpellChecker*" should be listed and enabled (enable it if it was not enabled).
 
 ## TODO
+
 The following list is a list with a hint into priority of some outstanding tasks I want to do.
 - [ ] Parse and ignore website URLs correctly. (Some work done on this but needs more testing/tweaks)
 - [ ] Add checking for QML files.
