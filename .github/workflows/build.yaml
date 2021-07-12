@@ -37,7 +37,7 @@ jobs:
           body: |
             Release for Qt Creator ${{env.QT_CREATOR_VERSION}}.
 
-            Download the correct file based on Operating system and architect of Qt Creator.
+            Download the correct file based on operating system and architecture of Qt Creator.
 
             To deploy into Qt Creator, extract the archive into the root folder of where Qt Creator is installed.
 
