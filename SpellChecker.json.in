@@ -1,7 +1,7 @@
 {
     \"Name\" : \"SpellChecker\",
-    \"Version\" : \"2.0.9\",
-    \"CompatVersion\" : \"2.09\",
+    \"Version\" : \"2.0.10\",
+    \"CompatVersion\" : \"2.0.10\",
     \"Vendor\" : \"Carel Combrink\",
     \"Copyright\" : \"(C) 2015 - 2021 Carel Combrink\",
     \"License\" : [ \"GNU Lesser General Public License Usage\",

@@ -10,8 +10,8 @@ name: Build SpellChecker-Plugin
 on: [push]
 
 env:
-  QT_VERSION: 5.15.0
-  QT_CREATOR_VERSION: 4.15
+  QT_VERSION: 5.15.2
+  QT_CREATOR_VERSION: 5.0.1
 
 # The Jobs
 jobs:
@@ -91,10 +91,10 @@ jobs:
           vcpkgGitCommitId: 56fffbe49dfb4dd8fae0940f272c5fd2b86be991
 
       # Download and set up Qt Creator
-      - name: Donwload Qt Creator
+      - name: Download Qt Creator
         shell: pwsh
         run: |
-          ${QTC_BASE_URL} = "https://download.qt.io/official_releases/qtcreator/${env:QT_CREATOR_VERSION}/${env:QT_CREATOR_VERSION}.0"
+          ${QTC_BASE_URL} = "https://download.qt.io/official_releases/qtcreator/5.0/${env:QT_CREATOR_VERSION}"
 
           # FROM: https://winblog.it.umn.edu/2018/05/19/getting-redirected-uris-in-powershell/
           function Get-RedirectedUri {
@@ -167,7 +167,7 @@ jobs:
           }
 
           Write-Output "<+> Downloading Package: Source"
-          ${QTC_SRC_ARCH_BASE} = "qt-creator-opensource-src-${{env.QT_CREATOR_VERSION}}.0"
+          ${QTC_SRC_ARCH_BASE} = "qt-creator-opensource-src-${{env.QT_CREATOR_VERSION}}"
           ${QTC_SRC_ARCH}      = "${QTC_SRC_ARCH_BASE}.zip"
           ${QTC_SRC_URL}       = "${QTC_BASE_URL}/${QTC_SRC_ARCH}"
           Get-Archive -url "${QTC_SRC_URL}" -archive "${QTC_SRC_ARCH}" -extracted "."
@@ -196,8 +196,12 @@ jobs:
 
                 # Windows workaround for issue with libs not ending with 4.lib
                 Get-ChildItem -Path .\qtcreator\lib\qtcreator\ -Recurse |
-                  Where {$_.Name -Match '[^4].lib$'} |
-                  Rename-Item -NewName {$_.name -replace '.lib$', '4.lib' }
+                  Where {$_.Name -Match '[^5].lib$'} |
+                  Rename-Item -NewName {$_.name -replace '.lib$', '5.lib' }
+              }
+              "Linux"
+              {
+                  Copy-Item -Path "./qtcreator/lib/qtcreator/libClangSupport.so" "./qtcreator/lib/qtcreator/libClangsupport.so"
               }
               "macOS" {
                 New-Item -ItemType Directory "qtcreator/bin" -Force
@@ -257,7 +261,7 @@ jobs:
                 ${PLUGIN_DIR_BIN} = "${PLUGIN_DIR_BASE}/bin/"
                 New-Item -ItemType Directory "${PLUGIN_DIR_OUT}" -Force
                 New-Item -ItemType Directory "${PLUGIN_DIR_BIN}" -Force
-                Copy-Item -Path "${env:QTC_BUILD}/lib/qtcreator/plugins/SpellChecker4.dll" -Destination "${PLUGIN_DIR_OUT}/"
+                Copy-Item -Path "${env:QTC_BUILD}/lib/qtcreator/plugins/SpellChecker5.dll" -Destination "${PLUGIN_DIR_OUT}/"
                 Copy-Item -Path "${env:VCPKG_INSTALLED_DIR}/bin/libhunspell.dll" -Destination "${PLUGIN_DIR_BIN}/"
                 Push-Location ${PLUGIN_DIR_BASE}
                 ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.zip"
