@@ -106,7 +106,7 @@ void HunspellOptionsWidget::updateDictionary( const QString& dictionary )
     userDictFileName.replace( QRegularExpression( QLatin1String( "\\.dic$" ) ), QLatin1String( ".udic" ) );
     userDictFileName = QLatin1String( "QtC-" ) + userDictFileName;
     /* Add the file name to the User Resource Path */
-    QString userDictName = Core::ICore::userResourcePath() + QLatin1String( "/UserDictionaries/" ) + userDictFileName;
+    QString userDictName = Core::ICore::userResourcePath().toString() + QLatin1String( "/UserDictionaries/" ) + userDictFileName;
     updateUserDictionary( userDictName );
   }
 }
