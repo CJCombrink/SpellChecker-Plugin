@@ -23,7 +23,7 @@ jobs:
   release:
     name: Create release
     if: contains(github.ref, '/tags/v')
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     steps:
       - name: Create release
         if: contains(github.ref, '/tags/v')
