@@ -10,7 +10,7 @@ name: Build SpellChecker-Plugin
 on: [push]
 
 env:
-  QT_VERSION: 5.15.0
+  QT_VERSION: "5.15.0"
   QT_CREATOR_VERSION: "5.0"
 
 # The Jobs
@@ -198,6 +198,10 @@ jobs:
                 Get-ChildItem -Path .\qtcreator\lib\qtcreator\ -Recurse |
                   Where {$_.Name -Match '[^5].lib$'} |
                   Rename-Item -NewName {$_.name -replace '.lib$', '5.lib' }
+              }
+              "Linux" {
+                # Fix the case of the libClangSupport.so (thanks @rdnvndr)
+                Copy-Item -Path "./qtcreator/lib/qtcreator/libClangSupport.so" "./qtcreator/lib/qtcreator/libClangsupport.so"
               }
               "macOS" {
                 New-Item -ItemType Directory "qtcreator/bin" -Force
