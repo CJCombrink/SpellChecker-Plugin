@@ -11,7 +11,7 @@ on: [push]
 
 env:
   QT_VERSION: 5.15.0
-  QT_CREATOR_VERSION: 5.0
+  QT_CREATOR_VERSION: "5.0"
 
 # The Jobs
 jobs:
@@ -167,7 +167,7 @@ jobs:
           }
 
           Write-Output "<+> Downloading Package: Source"
-          ${QTC_SRC_ARCH_BASE} = "qt-creator-opensource-src-${env.QT_CREATOR_VERSION}.0"
+          ${QTC_SRC_ARCH_BASE} = "qt-creator-opensource-src-${{ env.QT_CREATOR_VERSION }}.0"
           ${QTC_SRC_ARCH}      = "${QTC_SRC_ARCH_BASE}.zip"
           ${QTC_SRC_URL}       = "${QTC_BASE_URL}/${QTC_SRC_ARCH}"
           Get-Archive -url "${QTC_SRC_URL}" -archive "${QTC_SRC_ARCH}" -extracted "."
