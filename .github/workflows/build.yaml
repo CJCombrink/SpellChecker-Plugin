@@ -37,7 +37,7 @@ jobs:
           body: |
             Release for Qt Creator ${{env.QT_CREATOR_VERSION}}.
 
-            Download the correct file based on Operating system and architect of Qt Creator.
+            Download the correct file based on operating system and architecture of Qt Creator.
 
             To deploy into Qt Creator, extract the archive into the root folder of where Qt Creator is installed.
 
@@ -73,7 +73,7 @@ jobs:
       matrix:
         config:
           - { name: "win64", os: windows-latest, sys: "windows", arch: "x64", hunspell: "hunspell:x64-windows", qt_arch: "win64_msvc2019_64", qtc_platform: "windows_x64"}
-          - { name: "linux", os: ubuntu-latest,   sys: "linux",   arch: "x64", hunspell: "hunspell",             qt_arch: "",                  qtc_platform: "linux_x64"}
+          - { name: "linux", os: ubuntu-latest,  sys: "linux",   arch: "x64", hunspell: "hunspell",             qt_arch: "",                  qtc_platform: "linux_x64"}
           - { name: "macos", os: macos-latest,   sys: "osx",     arch: "x64", hunspell: "hunspell",             qt_arch: "",                  qtc_platform: "mac_x64"}
       fail-fast: false
 
@@ -194,7 +194,7 @@ jobs:
                 Get-Archive -url "${JOM_URL}" -archive "jom.zip" -extracted "jom"
                 Write-Output "JOM_DIR=${{github.workspace}}/jom" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-                # Windows workaround for issue with libs not ending with 4.lib
+                # Windows workaround for issue with libs not ending with 5.lib
                 Get-ChildItem -Path .\qtcreator\lib\qtcreator\ -Recurse |
                   Where {$_.Name -Match '[^5].lib$'} |
                   Rename-Item -NewName {$_.name -replace '.lib$', '5.lib' }
