@@ -34,6 +34,7 @@
 #include <QMutex>
 #include <QSharedPointer>
 #include <QTextCodec>
+#include <QRegularExpression>
 
 #include <memory>
 
@@ -51,7 +52,7 @@ public:
   HunspellWrapper( const QString& dictionary )
   {
     /* Get the affix dictionary path */
-    QString affPath = QString( dictionary ).replace( QRegExp( QLatin1String( "\\.dic$" ) ), QLatin1String( ".aff" ) );
+    QString affPath = QString( dictionary ).replace( QRegularExpression("\\.dic$"), ".aff");
     d_hunspell = HunspellPtr( new ::Hunspell( affPath.toLatin1(), dictionary.toLatin1() ) );
     d_codec    = QTextCodec::codecForName( d_hunspell->get_dic_encoding() );
   }
@@ -272,7 +273,7 @@ bool HunspellChecker::addWord( const QString& word )
   d->hunspell->addWord( word );
 
   QTextStream stream( &dictionary );
-  stream << word << endl;
+  stream << word << Qt::endl;
   dictionary.close();
   return true;
 }

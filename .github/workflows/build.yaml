@@ -10,8 +10,9 @@ name: Build SpellChecker-Plugin
 on: [push]
 
 env:
-  QT_VERSION: "5.15.0"
-  QT_CREATOR_VERSION: "5.0"
+  QT_VERSION: "6.2.1"
+  QT_CREATOR_VERSION: "6.0"
+  QT_MIRRORS: download.qt.io;mirrors.ocf.berkeley.edu/qt;ftp.fau.de/qtproject;mirror.bit.edu.cn/qtproject
 
 # The Jobs
 jobs:
@@ -72,9 +73,35 @@ jobs:
     strategy:
       matrix:
         config:
-          - { name: "win64", os: windows-latest, sys: "windows", arch: "x64", hunspell: "hunspell:x64-windows", qt_arch: "win64_msvc2019_64", qtc_platform: "windows_x64"}
-          - { name: "linux", os: ubuntu-latest,  sys: "linux",   arch: "x64", hunspell: "hunspell",             qt_arch: "",                  qtc_platform: "linux_x64"}
-          - { name: "macos", os: macos-latest,   sys: "osx",     arch: "x64", hunspell: "hunspell",             qt_arch: "",                  qtc_platform: "mac_x64"}
+          - { 
+              name: "win64", 
+              os: windows-latest, 
+              sys: "windows", 
+              arch: "x64", 
+              hunspell: "hunspell:x64-windows", 
+              qt_arch: "win64_msvc2019_64", 
+              qtc_platform: "windows_x64",
+              environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
+              is_msvc: true
+            }
+          - { 
+              name: "linux", 
+              os: ubuntu-latest,  
+              sys: "linux",   
+              arch: "x64", 
+              hunspell: "hunspell",             
+              qt_arch: "",                  
+              qtc_platform: "linux_x64"
+            }
+          - { 
+              name: "macos", 
+              os: macos-latest,   
+              sys: "osx",     
+              arch: "x64", 
+              hunspell: "hunspell",             
+              qt_arch: "",                  
+              qtc_platform: "mac_x64"
+            }
       fail-fast: false
 
     steps:
@@ -91,7 +118,7 @@ jobs:
           vcpkgGitCommitId: 56fffbe49dfb4dd8fae0940f272c5fd2b86be991
 
       # Download and set up Qt Creator
-      - name: Donwload Qt Creator
+      - name: Download Qt Creator
         shell: pwsh
         run: |
           ${QTC_BASE_URL} = "https://download.qt.io/official_releases/qtcreator/${env:QT_CREATOR_VERSION}/${env:QT_CREATOR_VERSION}.0"
@@ -194,10 +221,13 @@ jobs:
                 Get-Archive -url "${JOM_URL}" -archive "jom.zip" -extracted "jom"
                 Write-Output "JOM_DIR=${{github.workspace}}/jom" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-                # Windows workaround for issue with libs not ending with 5.lib
+                # Windows workaround for issue with libs not ending with 6.lib
                 Get-ChildItem -Path .\qtcreator\lib\qtcreator\ -Recurse |
-                  Where {$_.Name -Match '[^5].lib$'} |
-                  Rename-Item -NewName {$_.name -replace '.lib$', '5.lib' }
+                  Where {$_.Name -Match '[^6].lib$'} |
+                  Rename-Item -NewName {$_.name -replace '.lib$', '6.lib' }
+                Get-ChildItem -Path .\qtcreator\bin\ -Recurse |
+                  Where {$_.Name -Match '[^6].lib$'} |
+                  Rename-Item -NewName {$_.name -replace '.lib$', '6.lib' }
               }
               "Linux" {
                 # Fix the case of the libClangSupport.so (thanks @rdnvndr)
@@ -210,11 +240,129 @@ jobs:
               Default {}
           }
 
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v2
-        with:
-          version: ${{env.QT_VERSION}}
-          arch: ${{matrix.config.qt_arch}}
+      - name: Download Qt
+        id: qt
+        shell: cmake -P {0}
+        run: |
+          set(qt_version ${{env.QT_VERSION}})
+  
+          string(REPLACE "." "" qt_version_dotless "${qt_version}")
+          if ("${{ runner.os }}" STREQUAL "Windows")
+            set(url_os "windows_x86")
+            if ("${{ matrix.config.environment_script }}" MATCHES "vcvars64.bat")
+              set(qt_package_arch_suffix "win64_msvc2019_64")
+              set(qt_dir_prefix "${qt_version}/msvc2019_64")
+              set(qt_package_suffix "-Windows-Windows_10-MSVC2019-Windows-Windows_10-X86_64")
+            endif()
+          elseif ("${{ runner.os }}" STREQUAL "Linux")
+            set(url_os "linux_x64")
+            set(qt_package_arch_suffix "gcc_64")
+            set(qt_dir_prefix "${qt_version}/gcc_64")
+            set(qt_package_suffix "-Linux-RHEL_8_2-GCC-Linux-RHEL_8_2-X86_64")
+          elseif ("${{ runner.os }}" STREQUAL "macOS")
+            set(url_os "mac_x64")
+            set(qt_package_arch_suffix "clang_64")
+            set(qt_dir_prefix "${qt_version}/macos")
+            set(qt_package_suffix "-MacOS-MacOS_11_00-Clang-MacOS-MacOS_11_00-X86_64-ARM64")
+          endif()
+
+          set(qt_base_url "https://\${qt_mirror}/online/qtsdkrepository/${url_os}/desktop/qt6_${qt_version_dotless}")
+          foreach(qt_mirror $ENV{QT_MIRRORS})
+            cmake_language(EVAL CODE "
+              message(\"Downloading: ${qt_base_url}/Updates.xml\")
+              file(DOWNLOAD \"${qt_base_url}/Updates.xml\" ./Updates.xml)
+            ")
+            file(SIZE ./Updates.xml fileSize)
+            if (fileSize GREATER 0)
+              break()
+            endif()
+          endforeach()
+
+          file(READ ./Updates.xml updates_xml)
+          string(REGEX MATCH "<Name>qt.qt6.*<Version>([0-9+-.]+)</Version>" updates_xml_output "${updates_xml}")
+          set(qt_package_version ${CMAKE_MATCH_1})
+
+          file(MAKE_DIRECTORY qt6)
+
+          # Save the path for other steps
+          file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/qt6/${qt_dir_prefix}" qt_dir)
+          message("::set-output name=qt_dir::${qt_dir}")
+
+          function(downloadAndExtract url archive)
+            foreach(qt_mirror $ENV{QT_MIRRORS})
+              cmake_language(EVAL CODE "
+                message(\"Downloading ${url}\")
+                file(DOWNLOAD \"${url}\" ./${archive})
+              ")
+              file(SIZE ./${archive} fileSize)
+              if (fileSize GREATER 0)
+                break()
+              endif()
+            endforeach()
+            execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ../${archive} WORKING_DIRECTORY qt6)
+          endfunction()
+
+          foreach(package qtbase qtdeclarative qttools qtsvg qttranslations)
+            downloadAndExtract(
+              "${qt_base_url}/qt.qt6.${qt_version_dotless}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
+              ${package}.7z
+            )
+          endforeach()
+
+          foreach(package qtimageformats qtserialport)
+            downloadAndExtract(
+              "${qt_base_url}/qt.qt6.${qt_version_dotless}.addons.${package}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
+              ${package}.7z
+            )
+          endforeach()
+
+          foreach(package qtquicktimeline qtquick3d qt5compat qtshadertools)
+            downloadAndExtract(
+              "${qt_base_url}/qt.qt6.${qt_version_dotless}.${package}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
+              ${package}.7z
+            )
+          endforeach()
+
+          # uic depends on libicu56.so
+          if ("${{ runner.os }}" STREQUAL "Linux")
+            downloadAndExtract(
+              "${qt_base_url}/qt.qt6.${qt_version_dotless}.${qt_package_arch_suffix}/${qt_package_version}icu-linux-Rhel7.2-x64.7z"
+              icu.7z
+            )
+          endif()
+
+          file(READ "qt6/${qt_dir_prefix}/mkspecs/qconfig.pri" qtconfig)
+          string(REPLACE "Enterprise" "OpenSource" qtconfig "${qtconfig}")
+          string(REPLACE "licheck.exe" "" qtconfig "${qtconfig}")
+          string(REPLACE "licheck64" "" qtconfig "${qtconfig}")
+          string(REPLACE "licheck_mac" "" qtconfig "${qtconfig}")
+          file(WRITE "qt6/${qt_dir_prefix}/mkspecs/qconfig.pri" "${qtconfig}")
+
+          if ("${{ runner.os }}" STREQUAL "Windows")
+            # deploy "system" runtimes into Qt, so they get deployed as well
+            # deploy MSVC
+            foreach(file vcruntime140.dll concrt140.dll msvcp140_1.dll msvcp140_2.dll
+                         msvcp140_codecvt_ids.dll vcruntime140_1.dll msvcp140.dll)
+              file(INSTALL "C:/Windows/System32/${file}"
+                   DESTINATION "qt6/${qt_dir_prefix}/bin")
+            endforeach()
+          endif()
+          
+      - name: Install system libs
+        shell: cmake -P {0}
+        run: |
+          if ("${{ runner.os }}" STREQUAL "Linux")
+            execute_process(
+              COMMAND sudo apt update
+            )
+            execute_process(
+              COMMAND sudo apt install libgl1-mesa-dev libvulkan-dev libxcb-xinput-dev libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev
+              RESULT_VARIABLE result
+            )
+            if (NOT result EQUAL 0)
+              message(FATAL_ERROR "Failed to install dependencies")
+            endif()
+          endif()
 
       - name: Build Plugin
         shell: pwsh
@@ -244,7 +392,8 @@ jobs:
           }
 
           # Run Qmake
-          qmake "SpellChecker-Plugin\spellchecker.pro" "LOCAL_HUNSPELL_SRC_DIR=${HUNSPELL_SRC}" "LOCAL_HUNSPELL_LIB_DIR=${HUNSPELL_LIB}" ${QMAKE_EXTRA_ARGS}
+          ${{ steps.qt.outputs.qt_dir }}/bin/qmake "SpellChecker-Plugin\spellchecker.pro" "LOCAL_HUNSPELL_SRC_DIR=${HUNSPELL_SRC}" "LOCAL_HUNSPELL_LIB_DIR=${HUNSPELL_LIB}" ${QMAKE_EXTRA_ARGS}
+          
           # Build
           & "${MAKE_CMD}"
 
@@ -261,7 +410,7 @@ jobs:
                 ${PLUGIN_DIR_BIN} = "${PLUGIN_DIR_BASE}/bin/"
                 New-Item -ItemType Directory "${PLUGIN_DIR_OUT}" -Force
                 New-Item -ItemType Directory "${PLUGIN_DIR_BIN}" -Force
-                Copy-Item -Path "${env:QTC_BUILD}/lib/qtcreator/plugins/SpellChecker5.dll" -Destination "${PLUGIN_DIR_OUT}/"
+                Copy-Item -Path "${env:QTC_BUILD}/lib/qtcreator/plugins/SpellChecker6.dll" -Destination "${PLUGIN_DIR_OUT}/"
                 Copy-Item -Path "${env:VCPKG_INSTALLED_DIR}/bin/libhunspell.dll" -Destination "${PLUGIN_DIR_BIN}/"
                 Push-Location ${PLUGIN_DIR_BASE}
                 ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.zip"

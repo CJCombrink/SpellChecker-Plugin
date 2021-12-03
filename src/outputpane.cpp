@@ -100,7 +100,7 @@ OutputPane::OutputPane( SpellingMistakesModel* model, QObject* parent )
    * This code was copied directly from {QtC}/src/plugins/texteditor/refactoroverlay.cpp
    * An icon is created with the 2 parts with specific colors for each. */
   d->buttonSuggest->setIcon(
-    Utils::Icon( { { QLatin1String( ":/utils/images/lightbulbcap.png" ), Utils::Theme::PanelTextColorMid }, { QLatin1String( ":/utils/images/lightbulb.png" ), Utils::Theme::IconsWarningColor } }
+    Utils::Icon( { { ":/utils/images/lightbulbcap.png", Utils::Theme::PanelTextColorMid }, { ":/utils/images/lightbulb.png", Utils::Theme::IconsWarningColor } }
                  , Utils::Icon::Tint ).icon() );
   d->buttonSuggest->setText( tr( "Give Suggestions" ) );
   d->buttonSuggest->setToolTip( tr( "Give suggestions for the word" ) );
@@ -429,7 +429,7 @@ QWidget* OutputPaneDelegate::createEditor( QWidget* parent, const QStyleOptionVi
     QWidget* widget     = new QWidget( parent );
     QHBoxLayout* layout = new QHBoxLayout();
     widget->setLayout( layout );
-    layout->setMargin( 1 );
+    layout->setContentsMargins(1, 1, 1, 1);
     layout->setSpacing( 3 );
     Word word               = d->wordSelected;
     QStringList suggestions = index.data().toString().split( QStringLiteral( ", " ) );

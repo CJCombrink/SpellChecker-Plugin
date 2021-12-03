@@ -24,7 +24,7 @@
 
 #include <cplusplus/Overview.h>
 #include <cppeditor/cppeditordocument.h>
-#include <cpptools/cppdoxygen.h>
+#include <cppeditor/cppdoxygen.h>
 
 using namespace SpellChecker;
 using namespace SpellChecker::CppSpellChecker::Internal;
@@ -348,8 +348,8 @@ WordList CppDocumentProcessor::extractWordsFromString( const QString& string, in
             || ( charBeforeStart == QLatin1Char( '@' ) ) ) {
           const QString& currentWord = word.text;
           /* Classify it */
-          const int32_t doxyClass = CppTools::classifyDoxygenTag( currentWord.unicode(), currentWord.size() );
-          if( doxyClass != CppTools::T_DOXY_IDENTIFIER ) {
+          const int32_t doxyClass = CppEditor::classifyDoxygenTag( currentWord.unicode(), currentWord.size() );
+          if( doxyClass != CppEditor::T_DOXY_IDENTIFIER ) {
             /* It is a doxygen tag, mark it as such so that it does not end up
              * in the list of words from this string. */
             isDoxygenTag = true;
@@ -463,8 +463,8 @@ QVector<WordTokens> CppDocumentProcessor::parseMacros() const
   if( macroUse.count() == 0 ) {
     return {};
   }
-  static CppTools::CppModelManager* cppModelManager    = CppTools::CppModelManager::instance();
-  CppTools::CppEditorDocumentHandle* cppEditorDocument = cppModelManager->cppEditorDocument( d->docPtr->fileName() );
+  static CppEditor::CppModelManager* cppModelManager    = CppEditor::CppModelManager::instance();
+  CppEditor::CppEditorDocumentHandle* cppEditorDocument = cppModelManager->cppEditorDocument( d->docPtr->fileName() );
   if( cppEditorDocument == nullptr ) {
     return {};
   }

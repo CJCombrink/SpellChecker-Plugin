@@ -42,7 +42,7 @@ SpellCheckerCoreOptionsWidget::SpellCheckerCoreOptionsWidget( const SpellChecker
    * icon also has a PLUS_TOOLBAR icon for toolbars, but the Minus icon
    * does not have these two icons, it only has the one, and that one
    * is for the toolbar since nowhere else is a normal one needed. */
-  ui->toolButtonRemoveProject->setIcon( Utils::Icon( { { QLatin1String( ":/utils/images/minus.png" )
+  ui->toolButtonRemoveProject->setIcon( Utils::Icon( { { ":/utils/images/minus.png"
                                                        , Utils::Theme::PaletteText } }, Utils::Icon::Tint ).icon() );
 
   QMap<QString, ISpellChecker*> availableSpellCheckers = SpellCheckerCore::instance()->addedSpellCheckers();

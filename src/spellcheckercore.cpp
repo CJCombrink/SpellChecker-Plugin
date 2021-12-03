@@ -40,7 +40,7 @@
 #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/idocument.h>
-#include <cpptools/cppmodelmanager.h>
+#include <cppeditor/cppmodelmanager.h>
 #include <texteditor/texteditor.h>
 #include <utils/algorithm.h>
 #include <utils/fadingindicator.h>
@@ -725,7 +725,8 @@ void SpellCheckerCore::startupProjectChanged( ProjectExplorer::Project* startupP
   if( startupProject != nullptr ) {
     /* Check if the current project is not set to be ignored by the settings. */
     if( d->settings->projectsToIgnore.contains( startupProject->displayName() ) == false ) {
-      d->filesInStartupProject = Utils::transform( startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FilePath::toString ).toSet();
+      const auto fileList = Utils::transform( startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FilePath::toString );
+      d->filesInStartupProject = QSet(fileList.begin(), fileList.end());
     } else {
       /* The Project should be ignored and not be spell checked. */
       d->startupProject = nullptr;
@@ -748,7 +749,8 @@ void SpellCheckerCore::fileListChanged()
   }
 
   const QStringSet oldFiles = d->filesInStartupProject;
-  const QStringSet newFiles = Utils::transform( d->startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FilePath::toString ).toSet();
+  const auto fileList = Utils::transform( d->startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FilePath::toString );
+  const QStringSet newFiles = QStringSet(fileList.begin(), fileList.end());
 
   /* Compare the two sets with each other to get the lists of files
    * added and removed.
