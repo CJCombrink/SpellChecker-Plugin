@@ -64,7 +64,7 @@ void HunspellOptionsWidget::applySettings()
     return;
   }
   /* Check if the aff file is located along with the .dic file */
-  QString affFIleName = QString( ui->lineEditDictionary->text() ).replace( QRegExp( QLatin1String( "\\.dic$" ) ), QLatin1String( ".aff" ) );
+  QString affFIleName = QString( ui->lineEditDictionary->text() ).replace( QRegularExpression( QLatin1String( "\\.dic$" ) ), QLatin1String( ".aff" ) );
   QFileInfo affFile( affFIleName );
   if( affFile.exists() == false ) {
     emit optionsError( QLatin1String( "Hunspell Spellchecker" ), tr( "The *.aff File for selected dictionary does not exist" ) );
@@ -140,9 +140,7 @@ void HunspellOptionsWidget::on_toolButtonBrowseUserDictionary_clicked()
   QString userDictionary = QFileDialog::getSaveFileName( this,
                                                          tr( "User Dictionary File" ),
                                                          ui->lineEditUserDictionary->text(),
-                                                         tr( "Dictionaries (*.udic)" ),
-                                                         0,
-                                                         0 );
+                                                         tr( "Dictionaries (*.udic)" ));
   if( userDictionary.isEmpty() == false ) {
     updateUserDictionary( userDictionary );
   }

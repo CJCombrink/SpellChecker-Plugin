@@ -20,7 +20,6 @@
 
 #include "spellcheckercore.h"
 #include "spellcheckquickfix.h"
-#include <cppeditor/cppeditor.h>
 
 using namespace SpellChecker;
 

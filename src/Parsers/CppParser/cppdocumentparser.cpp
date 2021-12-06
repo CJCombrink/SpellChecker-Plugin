@@ -34,8 +34,8 @@
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <cppeditor/cppeditorconstants.h>
 #include <cppeditor/cppeditordocument.h>
-#include <cpptools/cppmodelmanager.h>
-#include <cpptools/cpptoolsreuse.h>
+#include <cppeditor/cppmodelmanager.h>
+#include <cppeditor/cpptoolsreuse.h>
 #include <projectexplorer/project.h>
 #include <projectexplorer/session.h>
 #include <texteditor/syntaxhighlighter.h>
@@ -344,11 +344,11 @@ public:
   QStringSet getCppFiles( const QStringSet& list )
   {
     return Utils::filtered( list, []( const QString& file ) {
-            const CppTools::ProjectFile::Kind kind = CppTools::ProjectFile::classify( file );
+            const CppEditor::ProjectFile::Kind kind = CppEditor::ProjectFile::classify( file );
             switch( kind ) {
-              case CppTools::ProjectFile::Unclassified:
+              case CppEditor::ProjectFile::Unclassified:
                 return false;
-              case CppTools::ProjectFile::Unsupported: {
+              case CppEditor::ProjectFile::Unsupported: {
                 /* Check our doxy MimeType added by this plugin */
                 const Utils::MimeType mimeType = Utils::mimeTypeForFile( file );
                 const QString mt               = mimeType.name();
@@ -396,8 +396,8 @@ CppDocumentParser::CppDocumentParser( QObject* parent )
   /* Crete the options page for the parser */
   d->optionsPage = new CppParserOptionsPage( d->settings, this );
 
-  CppTools::CppModelManager* modelManager = CppTools::CppModelManager::instance();
-  connect( modelManager, &CppTools::CppModelManager::documentUpdated, this, &CppDocumentParser::parseCppDocumentOnUpdate, Qt::DirectConnection );
+  CppEditor::CppModelManager* modelManager = CppEditor::CppModelManager::instance();
+  connect( modelManager, &CppEditor::CppModelManager::documentUpdated, this, &CppDocumentParser::parseCppDocumentOnUpdate, Qt::DirectConnection );
   connect(         qApp, &QApplication::aboutToQuit,                  this, [=]() {
           /* Disconnect any signals that might still get emitted. */
           modelManager->disconnect( this );
@@ -534,7 +534,7 @@ void CppDocumentParser::reparseProject()
   const Utils::FilePaths projectFiles = d->activeProject->files( ProjectExplorer::Project::SourceFiles );
   const QStringList fileList             = Utils::transform( projectFiles, &Utils::FilePath::toString );
 
-  const QStringSet fileSet = d->getCppFiles( fileList.toSet() );
+  const QStringSet fileSet = d->getCppFiles( QStringSet(fileList.begin(), fileList.end()) );
   d->filesInStartupProject = fileSet;
 
   {
@@ -552,7 +552,7 @@ void CppDocumentParser::reparseProject()
 void CppDocumentParser::queueFilesForUpdate()
 {
   /* Only re-parse the files that were added. */
-  static CppTools::CppModelManager* modelManager = CppTools::CppModelManager::instance();
+  static CppEditor::CppModelManager* modelManager = CppEditor::CppModelManager::instance();
 
   QStringSet filesToUpdate;
   size_t filesOutstanding;
@@ -743,8 +743,8 @@ void CppDocumentParser::applySettingsToWords( const CppParserSettings& settings,
 
     if( ( removeCurrentWord == false ) && ( settings.checkQtKeywords == false ) ) {
       /* Remove the basic Qt Keywords using the isQtKeyword() function in the CppTools */
-      if( ( CppTools::isQtKeyword( QStringRef( &currentWord ) ) == true )
-          || ( CppTools::isQtKeyword( QStringRef( &currentWordCaps ) ) == true ) ) {
+      if( ( CppEditor::isQtKeyword( currentWord ) == true )
+          || ( CppEditor::isQtKeyword( currentWordCaps ) == true ) ) {
         removeCurrentWord = true;
       }
       /* Remove words that Start with capital Q and the next char is also capital letter. This would
@@ -778,7 +778,7 @@ void CppDocumentParser::applySettingsToWords( const CppParserSettings& settings,
       if( websiteRe.match( currentWord ).hasMatch() == true ) {
         removeCurrentWord = true;
       } else if( currentWord.contains( websiteCharsRe ) == true ) {
-        QStringList wordsSplitOnWebChars = currentWord.split( websiteCharsRe, QString::SkipEmptyParts );
+        QStringList wordsSplitOnWebChars = currentWord.split( websiteCharsRe, Qt::SkipEmptyParts );
         if( wordsSplitOnWebChars.isEmpty() == false ) {
           /* String is not a website, check each component now */
           removeCurrentWord = true;
@@ -811,7 +811,7 @@ void CppDocumentParser::applySettingsToWords( const CppParserSettings& settings,
           removeCurrentWord = true;
         } else if( settings.wordsWithNumberOption == CppParserSettings::SplitWordsOnNumbers ) {
           removeCurrentWord = true;
-          QStringList wordsSplitOnNumbers = currentWord.split( numberSplitRe, QString::SkipEmptyParts );
+          QStringList wordsSplitOnNumbers = currentWord.split( numberSplitRe, Qt::SkipEmptyParts );
           WordList wordsFromSplit;
           IDocumentParser::getWordsFromSplitString( wordsSplitOnNumbers, word, wordsFromSplit );
           /* Apply the settings to the words that came from the split to filter out words that does
@@ -835,7 +835,7 @@ void CppDocumentParser::applySettingsToWords( const CppParserSettings& settings,
         } else if( settings.wordsWithUnderscoresOption == CppParserSettings::SplitWordsOnUnderscores ) {
           removeCurrentWord = true;
           static const QRegularExpression underscoreSplitRe( QStringLiteral( "_+" ) );
-          QStringList wordsSplitOnUnderScores = currentWord.split( underscoreSplitRe, QString::SkipEmptyParts );
+          QStringList wordsSplitOnUnderScores = currentWord.split( underscoreSplitRe, Qt::SkipEmptyParts );
           WordList wordsFromSplit;
           IDocumentParser::getWordsFromSplitString( wordsSplitOnUnderScores, word, wordsFromSplit );
           /* Apply the settings to the words that came from the split to filter out words that does
@@ -919,7 +919,7 @@ void CppDocumentParser::applySettingsToWords( const CppParserSettings& settings,
         } else if( settings.wordsWithDotsOption == CppParserSettings::SplitWordsOnDots ) {
           removeCurrentWord = true;
           static const QRegularExpression dotsSplitRe( QStringLiteral( "\\.+" ) );
-          QStringList wordsSplitOnDots = currentWord.split( dotsSplitRe, QString::SkipEmptyParts );
+          QStringList wordsSplitOnDots = currentWord.split( dotsSplitRe, Qt::SkipEmptyParts );
           WordList wordsFromSplit;
           IDocumentParser::getWordsFromSplitString( wordsSplitOnDots, word, wordsFromSplit );
           /* Apply the settings to the words that came from the split to filter out words that does
