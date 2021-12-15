@@ -33,6 +33,9 @@ HunspellOptionsWidget::HunspellOptionsWidget( const QString& dictionary, const Q
   , ui( new Ui::HunspellOptionsWidget )
 {
   ui->setupUi( this );
+  connect( ui->toolButtonBrowseDictionary,     &QToolButton::clicked, this, &HunspellOptionsWidget::toolButtonBrowseDictionaryClicked );
+  connect( ui->toolButtonBrowseUserDictionary, &QToolButton::clicked, this, &HunspellOptionsWidget::toolButtonBrowseUserDictionaryClicked );
+
   /* Set the hints on the different Dictionaries */
   ui->lineEditDictionary->setToolTip( tr( "The dictionary is a *.dic file that Hunspell will use to spellcheck words. \n"
                                           "A *.aff file with the same name as the selected dictionary file must be in the selected folder. \n"
@@ -121,7 +124,7 @@ void HunspellOptionsWidget::updateUserDictionary( const QString& userDictionary 
 }
 // --------------------------------------------------
 
-void HunspellOptionsWidget::on_toolButtonBrowseDictionary_clicked()
+void HunspellOptionsWidget::toolButtonBrowseDictionaryClicked()
 {
   QString dictionary = QFileDialog::getOpenFileName( this,
                                                      tr( "Dictionary File" ),
@@ -135,7 +138,7 @@ void HunspellOptionsWidget::on_toolButtonBrowseDictionary_clicked()
 }
 // --------------------------------------------------
 
-void HunspellOptionsWidget::on_toolButtonBrowseUserDictionary_clicked()
+void HunspellOptionsWidget::toolButtonBrowseUserDictionaryClicked()
 {
   QString userDictionary = QFileDialog::getSaveFileName( this,
                                                          tr( "User Dictionary File" ),

@@ -34,6 +34,10 @@ SpellCheckerCoreOptionsWidget::SpellCheckerCoreOptionsWidget( const SpellChecker
   , m_currentCheckerOptionsWidget( nullptr )
 {
   ui->setupUi( this );
+  connect( ui->comboBoxSpellChecker,    &QComboBox::currentTextChanged, this, &SpellCheckerCoreOptionsWidget::comboBoxSpellCheckerCurrentTextChanged );
+  connect( ui->toolButtonAddProject,    &QToolButton::clicked,          this, &SpellCheckerCoreOptionsWidget::toolButtonAddProjectClicked );
+  connect( ui->toolButtonRemoveProject, &QToolButton::clicked,          this, &SpellCheckerCoreOptionsWidget::toolButtonRemoveProjectClicked );
+
   /* Hide the error widget by default, since there should not be errors. */
   ui->widgetErrorOutput->setVisible( false );
   ui->toolButtonAddProject->setIcon( Utils::Icons::PLUS.icon() );
@@ -126,7 +130,7 @@ void SpellCheckerCoreOptionsWidget::updateWithSettings( const SpellCheckerCoreSe
 }
 // --------------------------------------------------
 
-void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_comboBoxSpellChecker_currentIndexChanged( const QString& arg1 )
+void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::comboBoxSpellCheckerCurrentTextChanged( const QString& arg1 )
 {
   if( m_currentCheckerOptionsWidget != nullptr ) {
     delete m_currentCheckerOptionsWidget;
@@ -149,7 +153,7 @@ void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_comboBoxSpellChec
 }
 // --------------------------------------------------
 
-void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_toolButtonAddProject_clicked()
+void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::toolButtonAddProjectClicked()
 {
   QListWidgetItem* item = new QListWidgetItem();
   item->setData( Qt::DisplayPropertyRole, QString() );
@@ -163,7 +167,7 @@ void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_toolButtonAddProj
 }
 // --------------------------------------------------
 
-void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::on_toolButtonRemoveProject_clicked()
+void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::toolButtonRemoveProjectClicked()
 {
   int row = ui->listWidget->currentRow();
   if( row == -1 ) {
@@ -187,7 +191,7 @@ void SpellChecker::Internal::SpellCheckerCoreOptionsWidget::listWidgetItemChange
   if( ( newProjectName.isEmpty() == true )
       || ( m_projectsToIgnore.contains( newProjectName ) == true ) ) {
     /* Remove it */
-    on_toolButtonRemoveProject_clicked();
+    toolButtonRemoveProjectClicked();
     optionsPageError( QStringLiteral( "SpellChecker" )
                       , ( newProjectName.isEmpty() == true )
                       ? QStringLiteral( "Project name can not be empty" )

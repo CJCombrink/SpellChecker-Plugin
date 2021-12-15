@@ -45,12 +45,12 @@ public:
   };
 
 private slots:
-  void on_listWidgetSuggestions_doubleClicked( const QModelIndex& index );
-  void on_lineEditReplacement_textChanged( const QString& arg1 );
-  void on_listWidgetSuggestions_currentTextChanged( const QString& currentText );
-  void on_pushButtonReplace_clicked();
-  void on_pushButtonReplaceAll_clicked();
-  void on_pushButtonCancel_clicked();
+  void listWidgetSuggestionsDoubleClicked( const QModelIndex& index );
+  void lineEditReplacementTextChanged( const QString& arg1 );
+  void listWidgetSuggestionsCurrentTextChanged( const QString& currentText );
+  void pushButtonReplaceClicked();
+  void pushButtonReplaceAllClicked();
+  void pushButtonCancelClicked();
 
 private:
   Ui::SuggestionsDialog* ui;

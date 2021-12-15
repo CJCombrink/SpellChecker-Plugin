@@ -30,6 +30,14 @@ SuggestionsDialog::SuggestionsDialog( const QString& word, const QStringList& su
   , ui( new Ui::SuggestionsDialog )
 {
   ui->setupUi( this );
+
+  connect( ui->listWidgetSuggestions, &QListWidget::doubleClicked,      this, &SuggestionsDialog::listWidgetSuggestionsDoubleClicked );
+  connect( ui->lineEditReplacement,   &QLineEdit::textChanged,          this, &SuggestionsDialog::lineEditReplacementTextChanged );
+  connect( ui->listWidgetSuggestions, &QListWidget::currentTextChanged, this, &SuggestionsDialog::listWidgetSuggestionsCurrentTextChanged );
+  connect( ui->pushButtonReplace,     &QPushButton::clicked,            this, &SuggestionsDialog::pushButtonReplaceClicked );
+  connect( ui->pushButtonReplaceAll,  &QPushButton::clicked,            this, &SuggestionsDialog::pushButtonReplaceAllClicked );
+  connect( ui->pushButtonCancel,      &QPushButton::clicked,            this, &SuggestionsDialog::pushButtonCancelClicked );
+
   ui->lineEditWord->setText( word );
   ui->listWidgetSuggestions->addItems( suggestions );
   ui->listWidgetSuggestions->setFocus();
@@ -58,7 +66,7 @@ QString SuggestionsDialog::replacementWord() const
 }
 // --------------------------------------------------
 
-void SpellChecker::Internal::SuggestionsDialog::on_listWidgetSuggestions_doubleClicked( const QModelIndex& index )
+void SpellChecker::Internal::SuggestionsDialog::listWidgetSuggestionsDoubleClicked( const QModelIndex& index )
 {
   if( index.isValid() == false ) {
     return;
@@ -69,7 +77,7 @@ void SpellChecker::Internal::SuggestionsDialog::on_listWidgetSuggestions_doubleC
 }
 // --------------------------------------------------
 
-void SpellChecker::Internal::SuggestionsDialog::on_lineEditReplacement_textChanged( const QString& arg1 )
+void SpellChecker::Internal::SuggestionsDialog::lineEditReplacementTextChanged( const QString& arg1 )
 {
   /* Only enable the Ok button, when there is valid text to replace the
    * word with */
@@ -78,26 +86,26 @@ void SpellChecker::Internal::SuggestionsDialog::on_lineEditReplacement_textChang
 }
 // --------------------------------------------------
 
-void SpellChecker::Internal::SuggestionsDialog::on_listWidgetSuggestions_currentTextChanged( const QString& currentText )
+void SpellChecker::Internal::SuggestionsDialog::listWidgetSuggestionsCurrentTextChanged( const QString& currentText )
 {
   Q_ASSERT( currentText.isEmpty() == false );
   ui->lineEditReplacement->setText( currentText );
 }
 // --------------------------------------------------
 
-void SpellChecker::Internal::SuggestionsDialog::on_pushButtonReplace_clicked()
+void SpellChecker::Internal::SuggestionsDialog::pushButtonReplaceClicked()
 {
   accept();
 }
 // --------------------------------------------------
 
-void SpellChecker::Internal::SuggestionsDialog::on_pushButtonReplaceAll_clicked()
+void SpellChecker::Internal::SuggestionsDialog::pushButtonReplaceAllClicked()
 {
   done( AcceptAll );
 }
 // --------------------------------------------------
 
-void SpellChecker::Internal::SuggestionsDialog::on_pushButtonCancel_clicked()
+void SpellChecker::Internal::SuggestionsDialog::pushButtonCancelClicked()
 {
   reject();
 }

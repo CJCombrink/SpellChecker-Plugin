@@ -50,8 +50,8 @@ public slots:
   void updateUserDictionary( const QString& userDictionary );
 
 private slots:
-  void on_toolButtonBrowseDictionary_clicked();
-  void on_toolButtonBrowseUserDictionary_clicked();
+  void toolButtonBrowseDictionaryClicked();
+  void toolButtonBrowseUserDictionaryClicked();
 
 private:
   Ui::HunspellOptionsWidget* ui;

@@ -59,9 +59,9 @@ public slots:
   void optionsPageError( const QString& optionsPage, const QString& error );
 
 private slots:
-  void on_comboBoxSpellChecker_currentIndexChanged( const QString& arg1 );
-  void on_toolButtonAddProject_clicked();
-  void on_toolButtonRemoveProject_clicked();
+  void comboBoxSpellCheckerCurrentTextChanged( const QString& arg1 );
+  void toolButtonAddProjectClicked();
+  void toolButtonRemoveProjectClicked();
   void listWidgetItemChanged( QListWidgetItem* item );
 
 private:
