@@ -3,13 +3,13 @@ if(TARGET hunspell)
 endif()
 
 find_path(HUNSPELL_INCLUDE_DIR
-  NAME hunspell/hunspell.hxx
-  PATH_SUFFIXES include
+  NAME hunspell.hxx
+  PATH_SUFFIXES include hunspell
   HINTS "${HUNSPELL_INSTALL_DIR}" ENV HUNSPELL_INSTALL_DIR "${CMAKE_PREFIX_PATH}"
 )
 
 find_library(HUNSPELL_LIB
-  NAMES libhunspell-1.7.a hunspell-1.7
+  NAMES libhunspell-1.7.a hunspell-1.7 libhunspell
   PATH_SUFFIXES lib
   HINTS "${HUNSPELL_INSTALL_DIR}" ENV HUNSPELL_INSTALL_DIR "${CMAKE_PREFIX_PATH}"
 )
