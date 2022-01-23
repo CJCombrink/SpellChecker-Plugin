@@ -116,8 +116,8 @@ jobs:
           switch ("${{runner.os}}")
           {
             "Windows" { }
-            "Linux"   { apt update;  apt install gettext }
-            "macOS"   { brew update; brew install autotools-dev automake }
+            "Linux"   { sudo apt update; sudo apt install gettext }
+            "macOS"   { brew update; brew install automake autoconf }
           }
 
       # Install vcpkg and Hunspell for the correct compiler and OS.
