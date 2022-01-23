@@ -89,7 +89,7 @@ jobs:
               os: ubuntu-latest,
               sys: "linux",
               arch: "x64",
-              hunspell: "gettext[tools] hunspell",
+              hunspell: "hunspell",
               qt_arch: "",
               qtc_platform: "linux_x64"
             }
@@ -109,6 +109,18 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: SpellChecker-Plugin
+
+      - name: System Packages
+        shell: pwsh
+        run: |
+          if ("${{ runner.os }}" STREQUAL "Windows")
+          elseif ("${{ runner.os }}" STREQUAL "Linux")
+            apt update
+            apt install gettext
+          elseif ("${{ runner.os }}" STREQUAL "macOS")
+            brew update
+            brew install autotools-dev automake
+          endif()
 
       # Install vcpkg and Hunspell for the correct compiler and OS.
       - name: Vcpkg - Hunspell
