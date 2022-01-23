@@ -73,33 +73,33 @@ jobs:
     strategy:
       matrix:
         config:
-          - { 
-              name: "win64", 
-              os: windows-latest, 
-              sys: "windows", 
-              arch: "x64", 
-              hunspell: "hunspell:x64-windows", 
-              qt_arch: "win64_msvc2019_64", 
+          - {
+              name: "win64",
+              os: windows-latest,
+              sys: "windows",
+              arch: "x64",
+              hunspell: "hunspell:x64-windows",
+              qt_arch: "win64_msvc2019_64",
               qtc_platform: "windows_x64",
               environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
               is_msvc: true
             }
-          - { 
-              name: "linux", 
-              os: ubuntu-latest,  
-              sys: "linux",   
-              arch: "x64", 
-              hunspell: "hunspell",             
-              qt_arch: "",                  
+          - {
+              name: "linux",
+              os: ubuntu-latest,
+              sys: "linux",
+              arch: "x64",
+              hunspell: "gettext[tools] hunspell",
+              qt_arch: "",
               qtc_platform: "linux_x64"
             }
-          - { 
-              name: "macos", 
-              os: macos-latest,   
-              sys: "osx",     
-              arch: "x64", 
-              hunspell: "hunspell",             
-              qt_arch: "",                  
+          - {
+              name: "macos",
+              os: macos-latest,
+              sys: "osx",
+              arch: "x64",
+              hunspell: "gettext[tools] hunspell",
+              qt_arch: "",
               qtc_platform: "mac_x64"
             }
       fail-fast: false
@@ -115,7 +115,7 @@ jobs:
         uses: lukka/run-vcpkg@v7
         with:
           vcpkgArguments: ${{matrix.config.hunspell}}
-          vcpkgGitCommitId: 56fffbe49dfb4dd8fae0940f272c5fd2b86be991
+          vcpkgGitCommitId: 1085a57da0725c19e19586025438e8c16f34c890
 
       # Download and set up Qt Creator
       - name: Download Qt Creator
@@ -245,7 +245,7 @@ jobs:
         shell: cmake -P {0}
         run: |
           set(qt_version ${{env.QT_VERSION}})
-  
+
           string(REPLACE "." "" qt_version_dotless "${qt_version}")
           if ("${{ runner.os }}" STREQUAL "Windows")
             set(url_os "windows_x86")
@@ -347,7 +347,7 @@ jobs:
                    DESTINATION "qt6/${qt_dir_prefix}/bin")
             endforeach()
           endif()
-          
+
       - name: Install system libs
         shell: cmake -P {0}
         run: |
@@ -393,7 +393,7 @@ jobs:
 
           # Run Qmake
           ${{ steps.qt.outputs.qt_dir }}/bin/qmake "SpellChecker-Plugin\spellchecker.pro" "LOCAL_HUNSPELL_SRC_DIR=${HUNSPELL_SRC}" "LOCAL_HUNSPELL_LIB_DIR=${HUNSPELL_LIB}" ${QMAKE_EXTRA_ARGS}
-          
+
           # Build
           & "${MAKE_CMD}"
 
