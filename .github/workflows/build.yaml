@@ -98,7 +98,7 @@ jobs:
               os: macos-latest,
               sys: "osx",
               arch: "x64",
-              hunspell: "gettext[tools] hunspell",
+              hunspell: "hunspell",
               qt_arch: "",
               qtc_platform: "mac_x64"
             }
