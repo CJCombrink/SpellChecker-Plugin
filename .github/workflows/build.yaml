@@ -115,7 +115,7 @@ jobs:
         uses: lukka/run-vcpkg@v7
         with:
           vcpkgArguments: ${{matrix.config.hunspell}}
-          vcpkgGitCommitId: 56fffbe49dfb4dd8fae0940f272c5fd2b86be991
+          vcpkgGitCommitId: 1085a57da0725c19e19586025438e8c16f34c890
 
       # Download and set up Qt Creator
       - name: Download Qt Creator
