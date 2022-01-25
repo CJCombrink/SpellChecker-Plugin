@@ -123,7 +123,7 @@ jobs:
           switch ("${{runner.os}}")
           {
             "Windows" { }
-            "Linux"   { sudo apt update; sudo apt install gettext libgl1-mesa-dev libvulkan-dev libxcb-xinput-dev libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev }
+            "Linux"   { sudo apt update; sudo apt install ninja-build gettext libgl1-mesa-dev libvulkan-dev libxcb-xinput-dev libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev }
             "macOS"   { brew update; brew install automake autoconf }
           }
 
