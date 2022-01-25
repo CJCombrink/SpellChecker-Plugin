@@ -115,7 +115,7 @@ jobs:
         with:
           repository: qt-creator/qt-creator
           path: qt-creator
-          ref: ${env:QT_CREATOR_VERSION}
+          ref: ${{env:QT_CREATOR_VERSION}}
 
       - name: Build Qt Creator
         shell: pwsh
