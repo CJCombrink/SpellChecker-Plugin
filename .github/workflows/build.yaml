@@ -253,9 +253,9 @@ jobs:
         run: |
           New-Item -Path "." -Name "build-qtcreator" -ItemType "directory"
           Set-Location -Path "build-qtcreator"
-          cmake -GNMake Makefiles JOM `
-            -DCMAKE_BUILD_TYPE:STRING=Release `
-            -DCMAKE_PREFIX_PATH:STRING="${{ steps.qt.outputs.qt_dir }}" `
+          cmake -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_PREFIX_PATH="${{ steps.qt.outputs.qt_dir }}" `
             -DBUILD_PLUGINS_BY_DEFAULT=OFF `
             -DBUILD_LIBRARIES_BY_DEFAULT=OFF `
             -DBUILD_EXECUTABLES_BY_DEFAULT=OFF `
@@ -270,7 +270,8 @@ jobs:
             -DBUILD_LIBRARY_AGGREGATION=ON `
             -DBUILD_LIBRARY_3RD_CPLUSPLUS=ON `
             -DBUILD_LIBRARY_QTCSSH=ON `
-            -DBUILD_LIBRARY_CLANGSUPPORT=ON
+            -DBUILD_LIBRARY_CLANGSUPPORT=ON `
+            ../qt-creator
 
       - name: Build Plugin
         shell: pwsh
