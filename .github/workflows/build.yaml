@@ -117,12 +117,6 @@ jobs:
           path: qt-creator
           ref: ${{env.QT_CREATOR_VERSION}}
 
-      - name: Build Qt Creator
-        shell: pwsh
-        run: |
-          Get-Location
-          Get-ChildItem qt-creator\
-
       # Install vcpkg and Hunspell for the correct compiler and OS.
       - name: Vcpkg - Hunspell
         uses: lukka/run-vcpkg@v7
@@ -253,6 +247,30 @@ jobs:
               message(FATAL_ERROR "Failed to install dependencies")
             endif()
           endif()
+
+      - name: Build Qt Creator
+        shell: pwsh
+        run: |
+          New-Item -Path "." -Name "build-qtcreator" -ItemType "directory"
+          Set-Location -Path "build-qtcreator"
+          cmake -GNMake Makefiles JOM `
+            -DCMAKE_BUILD_TYPE:STRING=Release `
+            -DCMAKE_PREFIX_PATH:STRING="${{ steps.qt.outputs.qt_dir }}" `
+            -DBUILD_PLUGINS_BY_DEFAULT=OFF `
+            -DBUILD_LIBRARIES_BY_DEFAULT=OFF `
+            -DBUILD_EXECUTABLES_BY_DEFAULT=OFF `
+            -DBUILD_TESTS_BY_DEFAULT=OFF `
+            -DBUILD_LIBRARY_CPLUSPLUS=ON `
+            -DBUILD_LIBRARY_EXTENSIONSYSTEM=ON `
+            -DBUILD_LIBRARY_UTILS=ON `
+            -DBUILD_PLUGIN_CORE=ON `
+            -DBUILD_PLUGIN_TEXTEDITOR=ON `
+            -DBUILD_PLUGIN_PROJECTEXPLORER=ON `
+            -DBUILD_PLUGIN_CPPEDITOR=ON `
+            -DBUILD_LIBRARY_AGGREGATION=ON `
+            -DBUILD_LIBRARY_3RD_CPLUSPLUS=ON `
+            -DBUILD_LIBRARY_QTCSSH=ON `
+            -DBUILD_LIBRARY_CLANGSUPPORT=ON
 
       - name: Build Plugin
         shell: pwsh
