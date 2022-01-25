@@ -123,7 +123,7 @@ jobs:
           switch ("${{runner.os}}")
           {
             "Windows" { }
-            "Linux"   { sudo apt update; sudo apt install gettext }
+            "Linux"   { sudo apt update; sudo apt install gettext libgl1-mesa-dev libvulkan-dev libxcb-xinput-dev libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev }
             "macOS"   { brew update; brew install automake autoconf }
           }
 
@@ -242,145 +242,31 @@ jobs:
             endforeach()
           endif()
 
-      - name: Install system libs
-        shell: cmake -P {0}
+      - name: Build Qt Creator
+        shell: pwsh
         run: |
-          if ("${{ runner.os }}" STREQUAL "Linux")
-            execute_process(
-              COMMAND sudo apt update
-            )
-            execute_process(
-              COMMAND sudo apt install libgl1-mesa-dev libvulkan-dev libxcb-xinput-dev libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev
-              RESULT_VARIABLE result
-            )
-            if (NOT result EQUAL 0)
-              message(FATAL_ERROR "Failed to install dependencies")
-            endif()
-          endif()
+          New-Item -Path "." -Name "build-qtcreator" -ItemType "directory"
+          Set-Location -Path "build-qtcreator"
+          cmake -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_PREFIX_PATH="${{ steps.qt.outputs.qt_dir }}" `
+            -DBUILD_PLUGINS_BY_DEFAULT=OFF `
+            -DBUILD_LIBRARIES_BY_DEFAULT=OFF `
+            -DBUILD_EXECUTABLES_BY_DEFAULT=OFF `
+            -DBUILD_TESTS_BY_DEFAULT=OFF `
+            -DBUILD_LIBRARY_CPLUSPLUS=ON `
+            -DBUILD_LIBRARY_EXTENSIONSYSTEM=ON `
+            -DBUILD_LIBRARY_UTILS=ON `
+            -DBUILD_PLUGIN_CORE=ON `
+            -DBUILD_PLUGIN_TEXTEDITOR=ON `
+            -DBUILD_PLUGIN_PROJECTEXPLORER=ON `
+            -DBUILD_PLUGIN_CPPEDITOR=ON `
+            -DBUILD_LIBRARY_AGGREGATION=ON `
+            -DBUILD_LIBRARY_3RD_CPLUSPLUS=ON `
+            -DBUILD_LIBRARY_QTCSSH=ON `
+            -DBUILD_LIBRARY_CLANGSUPPORT=ON `
+            ../qt-creator
 
-      - name: Download Qt
-        id: qt
-        shell: cmake -P {0}
-        run: |
-          set(qt_version ${{env.QT_VERSION}})
-
-          string(REPLACE "." "" qt_version_dotless "${qt_version}")
-          if ("${{ runner.os }}" STREQUAL "Windows")
-            set(url_os "windows_x86")
-            if ("${{ matrix.config.environment_script }}" MATCHES "vcvars64.bat")
-              set(qt_package_arch_suffix "win64_msvc2019_64")
-              set(qt_dir_prefix "${qt_version}/msvc2019_64")
-              set(qt_package_suffix "-Windows-Windows_10-MSVC2019-Windows-Windows_10-X86_64")
-            endif()
-          elseif ("${{ runner.os }}" STREQUAL "Linux")
-            set(url_os "linux_x64")
-            set(qt_package_arch_suffix "gcc_64")
-            set(qt_dir_prefix "${qt_version}/gcc_64")
-            set(qt_package_suffix "-Linux-RHEL_8_2-GCC-Linux-RHEL_8_2-X86_64")
-          elseif ("${{ runner.os }}" STREQUAL "macOS")
-            set(url_os "mac_x64")
-            set(qt_package_arch_suffix "clang_64")
-            set(qt_dir_prefix "${qt_version}/macos")
-            set(qt_package_suffix "-MacOS-MacOS_11_00-Clang-MacOS-MacOS_11_00-X86_64-ARM64")
-          endif()
-
-          set(qt_base_url "https://\${qt_mirror}/online/qtsdkrepository/${url_os}/desktop/qt6_${qt_version_dotless}")
-          foreach(qt_mirror $ENV{QT_MIRRORS})
-            cmake_language(EVAL CODE "
-              message(\"Downloading: ${qt_base_url}/Updates.xml\")
-              file(DOWNLOAD \"${qt_base_url}/Updates.xml\" ./Updates.xml)
-            ")
-            file(SIZE ./Updates.xml fileSize)
-            if (fileSize GREATER 0)
-              break()
-            endif()
-          endforeach()
-
-          file(READ ./Updates.xml updates_xml)
-          string(REGEX MATCH "<Name>qt.qt6.*<Version>([0-9+-.]+)</Version>" updates_xml_output "${updates_xml}")
-          set(qt_package_version ${CMAKE_MATCH_1})
-
-          file(MAKE_DIRECTORY qt6)
-
-          # Save the path for other steps
-          file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/qt6/${qt_dir_prefix}" qt_dir)
-          message("::set-output name=qt_dir::${qt_dir}")
-
-          function(downloadAndExtract url archive)
-            foreach(qt_mirror $ENV{QT_MIRRORS})
-              cmake_language(EVAL CODE "
-                message(\"Downloading ${url}\")
-                file(DOWNLOAD \"${url}\" ./${archive})
-              ")
-              file(SIZE ./${archive} fileSize)
-              if (fileSize GREATER 0)
-                break()
-              endif()
-            endforeach()
-            execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ../${archive} WORKING_DIRECTORY qt6)
-          endfunction()
-
-          foreach(package qtbase qtdeclarative qttools qtsvg qttranslations)
-            downloadAndExtract(
-              "${qt_base_url}/qt.qt6.${qt_version_dotless}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
-              ${package}.7z
-            )
-          endforeach()
-
-          foreach(package qtimageformats qtserialport)
-            downloadAndExtract(
-              "${qt_base_url}/qt.qt6.${qt_version_dotless}.addons.${package}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
-              ${package}.7z
-            )
-          endforeach()
-
-          foreach(package qtquicktimeline qtquick3d qt5compat qtshadertools)
-            downloadAndExtract(
-              "${qt_base_url}/qt.qt6.${qt_version_dotless}.${package}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
-              ${package}.7z
-            )
-          endforeach()
-
-          # uic depends on libicu56.so
-          if ("${{ runner.os }}" STREQUAL "Linux")
-            downloadAndExtract(
-              "${qt_base_url}/qt.qt6.${qt_version_dotless}.${qt_package_arch_suffix}/${qt_package_version}icu-linux-Rhel7.2-x64.7z"
-              icu.7z
-            )
-          endif()
-
-          file(READ "qt6/${qt_dir_prefix}/mkspecs/qconfig.pri" qtconfig)
-          string(REPLACE "Enterprise" "OpenSource" qtconfig "${qtconfig}")
-          string(REPLACE "licheck.exe" "" qtconfig "${qtconfig}")
-          string(REPLACE "licheck64" "" qtconfig "${qtconfig}")
-          string(REPLACE "licheck_mac" "" qtconfig "${qtconfig}")
-          file(WRITE "qt6/${qt_dir_prefix}/mkspecs/qconfig.pri" "${qtconfig}")
-
-          if ("${{ runner.os }}" STREQUAL "Windows")
-            # deploy "system" runtimes into Qt, so they get deployed as well
-            # deploy MSVC
-            foreach(file vcruntime140.dll concrt140.dll msvcp140_1.dll msvcp140_2.dll
-                         msvcp140_codecvt_ids.dll vcruntime140_1.dll msvcp140.dll)
-              file(INSTALL "C:/Windows/System32/${file}"
-                   DESTINATION "qt6/${qt_dir_prefix}/bin")
-            endforeach()
-          endif()
-
-      - name: Install system libs
-        shell: cmake -P {0}
-        run: |
-          if ("${{ runner.os }}" STREQUAL "Linux")
-            execute_process(
-              COMMAND sudo apt update
-            )
-            execute_process(
-              COMMAND sudo apt install libgl1-mesa-dev libvulkan-dev libxcb-xinput-dev libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev
-              RESULT_VARIABLE result
-            )
-            if (NOT result EQUAL 0)
-              message(FATAL_ERROR "Failed to install dependencies")
-            endif()
-          endif()
 
       - name: Build Plugin
         shell: pwsh
