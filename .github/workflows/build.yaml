@@ -271,6 +271,7 @@ jobs:
         shell: pwsh
         run: |
           Get-Location
+          Get-ChildItem "${{env.VCPKG_ROOT}}/scripts/buildsystems"
           New-Item -Path "." -Name "build-plugin" -ItemType "directory"
           Set-Location -Path "build-plugin"
           cmake -G Ninja `
