@@ -274,9 +274,10 @@ jobs:
           New-Item -Path "." -Name "build-plugin" -ItemType "directory"
           Set-Location -Path "build-plugin"
           cmake -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_PREFIX_PATH:STRING="${{ steps.qt.outputs.qt_dir }}";../qt-creator;../build-qtcreator `
-            -DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_ROOT}}/scripts/buildsystems/vcpkg.cmake
+            -DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_ROOT}}/scripts/buildsystems/vcpkg.cmake `
+            ../SpellChecker-Plugin/
 
       - name: Collect Binaries
         shell: pwsh
