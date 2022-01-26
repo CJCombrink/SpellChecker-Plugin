@@ -265,7 +265,7 @@ jobs:
             -DBUILD_LIBRARY_QTCSSH=ON `
             -DBUILD_LIBRARY_CLANGSUPPORT=ON `
             ../qt-creator
-
+          cmake --build .
 
       - name: Build Plugin
         shell: pwsh
@@ -279,6 +279,7 @@ jobs:
             -DCMAKE_PREFIX_PATH="${{ steps.qt.outputs.qt_dir }};../qt-creator;../build-qtcreator" `
             -DCMAKE_TOOLCHAIN_FILE="${{env.VCPKG_ROOT}}/scripts/buildsystems/vcpkg.cmake" `
             ../SpellChecker-Plugin/
+          cmake --build .
 
       - name: Collect Binaries
         shell: pwsh
