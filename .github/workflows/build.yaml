@@ -78,7 +78,6 @@ jobs:
               os: windows-latest,
               sys: "windows",
               arch: "x64",
-              hunspell: "gettext[tools] hunspell:x64-windows",
               qt_arch: "win64_msvc2019_64",
               qtc_platform: "windows_x64",
               environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
@@ -89,7 +88,6 @@ jobs:
               os: ubuntu-latest,
               sys: "linux",
               arch: "x64",
-              hunspell: "hunspell",
               qt_arch: "",
               qtc_platform: "linux_x64"
             }
@@ -98,7 +96,6 @@ jobs:
               os: macos-latest,
               sys: "osx",
               arch: "x64",
-              hunspell: "hunspell",
               qt_arch: "",
               qtc_platform: "mac_x64"
             }
@@ -129,10 +126,11 @@ jobs:
 
       # Install vcpkg and Hunspell for the correct compiler and OS.
       - name: Vcpkg - Hunspell
-        uses: lukka/run-vcpkg@v7
+        uses: lukka/run-vcpkg@v10
         with:
-          vcpkgArguments: ${{matrix.config.hunspell}}
           vcpkgGitCommitId: 1085a57da0725c19e19586025438e8c16f34c890
+          vcpkgJsonGlob: '**/vcpkg.json'
+          runVcpkgInstall: true
 
       - name: Download Qt
         id: qt
