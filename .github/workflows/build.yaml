@@ -124,7 +124,7 @@ jobs:
           {
             "Windows" { }
             "Linux"   { sudo apt update; sudo apt install libclang-dev ninja-build gettext libgl1-mesa-dev libvulkan-dev libxcb-xinput-dev libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev }
-            "macOS"   { brew update; brew install automake autoconf }
+            "macOS"   { brew update; brew install automake autoconf ninja }
           }
 
       # Install vcpkg and Hunspell for the correct compiler and OS.
