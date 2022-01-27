@@ -326,7 +326,7 @@ jobs:
               "macOS" {
                 ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/bin/Qt Creator.app/Contents/PlugIns"
                 New-Item -Path "${PLUGIN_DIR_OUT}" -ItemType Directory -Force
-                Copy-Item -Path "build-plugin/bin/Qt Creator.app/Contents/PlugIns/libSpellChecker.dylib" -Destination "${PLUGIN_DIR_OUT}/"
+                Copy-Item -Path "build-plugin/Qt Creator.app/Contents/PlugIns/libSpellChecker.dylib" -Destination "${PLUGIN_DIR_OUT}/"
                 Get-ChildItem "${PLUGIN_DIR_OUT}"
                 Push-Location ${PLUGIN_DIR_BASE}
                 ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.tar.gz"
