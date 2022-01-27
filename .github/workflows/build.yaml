@@ -119,7 +119,7 @@ jobs:
         run: |
           switch ("${{runner.os}}")
           {
-            "Windows" { choco install ninja }
+            "Windows" { choco install ninja; choco uninstall gcc g++ }
             "Linux"   { sudo apt update; sudo apt install libclang-dev libclang-12-dev ninja-build gettext libgl1-mesa-dev libvulkan-dev libxcb-xinput-dev libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev }
             "macOS"   { brew update; brew install automake autoconf ninja }
           }
@@ -270,8 +270,20 @@ jobs:
       - name: Build Plugin
         shell: pwsh
         run: |
-          Get-Location
-          Get-ChildItem "${{env.VCPKG_ROOT}}/scripts/buildsystems"
+          switch ("${{runner.os}}")
+          {
+              "Windows" {
+                  Write-Output "<+> Setting up MSBuild"
+                  # https://github.com/microsoft/terminal/issues/3821#issuecomment-651506501
+                  # The setup-msbuild action is not used since it does not set up the path to 'cl'
+                  # see: https://github.com/microsoft/setup-msbuild/issues/24
+                  ${VS_INST_PATH} = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationPath
+                  Write-Output "  <-> VS Install Path: ${VS_INST_PATH}"
+                  Import-Module ${VS_INST_PATH}/Common7/Tools/Microsoft.VisualStudio.DevShell.dll
+                  Enter-VsDevShell -VsInstallPath ${VS_INST_PATH} -SkipAutomaticLocation -DevCmdArguments '-arch=${{matrix.config.arch}} -no_logo'
+              }
+          }
+
           New-Item -Path "." -Name "build-plugin" -ItemType "directory"
           Set-Location -Path "build-plugin"
           cmake -G Ninja `
