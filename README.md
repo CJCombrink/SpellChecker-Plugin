@@ -19,7 +19,7 @@ I did look a lot at the code in the TODO plugin as a basis for my own implementa
 
 ## 2. Pre-Built Plugins
 
-I do create pre-built releases for each version of the plugin that I tag. The latest release can be obtained from the ["Releases"](releases/) page. Read the README.txt file associated with the release for information on how to install the plugin into the relevant Release version of Qt Creator.
+I do create pre-built releases for each version of the plugin that I tag. The latest release can be obtained from the [Releases](https://github.com/CJCombrink/SpellChecker-Plugin/releases/latest) page. Read the README.txt file associated with the release for information on how to install the plugin into the relevant Release version of Qt Creator.
 
 Although I try to create binaries for the latest version of QtCreator, there is a bit of a delay from when a new version of QtCreator is released and a new version of the plugin is released.
 I started using GitHub Actions to build and package the releases and hope this will reduce the delay.
