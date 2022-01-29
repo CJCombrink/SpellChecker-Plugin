@@ -1,7 +1,7 @@
 # to configure run something like
 # cmake "-DCMAKE_PREFIX_PATH=<path_to_qt>;<path_to_qtcreator>;<path_to_hunspell>" -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 ## Add paths to check for cmake modules:
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
