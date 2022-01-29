@@ -193,7 +193,7 @@ void ProjectMistakesModel::fileSelected( const QModelIndex& index )
 {
   QString fileName = index.data( COLUMN_FILEPATH ).toString();
   if( QFileInfo::exists( fileName ) == true ) {
-    Core::IEditor* editor = Core::EditorManager::openEditor( fileName );
+    Core::IEditor* editor = Core::EditorManager::openEditor( Utils::FilePath::fromString(fileName) );
     emit editorOpened();
     Q_ASSERT( editor != nullptr );
     Q_ASSERT( d->spellingMistakes.value( fileName ).first.isEmpty() == false );

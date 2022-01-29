@@ -19,7 +19,7 @@ I did look a lot at the code in the TODO plugin as a basis for my own implementa
 
 ## 2. Pre-Built Plugins
 
-I do create pre-built releases for each version of the plugin that I tag. The latest release can be obtained from the ["Releases"](releases/) page. Read the README.txt file associated with the release for information on how to install the plugin into the relevant Release version of Qt Creator.
+I do create pre-built releases for each version of the plugin that I tag. The latest release can be obtained from the [Releases](https://github.com/CJCombrink/SpellChecker-Plugin/releases/latest) page. Read the README.txt file associated with the release for information on how to install the plugin into the relevant Release version of Qt Creator.
 
 Although I try to create binaries for the latest version of QtCreator, there is a bit of a delay from when a new version of QtCreator is released and a new version of the plugin is released.
 I started using GitHub Actions to build and package the releases and hope this will reduce the delay.
@@ -99,40 +99,11 @@ Apart from these settings, the plugin also attempts to remove Doxygen Tags in Do
 
 Since version 2.0.7 GitHub Actions are used to build the plugin in the cloud.
 
-For the most accurate steps to build, refer to the GitHub Actions workflow file since it
-will reflect the steps needed to build on different systems. This section will describe the
-build steps broadly.
-
-1. Install compiler and build tools.
-   - **Windows**: msbuild
-   - **Linux**: gcc
-   - **MacOS**: clang
-1. Get and build vcpkg
-   - vcpkg is used to build hunspell.
-   - At the time of writing, version 2020.07 of vcpkg was used.
-   - The specific version of vcpkg is not as important, the important part is the version of the included Hunspell port.
-1. Install Hunspell
-   - At the time of writing, the version of the Hunspell port in vcpkg is 1.7.0.
-   - Hunspell is installed as a dynamic library on Windows and a static library on Linux and MacOS.
-      - Static is ideal on all but there are issues building a dynamic library (the plugin) and linking in a static library (hunspell) using msvc.
-   - Install through vcpkg using the following port and triplet:
-      - **Windows 32bit**: hunspell:x86-windows
-      - **Windows 64bit**: hunspell:x64-windows
-      - **Linux** & **MacOS**: hunspell
-1. Get the QtCreator sources and build files.
-   - Normally one can download/clone the sources and build it yourself.
-   - Alternatively the sources and developer binaries can be downloaded from https://download.qt.io/official_releases/qtcreator/
-   - Set the following environmental variables to point to the QtCreator files.
-      - `QTC_SOURCE`
-      - `QTC_BUILD`
-1. Build the SpellCheckerp-Plugin (this repo).
-   - Get the sources
-   - Rename the `spellchecker_local_paths.pri.example` to `spellchecker_local_paths.pri` and update paths needed.
-      - Or pass in the paths as arguments to qmake.
-      - The file makes managing and keeping these changes easier in case QtCreator decides to forgot its configuration.
-   - Build the plugin
-   - Run Qt Creator and verify that the plugin is loaded.
-   -  In the running Qt Creator, go to "*Help*" -> "*About Plugins...*". Under Utilities "*SpellChecker*" should be listed and enabled (enable it if it was not enabled).
+Since Qt Creator v7.0 qmake was removed as the build system and replaced it with cmake.
+In reaction the version of the plugin was stepped to version 3. With this a lot of
+effort went into getting the GitHub Action updated to build the plugin and documented
+steps were removed from this README. Please refer to the GitHub Action script for
+the steps to build.
 
 ## TODO
 

@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+    "name": "spellchecker-plugin",
+    "version": "0.0.0",
+    "dependencies": [
+      "hunspell",
+      {
+        "name": "gettext",
+        "default-features": false,
+        "features": [ "tools" ],
+        "platform": "windows"
+      }
+    ]
+  }
