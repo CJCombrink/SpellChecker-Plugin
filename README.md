@@ -1,3 +1,5 @@
+[![Build SpellChecker-Plugin](https://github.com/CJCombrink/SpellChecker-Plugin/actions/workflows/build.yaml/badge.svg?branch=master&event=push)](https://github.com/CJCombrink/SpellChecker-Plugin/actions/workflows/build.yaml)
+
 # SpellChecker Plugin
 
 ## 1. Introduction
