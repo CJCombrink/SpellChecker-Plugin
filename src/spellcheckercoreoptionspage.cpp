@@ -33,7 +33,7 @@ SpellCheckerCoreOptionsPage::SpellCheckerCoreOptionsPage( SpellCheckerCoreSettin
   setDisplayName( tr( "SpellChecker" ) );
   setCategory( "SpellChecker" );
   setDisplayCategory( tr( "Spell Checker" ) );
-  setCategoryIcon( Utils::Icon( Constants::ICON_SPELLCHECKERPLUGIN_OPTIONS ) );
+  setCategoryIconPath( Constants::ICON_SPELLCHECKERPLUGIN_OPTIONS  );
 }
 // --------------------------------------------------
 

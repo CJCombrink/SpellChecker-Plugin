@@ -1,3 +1,5 @@
+[![Build SpellChecker-Plugin](https://github.com/CJCombrink/SpellChecker-Plugin/actions/workflows/build.yaml/badge.svg?branch=master&event=push)](https://github.com/CJCombrink/SpellChecker-Plugin/actions/workflows/build.yaml)
+
 # SpellChecker Plugin
 
 ## 1. Introduction
@@ -16,6 +18,8 @@ The motivation for this plugin is that my spelling is terrible and I was looking
 contribute to such a project.
 
 I did look a lot at the code in the TODO plugin as a basis for my own implementation. I do not think that I have violated any licenses doing so since I have never just copied code from the plugin. If there are any places that can be problematic regarding any licenses, please contact me so that I can resolve the issues. I want to contribute to the Open Source Community, but it is not my intention to step on any toes in the process.
+
+ <a href="https://www.buymeacoffee.com/CJCombrink" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
 ## 2. Pre-Built Plugins
 
