@@ -50,6 +50,9 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="styleSheet">
+      <string notr="true">QScrollArea { padding: 3px }</string>
+     </property>
      <property name="frameShape">
       <enum>QFrame::NoFrame</enum>
      </property>
@@ -64,8 +67,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>804</width>
-        <height>1286</height>
+        <width>801</width>
+        <height>1638</height>
        </rect>
       </property>
       <property name="sizePolicy">
