@@ -35,6 +35,7 @@ add_qtc_plugin(SpellChecker
     README.md
     uncrustify.cfg
     Resources/spellcheckerplugin.qrc
+    SpellChecker.json.in
 )
 
 extend_qtc_plugin(SpellChecker
