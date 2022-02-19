@@ -2,5 +2,6 @@
     <qresource prefix="/spellcheckerplugin">
         <file>images/optionspageicon.png</file>
         <file>images/clover.png</file>
+        <file>images/optionspageicon_solid.png</file>
     </qresource>
 </RCC>
