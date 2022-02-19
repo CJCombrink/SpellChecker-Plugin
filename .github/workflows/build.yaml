@@ -120,7 +120,7 @@ jobs:
           switch ("${{runner.os}}")
           {
             "Windows" { choco install ninja }
-            "Linux"   { sudo apt update; sudo apt install libclang-dev libclang-12-dev ninja-build gettext libgl1-mesa-dev libvulkan-dev libxcb-xinput-dev libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev }
+            "Linux"   { sudo apt update; sudo apt install libclang-dev libclang-12-dev libclang-11-dev ninja-build gettext libgl1-mesa-dev libvulkan-dev libxcb-xinput-dev libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev }
             "macOS"   { brew update; brew install automake autoconf ninja }
           }
 
