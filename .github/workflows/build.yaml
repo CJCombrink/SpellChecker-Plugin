@@ -44,13 +44,16 @@ jobs:
 
             Please refer to the main page of the project for usage information.
 
+            From version 3.0.0 a more semantic versioning approach will be followed to follow the version of Qt Creator more closely.
+
             On Windows, make sure to download the correct version for the Qt Creator used, not the architecture of the Operating System.
             To check this: From Qt Creator, go to "Help" -> "About Qt Creator..."
+
             NOTE: From Qt Creator version 4.14 only 64 bit binaries are provided for Windows since Qt does not ship a 32 bit version of Qt Creator anymore. If this
             is a problem please file a bug and I can see if I can provide binaries in the mean time.
 
-            Note 2: From next month I might start using Qt Creator again as my primary IDE at work (moving Jobs). This means that I might get back to
-            development on the pugin instead of just maintenance and releases since I will start using the plugin again.
+            *PS: I have a "Buy me a coffee" account if you want to supporting me, see the main page if interested in contributing something to say thank you for the plugin*.
+
           draft: false
           prerelease: false
 
