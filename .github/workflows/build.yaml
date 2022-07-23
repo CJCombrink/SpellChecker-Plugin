@@ -11,7 +11,7 @@ on: [push]
 
 env:
   QT_VERSION: "6.2.1"
-  QT_CREATOR_VERSION: "v7.0.0"
+  QT_CREATOR_VERSION: "v8.0.0"
   QT_MIRRORS: download.qt.io;mirrors.ocf.berkeley.edu/qt;ftp.fau.de/qtproject;mirror.bit.edu.cn/qtproject
 
 # The Jobs
@@ -265,21 +265,6 @@ jobs:
           cmake -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_PREFIX_PATH="${{ steps.qt.outputs.qt_dir }}" `
-            -DBUILD_PLUGINS_BY_DEFAULT=OFF `
-            -DBUILD_LIBRARIES_BY_DEFAULT=OFF `
-            -DBUILD_EXECUTABLES_BY_DEFAULT=OFF `
-            -DBUILD_TESTS_BY_DEFAULT=OFF `
-            -DBUILD_LIBRARY_CPLUSPLUS=ON `
-            -DBUILD_LIBRARY_EXTENSIONSYSTEM=ON `
-            -DBUILD_LIBRARY_UTILS=ON `
-            -DBUILD_PLUGIN_CORE=ON `
-            -DBUILD_PLUGIN_TEXTEDITOR=ON `
-            -DBUILD_PLUGIN_PROJECTEXPLORER=ON `
-            -DBUILD_PLUGIN_CPPEDITOR=ON `
-            -DBUILD_LIBRARY_AGGREGATION=ON `
-            -DBUILD_LIBRARY_3RD_CPLUSPLUS=ON `
-            -DBUILD_LIBRARY_QTCSSH=ON `
-            -DBUILD_LIBRARY_CLANGSUPPORT=ON `
             ../qt-creator
           cmake --build .
 
