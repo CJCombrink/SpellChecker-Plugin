@@ -25,6 +25,7 @@
 #include <cplusplus/Overview.h>
 #include <cppeditor/cppeditordocument.h>
 #include <cppeditor/cppdoxygen.h>
+#include <cppeditor/cppmodelmanager.h>
 
 using namespace SpellChecker;
 using namespace SpellChecker::CppSpellChecker::Internal;

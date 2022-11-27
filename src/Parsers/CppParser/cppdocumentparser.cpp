@@ -43,6 +43,7 @@
 #include <utils/algorithm.h>
 #include <utils/mimeutils.h>
 #include <utils/runextensions.h>
+#include <utils/qtcassert.h>
 
 #include <QApplication>
 #include <QFutureWatcher>
