@@ -131,7 +131,7 @@ jobs:
       - name: Vcpkg - Hunspell
         uses: lukka/run-vcpkg@v10
         with:
-          vcpkgGitCommitId: b86c0c35b88e2bf3557ff49dc831689c2f085090
+          vcpkgGitCommitId: a7b6122f6b6504d16d96117336a0562693579933
           vcpkgJsonGlob: '**/vcpkg.json'
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
           runVcpkgInstall: true
