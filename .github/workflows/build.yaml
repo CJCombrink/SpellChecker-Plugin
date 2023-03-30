@@ -232,6 +232,8 @@ jobs:
               }
               "macOS" {
                 ${architecture_config}="-DCMAKE_OSX_ARCHITECTURES=x86_64\;arm64"
+                ${env:cc}="clang"
+                ${env:cxx}="clang++"
               }
           }
 
