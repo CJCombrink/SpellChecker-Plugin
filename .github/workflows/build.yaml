@@ -237,6 +237,9 @@ jobs:
               }
           }
 
+
+          Write-Output "<+> CC: ${env:cc}"
+
           New-Item -Path "." -Name "build-plugin" -ItemType "directory"
           Set-Location -Path "build-plugin"
           cmake -G Ninja `
