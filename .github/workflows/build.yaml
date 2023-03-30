@@ -110,13 +110,6 @@ jobs:
         with:
           path: SpellChecker-Plugin
 
-      # Checks-out QtCreator repository under $GITHUB_WORKSPACE/qt-creator
-      - uses: actions/checkout@v2
-        with:
-          repository: qt-creator/qt-creator
-          path: qt-creator
-          ref: ${{env.QT_CREATOR_VERSION}}
-
       - name: System Packages
         shell: pwsh
         run: |
