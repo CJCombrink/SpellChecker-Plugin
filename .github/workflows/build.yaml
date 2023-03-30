@@ -231,7 +231,7 @@ jobs:
                   Enter-VsDevShell -VsInstallPath ${VS_INST_PATH} -SkipAutomaticLocation -DevCmdArguments '-arch=${{matrix.config.arch}} -no_logo'
               }
               "macOS" {
-                set(architecture_config "-DCMAKE_OSX_ARCHITECTURES=x86_64\;arm64")
+                ${architecture_config}="-DCMAKE_OSX_ARCHITECTURES=x86_64\;arm64"
               }
           }
 
