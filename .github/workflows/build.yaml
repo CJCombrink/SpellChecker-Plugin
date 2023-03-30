@@ -230,6 +230,9 @@ jobs:
                   Import-Module ${VS_INST_PATH}/Common7/Tools/Microsoft.VisualStudio.DevShell.dll
                   Enter-VsDevShell -VsInstallPath ${VS_INST_PATH} -SkipAutomaticLocation -DevCmdArguments '-arch=${{matrix.config.arch}} -no_logo'
               }
+              "macOS" {
+                set(architecture_config "-DCMAKE_OSX_ARCHITECTURES=x86_64\;arm64")
+              }
           }
 
           New-Item -Path "." -Name "build-plugin" -ItemType "directory"
@@ -238,6 +241,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_PREFIX_PATH="${{ steps.qt.outputs.qt_dir }};${{ steps.qt_creator.outputs.qtc_dir }}" `
             -DCMAKE_TOOLCHAIN_FILE="${{env.VCPKG_ROOT}}/scripts/buildsystems/vcpkg.cmake" `
+            ${architecture_config} `
             ../SpellChecker-Plugin/
           cmake --build .
 
