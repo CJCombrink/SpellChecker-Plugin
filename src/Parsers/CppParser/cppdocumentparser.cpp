@@ -473,7 +473,7 @@ void CppDocumentParser::parseCppDocumentOnUpdate( CPlusPlus::Document::Ptr docPt
     return;
   }
 
-  const QString fileName = docPtr->filePath().fileName();
+  const QString fileName = docPtr->filePath().toString();
   const bool shouldParse = shouldParseDocument( fileName );
 
   bool queueMore;
@@ -649,7 +649,7 @@ void CppDocumentParser::parseCppDocument( CPlusPlus::Document::Ptr docPtr )
   using Watcher    = CppDocumentProcessor::Watcher;
   using WatcherPtr = CppDocumentProcessor::WatcherPtr;
   using ResultType = CppDocumentProcessor::ResultType;
-  const QString fileName = docPtr->filePath().fileName();
+  const QString fileName = docPtr->filePath().toString();
   HashWords hashes;
   if( fileName == d->currentEditorFileName ) {
     hashes = d->tokenHashes.get();
