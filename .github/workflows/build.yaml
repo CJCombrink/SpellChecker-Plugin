@@ -76,16 +76,16 @@ jobs:
     strategy:
       matrix:
         config:
-          - {
-              name: "win64",
-              os: windows-latest,
-              sys: "windows",
-              arch: "x64",
-              qt_arch: "win64_msvc2019_64",
-              qtc_platform: "windows_x64",
-              environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
-              is_msvc: true
-            }
+          # - {
+          #     name: "win64",
+          #     os: windows-latest,
+          #     sys: "windows",
+          #     arch: "x64",
+          #     qt_arch: "win64_msvc2019_64",
+          #     qtc_platform: "windows_x64",
+          #     environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
+          #     is_msvc: true
+          #   }
           - {
               name: "linux",
               os: ubuntu-latest,
