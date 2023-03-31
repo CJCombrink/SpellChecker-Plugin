@@ -10,8 +10,8 @@ name: Build SpellChecker-Plugin
 on: [push]
 
 env:
-  QT_VERSION: "6.3.1"
-  QT_CREATOR_VERSION: "v9.0.0"
+  QT_VERSION: "6.4.2"
+  QT_CREATOR_VERSION: "10.0.0"
   QT_MIRRORS: download.qt.io;mirrors.ocf.berkeley.edu/qt;ftp.fau.de/qtproject;mirror.bit.edu.cn/qtproject
 
 # The Jobs
@@ -76,16 +76,16 @@ jobs:
     strategy:
       matrix:
         config:
-          - {
-              name: "win64",
-              os: windows-latest,
-              sys: "windows",
-              arch: "x64",
-              qt_arch: "win64_msvc2019_64",
-              qtc_platform: "windows_x64",
-              environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
-              is_msvc: true
-            }
+          # - {
+          #     name: "win64",
+          #     os: windows-latest,
+          #     sys: "windows",
+          #     arch: "x64",
+          #     qt_arch: "win64_msvc2019_64",
+          #     qtc_platform: "windows_x64",
+          #     environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
+          #     is_msvc: true
+          #   }
           - {
               name: "linux",
               os: ubuntu-latest,
@@ -110,13 +110,6 @@ jobs:
         with:
           path: SpellChecker-Plugin
 
-      # Checks-out QtCreator repository under $GITHUB_WORKSPACE/qt-creator
-      - uses: actions/checkout@v2
-        with:
-          repository: qt-creator/qt-creator
-          path: qt-creator
-          ref: ${{env.QT_CREATOR_VERSION}}
-
       - name: System Packages
         shell: pwsh
         run: |
@@ -131,7 +124,7 @@ jobs:
       - name: Vcpkg - Hunspell
         uses: lukka/run-vcpkg@v10
         with:
-          vcpkgGitCommitId: b86c0c35b88e2bf3557ff49dc831689c2f085090
+          vcpkgGitCommitId: a7b6122f6b6504d16d96117336a0562693579933
           vcpkgJsonGlob: '**/vcpkg.json'
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
           runVcpkgInstall: true
@@ -140,16 +133,13 @@ jobs:
         id: qt
         shell: cmake -P {0}
         run: |
-          set(qt_version ${{env.QT_VERSION}})
-
+          set(qt_version "$ENV{QT_VERSION}")
           string(REPLACE "." "" qt_version_dotless "${qt_version}")
           if ("${{ runner.os }}" STREQUAL "Windows")
             set(url_os "windows_x86")
-            if ("${{ matrix.config.environment_script }}" MATCHES "vcvars64.bat")
-              set(qt_package_arch_suffix "win64_msvc2019_64")
-              set(qt_dir_prefix "${qt_version}/msvc2019_64")
-              set(qt_package_suffix "-Windows-Windows_10_21H2-MSVC2019-Windows-Windows_10_21H2-X86_64")
-            endif()
+            set(qt_package_arch_suffix "win64_msvc2019_64")
+            set(qt_dir_prefix "${qt_version}/msvc2019_64")
+            set(qt_package_suffix "-Windows-Windows_10_21H2-MSVC2019-Windows-Windows_10_21H2-X86_64")
           elseif ("${{ runner.os }}" STREQUAL "Linux")
             set(url_os "linux_x64")
             set(qt_package_arch_suffix "gcc_64")
@@ -161,50 +151,28 @@ jobs:
             set(qt_dir_prefix "${qt_version}/macos")
             set(qt_package_suffix "-MacOS-MacOS_12-Clang-MacOS-MacOS_12-X86_64-ARM64")
           endif()
-          set(qt_base_url "https://\${qt_mirror}/online/qtsdkrepository/${url_os}/desktop/qt6_${qt_version_dotless}")
-          foreach(qt_mirror $ENV{QT_MIRRORS})
-            cmake_language(EVAL CODE "
-              message(\"Downloading: ${qt_base_url}/Updates.xml\")
-              file(DOWNLOAD \"${qt_base_url}/Updates.xml\" ./Updates.xml)
-            ")
-            file(SIZE ./Updates.xml fileSize)
-            if (fileSize GREATER 0)
-              break()
-            endif()
-          endforeach()
+          set(qt_base_url "https://download.qt.io/online/qtsdkrepository/${url_os}/desktop/qt6_${qt_version_dotless}")
+          file(DOWNLOAD "${qt_base_url}/Updates.xml" ./Updates.xml SHOW_PROGRESS)
           file(READ ./Updates.xml updates_xml)
           string(REGEX MATCH "<Name>qt.qt6.*<Version>([0-9+-.]+)</Version>" updates_xml_output "${updates_xml}")
           set(qt_package_version ${CMAKE_MATCH_1})
-          file(MAKE_DIRECTORY qt6)
+          file(MAKE_DIRECTORY qt)
           # Save the path for other steps
-          file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/qt6/${qt_dir_prefix}" qt_dir)
+          file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/qt/${qt_dir_prefix}" qt_dir)
           message("::set-output name=qt_dir::${qt_dir}")
+          message("Downloading Qt to ${qt_dir}")
           function(downloadAndExtract url archive)
-            foreach(qt_mirror $ENV{QT_MIRRORS})
-              cmake_language(EVAL CODE "
-                message(\"Downloading ${url}\")
-                file(DOWNLOAD \"${url}\" ./${archive})
-              ")
-              file(SIZE ./${archive} fileSize)
-              if (fileSize GREATER 0)
-                break()
-              endif()
-            endforeach()
-            execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ../${archive} WORKING_DIRECTORY qt6)
+            message("Downloading ${url}")
+            file(DOWNLOAD "${url}" ./${archive} SHOW_PROGRESS)
+            execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ../${archive} WORKING_DIRECTORY qt)
           endfunction()
-          foreach(package qtbase qtdeclarative qttools qtsvg qttranslations)
+          foreach(package qtbase qtdeclarative)
             downloadAndExtract(
               "${qt_base_url}/qt.qt6.${qt_version_dotless}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
               ${package}.7z
             )
           endforeach()
-          foreach(package qtimageformats qtserialport)
-            downloadAndExtract(
-              "${qt_base_url}/qt.qt6.${qt_version_dotless}.addons.${package}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
-              ${package}.7z
-            )
-          endforeach()
-          foreach(package qtquicktimeline qtquick3d qt5compat qtshadertools)
+          foreach(package qt5compat qtshadertools)
             downloadAndExtract(
               "${qt_base_url}/qt.qt6.${qt_version_dotless}.${package}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
               ${package}.7z
@@ -217,45 +185,35 @@ jobs:
               icu.7z
             )
           endif()
-          file(READ "qt6/${qt_dir_prefix}/mkspecs/qconfig.pri" qtconfig)
-          string(REPLACE "Enterprise" "OpenSource" qtconfig "${qtconfig}")
-          string(REPLACE "licheck.exe" "" qtconfig "${qtconfig}")
-          string(REPLACE "licheck64" "" qtconfig "${qtconfig}")
-          string(REPLACE "licheck_mac" "" qtconfig "${qtconfig}")
-          file(WRITE "qt6/${qt_dir_prefix}/mkspecs/qconfig.pri" "${qtconfig}")
-          if ("${{ runner.os }}" STREQUAL "Windows")
-            # deploy "system" runtimes into Qt, so they get deployed as well
-            # deploy MSVC
-            foreach(file vcruntime140.dll concrt140.dll msvcp140_1.dll msvcp140_2.dll
-                         msvcp140_codecvt_ids.dll vcruntime140_1.dll msvcp140.dll)
-              file(INSTALL "C:/Windows/System32/${file}"
-                   DESTINATION "qt6/${qt_dir_prefix}/bin")
-            endforeach()
-          endif()
 
-      - name: Build Qt Creator
-        shell: pwsh
+      - name: Download Qt Creator
+        id: qt_creator
+        shell: cmake -P {0}
         run: |
-          switch ("${{runner.os}}")
-          {
-              "Windows" {
-                  Write-Output "<+> Setting up MSBuild"
-                  # https://github.com/microsoft/terminal/issues/3821#issuecomment-651506501
-                  # The setup-msbuild action is not used since it does not set up the path to 'cl'
-                  # see: https://github.com/microsoft/setup-msbuild/issues/24
-                  ${VS_INST_PATH} = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationPath
-                  Write-Output "  <-> VS Install Path: ${VS_INST_PATH}"
-                  Import-Module ${VS_INST_PATH}/Common7/Tools/Microsoft.VisualStudio.DevShell.dll
-                  Enter-VsDevShell -VsInstallPath ${VS_INST_PATH} -SkipAutomaticLocation -DevCmdArguments '-arch=${{matrix.config.arch}} -no_logo'
-              }
-          }
-          New-Item -Path "." -Name "build-qtcreator" -ItemType "directory"
-          Set-Location -Path "build-qtcreator"
-          cmake -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_PREFIX_PATH="${{ steps.qt.outputs.qt_dir }}" `
-            ../qt-creator
-          cmake --build .
+          string(REGEX MATCH "([0-9]+.[0-9]+).[0-9]+" outvar "$ENV{QT_CREATOR_VERSION}")
+          set(qtc_base_url "https://download.qt.io/official_releases/qtcreator/${CMAKE_MATCH_1}/$ENV{QT_CREATOR_VERSION}/installer_source")
+          set(qtc_snapshot "$ENV{QT_CREATOR_SNAPSHOT}")
+          if (qtc_snapshot)
+            set(qtc_base_url "https://download.qt.io/snapshots/qtcreator/${CMAKE_MATCH_1}/$ENV{QT_CREATOR_VERSION}/installer_source/${qtc_snapshot}")
+          endif()
+          if ("${{ runner.os }}" STREQUAL "Windows")
+            set(qtc_platform "windows_x64")
+          elseif ("${{ runner.os }}" STREQUAL "Linux")
+            set(qtc_platform "linux_x64")
+          elseif ("${{ runner.os }}" STREQUAL "macOS")
+            set(qtc_platform "mac_x64")
+          endif()
+          file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/qtcreator" qtc_dir)
+          # Save the path for other steps
+          message("::set-output name=qtc_dir::${qtc_dir}")
+          file(MAKE_DIRECTORY qtcreator)
+          message("Downloading Qt Creator from ${qtc_base_url}/${qtc_platform}")
+          foreach(package qtcreator qtcreator_dev)
+            file(DOWNLOAD
+              "${qtc_base_url}/${qtc_platform}/${package}.7z" ./${package}.7z SHOW_PROGRESS)
+            execute_process(COMMAND
+              ${CMAKE_COMMAND} -E tar xvf ../${package}.7z WORKING_DIRECTORY qtcreator)
+          endforeach()
 
       - name: Build Plugin
         shell: pwsh
@@ -272,13 +230,17 @@ jobs:
                   Import-Module ${VS_INST_PATH}/Common7/Tools/Microsoft.VisualStudio.DevShell.dll
                   Enter-VsDevShell -VsInstallPath ${VS_INST_PATH} -SkipAutomaticLocation -DevCmdArguments '-arch=${{matrix.config.arch}} -no_logo'
               }
+              "macOS" {
+                  # From the build.py script: on macOS the prefix path must be inside the app bundle...
+                  ${prefix_extra}=";${{ steps.qt_creator.outputs.qtc_dir }}/Qt Creator.app/Contents/Resources"
+              }
           }
 
           New-Item -Path "." -Name "build-plugin" -ItemType "directory"
           Set-Location -Path "build-plugin"
           cmake -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_PREFIX_PATH="${{ steps.qt.outputs.qt_dir }};../qt-creator;../build-qtcreator" `
+            -DCMAKE_PREFIX_PATH="${{ steps.qt.outputs.qt_dir }};${{ steps.qt_creator.outputs.qtc_dir }}${prefix_extra}" `
             -DCMAKE_TOOLCHAIN_FILE="${{env.VCPKG_ROOT}}/scripts/buildsystems/vcpkg.cmake" `
             ../SpellChecker-Plugin/
           cmake --build .
