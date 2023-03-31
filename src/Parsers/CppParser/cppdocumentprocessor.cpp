@@ -55,7 +55,7 @@ CppDocumentProcessorPrivate::CppDocumentProcessorPrivate( CPlusPlus::Document::P
   , tokenHashes( hashWords )
   , settings( cppSettings )
   , trUnit( documentPointer->translationUnit() )
-  , fileName( documentPointer->fileName() )
+  , fileName( documentPointer->filePath().toString() )
 {}
 // --------------------------------------------------
 
@@ -465,7 +465,7 @@ QVector<WordTokens> CppDocumentProcessor::parseMacros() const
     return {};
   }
   static CppEditor::CppModelManager* cppModelManager    = CppEditor::CppModelManager::instance();
-  CppEditor::CppEditorDocumentHandle* cppEditorDocument = cppModelManager->cppEditorDocument( d->docPtr->fileName() );
+  CppEditor::CppEditorDocumentHandle* cppEditorDocument = cppModelManager->cppEditorDocument( d->docPtr->filePath() );
   if( cppEditorDocument == nullptr ) {
     return {};
   }

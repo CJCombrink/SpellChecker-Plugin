@@ -473,7 +473,7 @@ void CppDocumentParser::parseCppDocumentOnUpdate( CPlusPlus::Document::Ptr docPt
     return;
   }
 
-  const QString fileName = docPtr->fileName();
+  const QString fileName = docPtr->filePath().toString();
   const bool shouldParse = shouldParseDocument( fileName );
 
   bool queueMore;
@@ -555,7 +555,7 @@ void CppDocumentParser::queueFilesForUpdate()
   /* Only re-parse the files that were added. */
   static CppEditor::CppModelManager* modelManager = CppEditor::CppModelManager::instance();
 
-  QStringSet filesToUpdate;
+  QSet<Utils::FilePath> filesToUpdate;
   size_t filesOutstanding;
   size_t filesInProcess;
 
@@ -568,7 +568,7 @@ void CppDocumentParser::queueFilesForUpdate()
       fileIter = d->filesToUpdate.erase( fileIter );
       if( shouldParseDocument( file ) == true ) {
         d->filesInProcess.insert( file );
-        filesToUpdate.insert( file );
+        filesToUpdate.insert( Utils::FilePath::fromString(file) );
       }
     }
 
@@ -649,7 +649,7 @@ void CppDocumentParser::parseCppDocument( CPlusPlus::Document::Ptr docPtr )
   using Watcher    = CppDocumentProcessor::Watcher;
   using WatcherPtr = CppDocumentProcessor::WatcherPtr;
   using ResultType = CppDocumentProcessor::ResultType;
-  const QString fileName = docPtr->fileName();
+  const QString fileName = docPtr->filePath().toString();
   HashWords hashes;
   if( fileName == d->currentEditorFileName ) {
     hashes = d->tokenHashes.get();
