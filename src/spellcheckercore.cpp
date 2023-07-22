@@ -29,9 +29,10 @@
 #include "spellingmistakesmodel.h"
 #include "suggestionsdialog.h"
 
+#include <coreplugin/session.h>
 #include <coreplugin/icore.h>
 #include <projectexplorer/projectexplorer.h>
-#include <projectexplorer/session.h>
+#include <projectexplorer/projectmanager.h>
 
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -68,8 +69,8 @@ public:
   ProjectMistakesModel* spellingMistakesModel;
   SpellChecker::Internal::SpellingMistakesModel* mistakesModel;
   SpellChecker::Internal::OutputPane* outputPane;
-  SpellChecker::Internal::SpellCheckerCoreSettings* settings;
-  SpellChecker::Internal::SpellCheckerCoreOptionsPage* optionsPage;
+  SpellChecker::Internal::SpellCheckerCoreSettings settings;
+  SpellChecker::Internal::SpellCheckerCoreOptionsPage optionsPage{&settings};
   QMap<QString, ISpellChecker*> addedSpellCheckers;
   SpellChecker::ISpellChecker*  spellChecker;
   QPointer<Core::IEditor> currentEditor;
@@ -109,8 +110,7 @@ SpellCheckerCore::SpellCheckerCore( QObject* parent )
   Q_ASSERT( g_instance == nullptr );
   g_instance = this;
 
-  d->settings = new SpellCheckerCoreSettings();
-  d->settings->loadFromSettings( Core::ICore::settings() );
+  d->settings.loadFromSettings( Core::ICore::settings() );
   d->spellingMistakesModel = new ProjectMistakesModel();
 
   d->mistakesModel = new SpellingMistakesModel( this );
@@ -120,30 +120,28 @@ SpellCheckerCore::SpellCheckerCore( QObject* parent )
   d->outputPane = new OutputPane( d->mistakesModel, this );
   connect( d->spellingMistakesModel, &ProjectMistakesModel::editorOpened, d->outputPane, [=]() { d->outputPane->popup( Core::IOutputPane::NoModeSwitch ); } );
 
-  d->optionsPage = new SpellCheckerCoreOptionsPage( d->settings );
-
   /* Connect to the editor changed signal for the core to act on */
   Core::EditorManager* editorManager = Core::EditorManager::instance();
   connect( editorManager, &Core::EditorManager::currentEditorChanged, this, &SpellCheckerCore::mangerEditorChanged );
   connect( editorManager, &Core::EditorManager::editorOpened,         this, &SpellCheckerCore::editorOpened );
   connect( editorManager, &Core::EditorManager::editorAboutToClose,   this, &SpellCheckerCore::editorAboutToClose );
 
-  connect( ProjectExplorer::SessionManager::instance(),        &ProjectExplorer::SessionManager::startupProjectChanged,  this, &SpellCheckerCore::startupProjectChanged );
+  connect( ProjectExplorer::ProjectManager::instance(),        &ProjectExplorer::ProjectManager::startupProjectChanged,  this, &SpellCheckerCore::startupProjectChanged );
   connect( ProjectExplorer::ProjectExplorerPlugin::instance(), &ProjectExplorer::ProjectExplorerPlugin::fileListChanged, this, &SpellCheckerCore::fileListChanged );
 
   d->contextMenu = Core::ActionManager::createMenu( Constants::CONTEXT_MENU_ID );
   Q_ASSERT( d->contextMenu != nullptr );
   connect( d->contextMenu->menu(), &QMenu::aboutToShow,            this, &SpellCheckerCore::updateContextMenu );
   connect( qApp,                   &QCoreApplication::aboutToQuit, this, &SpellCheckerCore::aboutToQuit, Qt::DirectConnection );
+
+  connect(Core::ICore::instance(), &Core::ICore::saveSettingsRequested,
+          this, [this] { d->settings.saveToSettings(Core::ICore::settings()); });
 }
 // --------------------------------------------------
 
 SpellCheckerCore::~SpellCheckerCore()
 {
-  d->settings->saveToSettings( Core::ICore::settings() );
-  delete d->settings;
   delete d->outputPane;
-  delete d->optionsPage;
 
   g_instance = nullptr;
   delete d;
@@ -471,7 +469,7 @@ void SpellCheckerCore::aboutToQuit()
 {
   /* Disconnect from everything that can send signals to this object */
   Core::EditorManager::instance()->disconnect( this );
-  ProjectExplorer::SessionManager::instance()->disconnect( this );
+  Core::SessionManager::instance()->disconnect( this );
   ProjectExplorer::ProjectExplorerPlugin::instance()->disconnect( this );
   d->shuttingDown   = true;
   d->startupProject = nullptr;
@@ -482,13 +480,13 @@ void SpellCheckerCore::aboutToQuit()
 
 Core::IOptionsPage* SpellCheckerCore::optionsPage()
 {
-  return d->optionsPage;
+  return &d->optionsPage;
 }
 // --------------------------------------------------
 
 SpellCheckerCoreSettings* SpellCheckerCore::settings() const
 {
-  return d->settings;
+  return &d->settings;
 }
 // --------------------------------------------------
 
@@ -724,7 +722,7 @@ void SpellCheckerCore::startupProjectChanged( ProjectExplorer::Project* startupP
   d->startupProject = startupProject;
   if( startupProject != nullptr ) {
     /* Check if the current project is not set to be ignored by the settings. */
-    if( d->settings->projectsToIgnore.contains( startupProject->displayName() ) == false ) {
+    if( d->settings.projectsToIgnore.contains( startupProject->displayName() ) == false ) {
       const auto fileList = Utils::transform( startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FilePath::toString );
       d->filesInStartupProject = QSet(fileList.begin(), fileList.end());
     } else {
@@ -743,7 +741,7 @@ void SpellCheckerCore::fileListChanged()
   }
 
 
-  if( d->settings->projectsToIgnore.contains( d->startupProject->displayName() ) == true ) {
+  if( d->settings.projectsToIgnore.contains( d->startupProject->displayName() ) == true ) {
     /* We should ignore this project, return without doing anything. */
     return;
   }
@@ -850,7 +848,7 @@ void SpellCheckerCore::updateContextMenu()
        * action is triggered. */
       connect( cmd->action(), &QAction::triggered, this, [this, word, replacementWord]() {
         WordList wordsToReplace;
-        if( d->settings->replaceAllFromRightClick == true ) {
+        if( d->settings.replaceAllFromRightClick == true ) {
           this->getAllOccurrencesOfWord( word, wordsToReplace );
         } else {
           wordsToReplace.append( word );

@@ -30,12 +30,10 @@ namespace Internal {
 class SpellCheckerCoreSettings;
 class SpellCheckerCoreOptionsWidget;
 
-class SpellCheckerCoreOptionsPage
-  : public Core::IOptionsPage
+class SpellCheckerCoreOptionsPage : public Core::IOptionsPage
 {
-  Q_OBJECT
 public:
-  SpellCheckerCoreOptionsPage( SpellCheckerCoreSettings* settings, QObject* parent = 0 );
+  SpellCheckerCoreOptionsPage( SpellCheckerCoreSettings* settings );
   virtual ~SpellCheckerCoreOptionsPage();
 
   bool matches( const QString& searchKeyWord ) const;

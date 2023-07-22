@@ -24,14 +24,14 @@
 
 using namespace SpellChecker::CppSpellChecker::Internal;
 
-CppParserOptionsPage::CppParserOptionsPage( CppParserSettings* settings, QObject* parent )
-  : Core::IOptionsPage( parent )
+CppParserOptionsPage::CppParserOptionsPage( CppParserSettings* settings )
+  : Core::IOptionsPage( )
   , m_settings( settings )
 {
   setId( "SpellChecker::CppDocumentParserSettings" );
-  setDisplayName( tr( "C++ Parser" ) );
+  setDisplayName( CppParserOptionsWidget::tr( "C++ Parser" ) );
   setCategory( "SpellChecker" );
-  setDisplayCategory( tr( "Spell Checker" ) );
+  setDisplayCategory( CppParserOptionsWidget::tr( "Spell Checker" ) );
 }
 // --------------------------------------------------
 

@@ -37,7 +37,6 @@
 #include <cppeditor/cppmodelmanager.h>
 #include <cppeditor/cpptoolsreuse.h>
 #include <projectexplorer/project.h>
-#include <projectexplorer/session.h>
 #include <texteditor/syntaxhighlighter.h>
 #include <texteditor/texteditor.h>
 #include <utils/algorithm.h>
@@ -287,8 +286,8 @@ class CppDocumentParserPrivate
 public:
   ProjectExplorer::Project* activeProject;
   QString currentEditorFileName;
-  CppParserOptionsPage* optionsPage;
-  CppParserSettings* settings;
+  CppParserSettings settings;
+  CppParserOptionsPage optionsPage{&settings};
   QStringSet filesInStartupProject;
   // --
   QMutex fileQeueMutex;                /*!< Mutex protecting the filesToUpdate and filesInProcess
@@ -329,8 +328,6 @@ public:
   CppDocumentParserPrivate()
     : activeProject( nullptr )
     , currentEditorFileName()
-    , optionsPage( nullptr )
-    , settings( nullptr )
     , filesInStartupProject()
     , progressObject()
   {}
@@ -390,12 +387,9 @@ CppDocumentParser::CppDocumentParser( QObject* parent )
   , d( new CppDocumentParserPrivate() )
 {
   /* Create the settings for this parser */
-  d->settings = new SpellChecker::CppSpellChecker::Internal::CppParserSettings();
-  d->settings->loadFromSettings( Core::ICore::settings() );
-  connect(                d->settings,               &CppParserSettings::settingsChanged,                                this, &CppDocumentParser::settingsChanged );
+  d->settings.loadFromSettings( Core::ICore::settings() );
+  connect(                &d->settings,               &CppParserSettings::settingsChanged,                                this, &CppDocumentParser::settingsChanged );
   connect( SpellCheckerCore::instance()->settings(), &SpellChecker::Internal::SpellCheckerCoreSettings::settingsChanged, this, &CppDocumentParser::settingsChanged );
-  /* Crete the options page for the parser */
-  d->optionsPage = new CppParserOptionsPage( d->settings, this );
 
   CppEditor::CppModelManager* modelManager = CppEditor::CppModelManager::instance();
   connect( modelManager, &CppEditor::CppModelManager::documentUpdated, this, &CppDocumentParser::parseCppDocumentOnUpdate, Qt::DirectConnection );
@@ -412,14 +406,14 @@ CppDocumentParser::CppDocumentParser( QObject* parent )
   cppEditorContextMenu->addSeparator( context );
   cppEditorContextMenu->addMenu( contextMenu );
   connect( qApp, &QCoreApplication::aboutToQuit, this, &CppDocumentParser::aboutToQuit, Qt::DirectConnection );
+
+  connect(Core::ICore::instance(), &Core::ICore::saveSettingsRequested,
+          this, [this] { d->settings.saveToSetting(Core::ICore::settings()); });
 }
 // --------------------------------------------------
 
 CppDocumentParser::~CppDocumentParser()
 {
-  d->settings->saveToSetting( Core::ICore::settings() );
-  delete d->settings;
-  delete d->optionsPage;
   delete d;
 }
 // --------------------------------------------------
@@ -432,7 +426,8 @@ QString CppDocumentParser::displayName()
 
 Core::IOptionsPage* CppDocumentParser::optionsPage()
 {
-  return d->optionsPage;
+  //https://github.com/qt-creator/qt-creator/commit/9a42382fd15fd9d2f5a94737f6d496478a6bf096#diff-4fca580adee50ff91282c1701ecc68f8a59cd47b86a2a30adea522826409e2ec
+  return &d->optionsPage;
 }
 // --------------------------------------------------
 
@@ -657,7 +652,7 @@ void CppDocumentParser::parseCppDocument( CPlusPlus::Document::Ptr docPtr )
   /* Create a document parser and move it to the main thread.
    * Not sure if this is required but it seemed like a good
    * idea since this will be in a QThreadPool thread. */
-  CppDocumentProcessor* parser = new CppDocumentProcessor( docPtr, hashes, *d->settings );
+  CppDocumentProcessor* parser = new CppDocumentProcessor( docPtr, hashes, d->settings );
   parser->moveToThread( qApp->thread() );
   /* Reset the document pointer so that it can be released as soon as it is
    * done in the processor. The processor makes its own copy to keep it

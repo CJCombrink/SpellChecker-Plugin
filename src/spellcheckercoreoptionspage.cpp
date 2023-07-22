@@ -25,14 +25,14 @@
 
 using namespace SpellChecker::Internal;
 
-SpellCheckerCoreOptionsPage::SpellCheckerCoreOptionsPage( SpellCheckerCoreSettings* settings, QObject* parent )
-  : Core::IOptionsPage( parent )
+SpellCheckerCoreOptionsPage::SpellCheckerCoreOptionsPage( SpellCheckerCoreSettings* settings )
+  : Core::IOptionsPage()
   , m_settings( settings )
 {
   setId( "SpellChecker::CoreSettings" );
-  setDisplayName( tr( "SpellChecker" ) );
+  setDisplayName( SpellCheckerCoreOptionsWidget::tr( "SpellChecker" ) );
   setCategory( "SpellChecker" );
-  setDisplayCategory( tr( "Spell Checker" ) );
+  setDisplayCategory( SpellCheckerCoreOptionsWidget::tr( "Spell Checker" ) );
   setCategoryIconPath( ":/spellcheckerplugin/images/optionspageicon_solid.png" );
 }
 // --------------------------------------------------
