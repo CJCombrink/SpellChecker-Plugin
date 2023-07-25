@@ -426,7 +426,6 @@ QString CppDocumentParser::displayName()
 
 Core::IOptionsPage* CppDocumentParser::optionsPage()
 {
-  //https://github.com/qt-creator/qt-creator/commit/9a42382fd15fd9d2f5a94737f6d496478a6bf096#diff-4fca580adee50ff91282c1701ecc68f8a59cd47b86a2a30adea522826409e2ec
   return &d->optionsPage;
 }
 // --------------------------------------------------
@@ -528,9 +527,9 @@ void CppDocumentParser::reparseProject()
   }
 
   const Utils::FilePaths projectFiles = d->activeProject->files( ProjectExplorer::Project::SourceFiles );
-  const QStringList fileList             = Utils::transform( projectFiles, &Utils::FilePath::toString );
+  const auto fileList                 = Utils::transform<QStringSet>( projectFiles, &Utils::FilePath::toString );
 
-  const QStringSet fileSet = d->getCppFiles( QStringSet(fileList.begin(), fileList.end()) );
+  const QStringSet fileSet = d->getCppFiles( fileList );
   d->filesInStartupProject = fileSet;
 
   {

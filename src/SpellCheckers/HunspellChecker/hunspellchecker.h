@@ -42,7 +42,7 @@ public:
   void getSuggestionsForWord( const QString& word, QStringList& suggestionsList ) const Q_DECL_OVERRIDE;
   bool addWord( const QString& word ) Q_DECL_OVERRIDE;
   bool ignoreWord( const QString& word ) Q_DECL_OVERRIDE;
-  QWidget* optionsWidget() Q_DECL_OVERRIDE;
+  IOptionsWidget *optionsWidget() Q_DECL_OVERRIDE;
 
 signals:
   void dictionaryChanged( const QString& dictionary );

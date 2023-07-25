@@ -20,6 +20,22 @@
 
 #pragma once
 
+#include <coreplugin/dialogs/ioptionspage.h>
+
+
+namespace SpellChecker::Internal {
+class SpellCheckerCoreSettings;
+
+
+class SpellCheckerCoreOptionsPage final : public Core::IOptionsPage
+{
+public:
+    SpellCheckerCoreOptionsPage(SpellCheckerCoreSettings *settings, const std::function<void()> &onApply);
+};
+
+}
+
+#if 0
 #include "spellcheckercoresettings.h"
 
 #include <QWidget>
@@ -77,3 +93,5 @@ private:
 
 } // Internal
 } // SpellChecker
+
+#endif

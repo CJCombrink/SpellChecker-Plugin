@@ -24,7 +24,7 @@
 #include "outputpane.h"
 #include "spellcheckerconstants.h"
 #include "spellcheckercore.h"
-#include "spellcheckercoreoptionspage.h"
+#include "spellcheckercoreoptionswidget.h"
 #include "spellcheckercoresettings.h"
 #include "spellingmistakesmodel.h"
 #include "suggestionsdialog.h"
@@ -70,7 +70,7 @@ public:
   SpellChecker::Internal::SpellingMistakesModel* mistakesModel;
   SpellChecker::Internal::OutputPane* outputPane;
   SpellChecker::Internal::SpellCheckerCoreSettings settings;
-  SpellChecker::Internal::SpellCheckerCoreOptionsPage optionsPage{&settings};
+  SpellChecker::Internal::SpellCheckerCoreOptionsPage optionsPage{&settings, [this] { /*settingsChanged(settings);*/ }};
   QMap<QString, ISpellChecker*> addedSpellCheckers;
   SpellChecker::ISpellChecker*  spellChecker;
   QPointer<Core::IEditor> currentEditor;
@@ -723,8 +723,8 @@ void SpellCheckerCore::startupProjectChanged( ProjectExplorer::Project* startupP
   if( startupProject != nullptr ) {
     /* Check if the current project is not set to be ignored by the settings. */
     if( d->settings.projectsToIgnore.contains( startupProject->displayName() ) == false ) {
-      const auto fileList = Utils::transform( startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FilePath::toString );
-      d->filesInStartupProject = QSet(fileList.begin(), fileList.end());
+      const auto fileList = Utils::transform<QSet<QString>>( startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FilePath::toString );
+      d->filesInStartupProject = fileList;
     } else {
       /* The Project should be ignored and not be spell checked. */
       d->startupProject = nullptr;
@@ -747,8 +747,7 @@ void SpellCheckerCore::fileListChanged()
   }
 
   const QStringSet oldFiles = d->filesInStartupProject;
-  const auto fileList = Utils::transform( d->startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FilePath::toString );
-  const QStringSet newFiles = QStringSet(fileList.begin(), fileList.end());
+  const auto newFiles = Utils::transform<QStringSet>( d->startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FilePath::toString );
 
   /* Compare the two sets with each other to get the lists of files
    * added and removed.

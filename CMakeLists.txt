@@ -3,6 +3,9 @@
 
 cmake_minimum_required(VERSION 3.16)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
+
 ## Add paths to check for cmake modules:
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -11,7 +14,7 @@ project(SpellChecker)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 find_package(QtCreator COMPONENTS Core REQUIRED)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
@@ -43,6 +46,7 @@ extend_qtc_plugin(SpellChecker
   SOURCES
     ISpellChecker.cpp
     ISpellChecker.h
+    IOptionsWidget.h
     NavigationWidget.cpp
     NavigationWidget.h
     ProjectMistakesModel.cpp
@@ -56,8 +60,6 @@ extend_qtc_plugin(SpellChecker
     spellcheckerconstants.h
     spellcheckercore.cpp
     spellcheckercore.h
-    spellcheckercoreoptionspage.cpp
-    spellcheckercoreoptionspage.h
     spellcheckercoreoptionswidget.cpp
     spellcheckercoreoptionswidget.h
     spellcheckercoreoptionswidget.ui

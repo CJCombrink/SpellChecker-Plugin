@@ -31,3 +31,4 @@ Makefile*
 spellchecker_local_paths.pri
 
 *.user
+build
