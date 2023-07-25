@@ -24,7 +24,7 @@
 
 #include "../../spellcheckerconstants.h"
 
-#include <hunspell.hxx>
+#include <hunspell/hunspell.hxx>
 
 #include <coreplugin/icore.h>
 
