@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "IOptionsWidget.h"
+
 #include <QWidget>
 
 namespace SpellChecker {
@@ -31,21 +33,21 @@ class HunspellOptionsWidget;
 } // namespace Ui
 
 class HunspellOptionsWidget
-  : public QWidget
+  : public IOptionsWidget
 {
   Q_OBJECT
 
 public:
   HunspellOptionsWidget( const QString& dictionary, const QString& userDictionary, QWidget* parent = 0 );
-  ~HunspellOptionsWidget();
+  ~HunspellOptionsWidget() override;
+
+  void apply() override;
 
 signals:
-  void optionsError( const QString& spellcheckerName, const QString& errorString );
   void dictionaryChanged( const QString& dictionary );
   void userDictionaryChanged( const QString& userDictionary );
 
 public slots:
-  void applySettings();
   void updateDictionary( const QString& dictionary );
   void updateUserDictionary( const QString& userDictionary );
 

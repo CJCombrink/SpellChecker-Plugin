@@ -29,7 +29,7 @@
 using namespace SpellChecker::Checker::Hunspell;
 
 HunspellOptionsWidget::HunspellOptionsWidget( const QString& dictionary, const QString& userDictionary, QWidget* parent )
-  : QWidget( parent )
+  : IOptionsWidget()
   , ui( new Ui::HunspellOptionsWidget )
 {
   ui->setupUi( this );
@@ -56,7 +56,7 @@ HunspellOptionsWidget::~HunspellOptionsWidget()
 }
 // --------------------------------------------------
 
-void HunspellOptionsWidget::applySettings()
+void HunspellOptionsWidget::apply()
 {
   /* Make sure the dictionaries exist */
   QFileInfo dict( ui->lineEditDictionary->text() );

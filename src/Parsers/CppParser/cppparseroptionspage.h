@@ -31,12 +31,10 @@ namespace Internal {
 class CppParserSettings;
 class CppParserOptionsWidget;
 
-class CppParserOptionsPage
-  : public Core::IOptionsPage
+class CppParserOptionsPage : public Core::IOptionsPage
 {
-  Q_OBJECT
 public:
-  CppParserOptionsPage( CppParserSettings* settings, QObject* parent = 0 );
+  CppParserOptionsPage( CppParserSettings* settings );
   virtual ~CppParserOptionsPage();
 
   bool matches( const QString& searchKeyWord ) const;
@@ -44,9 +42,6 @@ public:
   void apply();
   void finish();
 
-signals:
-
-public slots:
 private:
   CppParserSettings* const m_settings;
   QPointer<CppParserOptionsWidget> m_widget;

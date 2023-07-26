@@ -28,6 +28,8 @@
 
 namespace SpellChecker {
 
+class IOptionsWidget;
+
 /*! \brief The ISpellChecker Interface
  *
  * Interface for spellchecker implementations.
@@ -81,7 +83,7 @@ public:
    * return a new widget each time it is called.
    * \return Pointer to the options widget.
    */
-  virtual QWidget* optionsWidget() = 0;
+  virtual IOptionsWidget* optionsWidget() = 0;
 };
 
 /*! \brief The SpellCheckProcessor class

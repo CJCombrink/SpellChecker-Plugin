@@ -288,7 +288,7 @@ bool HunspellChecker::ignoreWord( const QString& word )
 }
 // --------------------------------------------------
 
-QWidget* HunspellChecker::optionsWidget()
+SpellChecker::IOptionsWidget* HunspellChecker::optionsWidget()
 {
   HunspellOptionsWidget* widget = new HunspellOptionsWidget( d->dictionary, d->userDictionary );
   connect( this,   &HunspellChecker::dictionaryChanged,           widget, &HunspellOptionsWidget::updateDictionary );
