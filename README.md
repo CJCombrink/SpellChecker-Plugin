@@ -59,6 +59,9 @@ After opening Qt Creator and the plugin loaded successfully the following steps 
       * **Feeling Lucky**: The word will be replaced with the first suggestion for the word. This option will only be available if there are at least one suggestion for the word.
    - Right clicking on a misspelled word will also allow the user to perform the above actions using the popup menu.
    - Under "*Tools*" -> "*Spell Checker*" the above actions can also be performed.
+   - When the cursor is on a misspelled word the Qt Creator quick fix action will also pop up a menu to perform the above actions (Alt + Enter by default on most systems)
+
+:book: Make sure to check out the [wiki](https://github.com/CJCombrink/SpellChecker-Plugin/wiki) page :book:
 
 ## 4. Useful Widgets
 
