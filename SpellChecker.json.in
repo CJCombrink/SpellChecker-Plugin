@@ -12,7 +12,7 @@
                       \"An Output Pane, Right Click context menu and a Navigation Widget is added to QtCreator to interact with the results from this plugin.\"
     ],
     \"Url\" : \"https://github.com/CJCombrink/SpellChecker-Plugin\",
-    $$dependencyList,
+     ${IDE_PLUGIN_DEPENDENCIES}, ${IDE_VERSION},
 
     \"Mimetypes\" : [
         \"<?xml version=\'1.0\' encoding=\'UTF-8\'?>\",
