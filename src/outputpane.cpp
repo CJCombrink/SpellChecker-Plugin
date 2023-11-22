@@ -66,6 +66,10 @@ OutputPane::OutputPane( SpellingMistakesModel* model, QObject* parent )
   : IOutputPane( parent )
   , d( new OutputPanePrivate() )
 {
+  setId("SpellingMistakes");
+  setDisplayName(tr( Constants::OUTPUT_PANE_TITLE ));
+  setPriorityInStatusBar(1);
+
   Q_ASSERT( model != nullptr );
   d->model = model;
 
@@ -159,18 +163,6 @@ QWidget* OutputPane::outputWidget( QWidget* parent )
 QList<QWidget*> OutputPane::toolBarWidgets() const
 {
   return d->toolbarWidgets;
-}
-// --------------------------------------------------
-
-QString OutputPane::displayName() const
-{
-  return tr( Constants::OUTPUT_PANE_TITLE );
-}
-// --------------------------------------------------
-
-int OutputPane::priorityInStatusBar() const
-{
-  return 1;
 }
 // --------------------------------------------------
 
