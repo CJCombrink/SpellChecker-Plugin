@@ -75,7 +75,7 @@ CppDocumentProcessor::~CppDocumentProcessor()
 }
 // --------------------------------------------------
 
-void CppDocumentProcessor::process( CppDocumentProcessor::FutureIF& future )
+void CppDocumentProcessor::process( CppDocumentProcessor::Promise& promise )
 {
   SP_CHECK( docPtr.isNull() == false );
   SP_CHECK( trUnit != nullptr );
@@ -90,8 +90,8 @@ void CppDocumentProcessor::process( CppDocumentProcessor::FutureIF& future )
     wordsInSource = getWordsThatAppearInSource();
   }
 
-  if( future.isCanceled() == true ) {
-    future.reportCanceled();
+  if( promise.isCanceled() == true ) {
+    promise.future().cancel();
     return;
   }
 
@@ -118,8 +118,8 @@ void CppDocumentProcessor::process( CppDocumentProcessor::FutureIF& future )
     wordTokens += parseMacros();
   }
 
-  if( future.isCanceled() == true ) {
-    future.reportCanceled();
+  if( promise.isCanceled() == true ) {
+    promise.future().cancel();
     return;
   }
 
@@ -150,8 +150,8 @@ void CppDocumentProcessor::process( CppDocumentProcessor::FutureIF& future )
     }
   }
 
-  if( future.isCanceled() == true ) {
-    future.reportCanceled();
+  if( promise.isCanceled() == true ) {
+    promise.future().cancel();
     return;
   }
 
@@ -190,13 +190,13 @@ void CppDocumentProcessor::process( CppDocumentProcessor::FutureIF& future )
     newHashesOut[token.hash] = { token.line, token.column, words };
   }
 
-  if( future.isCanceled() == true ) {
-    future.reportCanceled();
+  if( promise.isCanceled() == true ) {
+    promise.future().cancel();
     return;
   }
 
   /* Done, report the words that should be spellchecked */
-  future.reportResult( ResultType{ std::move( newHashesOut ), std::move( newSettingsApplied ) } );
+  promise.addResult( ResultType{ std::move( newHashesOut ), std::move( newSettingsApplied ) } );
 }
 // --------------------------------------------------
 

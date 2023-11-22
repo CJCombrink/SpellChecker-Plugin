@@ -22,7 +22,7 @@
 
 #include "Word.h"
 
-#include <QFutureInterface>
+#include <QFuture>
 #include <QObject>
 #include <QSettings>
 
@@ -121,7 +121,7 @@ public:
   SpellCheckProcessor( ISpellChecker* spellChecker, const QString& fileName, const WordList& wordList, const WordList& previousMistakes );
   ~SpellCheckProcessor();
   /*! Function that will run in the background/thread. */
-  void process( QFutureInterface<WordList>& future );
+  void process(QPromise<WordList>& promise );
 protected:
   ISpellChecker* d_spellChecker;
   QString  d_fileName;

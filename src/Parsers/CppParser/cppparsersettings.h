@@ -20,8 +20,9 @@
 
 #pragma once
 
+#include <utils/qtcsettings.h>
+
 #include <QObject>
-#include <QSettings>
 
 namespace SpellChecker {
 namespace CppSpellChecker {
@@ -147,8 +148,8 @@ public:
                                            * will not be ignored. This is to handle pure doxygen
                                            * docs files that might start without a file header. */
 
-  void loadFromSettings( QSettings* settings );
-  void saveToSetting( QSettings* settings ) const;
+  void loadFromSettings(Utils::QtcSettings* settings);
+  void saveToSetting(Utils::QtcSettings* settings) const;
 
   CppParserSettings& operator=( const CppParserSettings& other );
   bool operator==( const CppParserSettings& other ) const;

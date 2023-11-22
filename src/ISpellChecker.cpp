@@ -40,7 +40,7 @@ SpellCheckProcessor::~SpellCheckProcessor()
 {}
 // --------------------------------------------------
 
-void SpellCheckProcessor::process( QFutureInterface<WordList>& future )
+void SpellCheckProcessor::process( QPromise<WordList>& promise )
 {
 #ifdef BENCH_TIME
   QElapsedTimer timer;
@@ -53,7 +53,7 @@ void SpellCheckProcessor::process( QFutureInterface<WordList>& future )
   WordList words             = d_wordList;
   WordListConstIter wordIter = words.constBegin();
   bool spellingMistake;
-  future.setProgressRange( 0, words.count() + 1 );
+  promise.setProgressRange( 0, words.count() + 1 );
   while( wordIter != d_wordList.constEnd() ) {
     /* Get the word at the current iterator position.
      * After this is done, move the iterator to the next position and
@@ -63,9 +63,9 @@ void SpellCheckProcessor::process( QFutureInterface<WordList>& future )
      * correct for the next iteration. */
     misspelledWord = ( *wordIter );
     ++wordIter;
-    future.setProgressValue( future.progressValue() + 1 );
+    promise.setProgressValue( promise.future().progressValue() + 1 );
     /* Check if the future was cancelled */
-    if( future.isCanceled() == true ) {
+    if( promise.isCanceled() == true ) {
       return;
     }
     spellingMistake = d_spellChecker->isSpellingMistake( misspelledWord.text );
@@ -105,7 +105,7 @@ void SpellCheckProcessor::process( QFutureInterface<WordList>& future )
       }
 
       /* Another checkpoint before we go into the SpellChecker to check for mistakes */
-      if( future.isCanceled() == true ) {
+      if( promise.isCanceled() == true ) {
         return;
       }
       /* At this point the word is a mistake for the first time. It was neither
@@ -122,9 +122,9 @@ void SpellCheckProcessor::process( QFutureInterface<WordList>& future )
            << "\n  - count: " << misspelledWords.size();
 #endif /* BENCH_TIME */
 
-  if( future.isCanceled() == true ) {
+  if( promise.isCanceled() == true ) {
     return;
   }
-  future.reportResult( misspelledWords );
+  promise.addResult( misspelledWords );
 }
 // --------------------------------------------------

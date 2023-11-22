@@ -36,3 +36,4 @@ spellchecker_local_paths.pri
 .venv
 .conan2
 build
+CMakeUserPresets.json

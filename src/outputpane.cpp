@@ -27,6 +27,7 @@
 #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/icore.h>
 #include <utils/utilsicons.h>
+#include <utils/qtcsettings.h>
 
 #include <QApplication>
 #include <QCheckBox>
@@ -262,13 +263,13 @@ void OutputPane::loadColumnSizes()
   int colLine    = 40;
   int colColumn  = 40;
 
-  QSettings* settings = Core::ICore::settings();
-  settings->beginGroup( QLatin1String( Constants::CORE_SETTINGS_GROUP ) );
-  settings->beginGroup( QLatin1String( Constants::CORE_SETTINGS_OP_GROUP ) );
-  colWord    = settings->value( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_WORD ), colWord ).toInt();
-  colLiteral = settings->value( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_LITERAL ), colLiteral ).toInt();
-  colLine    = settings->value( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_LINE ), colLine ).toInt();
-  colColumn  = settings->value( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_COLUMN ), colColumn ).toInt();
+  Utils::QtcSettings* settings = Core::ICore::settings();
+  settings->beginGroup( Constants::CORE_SETTINGS_GROUP );
+  settings->beginGroup( Constants::CORE_SETTINGS_OP_GROUP );
+  colWord    = settings->value( Constants::SETTINGS_OUTPUT_PANE_COL_WORD, colWord ).toInt();
+  colLiteral = settings->value( Constants::SETTINGS_OUTPUT_PANE_COL_LITERAL, colLiteral ).toInt();
+  colLine    = settings->value( Constants::SETTINGS_OUTPUT_PANE_COL_LINE, colLine ).toInt();
+  colColumn  = settings->value( Constants::SETTINGS_OUTPUT_PANE_COL_COLUMN, colColumn ).toInt();
   settings->endGroup(); /* CORE_SETTINGS_OP_GROUP */
   settings->endGroup(); /* CORE_SETTINGS_GROUP */
 
@@ -282,13 +283,13 @@ void OutputPane::loadColumnSizes()
 void OutputPane::saveColumnSizes()
 {
   /* Save the table sizes to the settings file. */
-  QSettings* settings = Core::ICore::settings();
-  settings->beginGroup( QLatin1String( Constants::CORE_SETTINGS_GROUP ) );
-  settings->beginGroup( QLatin1String( Constants::CORE_SETTINGS_OP_GROUP ) );
-  settings->setValue( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_WORD ),    d->treeView->columnWidth( Constants::MISTAKE_COLUMN_WORD ) );
-  settings->setValue( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_LITERAL ), d->treeView->columnWidth( Constants::MISTAKE_COLUMN_LITERAL ) );
-  settings->setValue( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_LINE ),    d->treeView->columnWidth( Constants::MISTAKE_COLUMN_LINE ) );
-  settings->setValue( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_COLUMN ),  d->treeView->columnWidth( Constants::MISTAKE_COLUMN_COLUMN ) );
+  Utils::QtcSettings* settings = Core::ICore::settings();
+  settings->beginGroup( Constants::CORE_SETTINGS_GROUP );
+  settings->beginGroup( Constants::CORE_SETTINGS_OP_GROUP );
+  settings->setValue( Constants::SETTINGS_OUTPUT_PANE_COL_WORD,    d->treeView->columnWidth( Constants::MISTAKE_COLUMN_WORD ) );
+  settings->setValue( Constants::SETTINGS_OUTPUT_PANE_COL_LITERAL, d->treeView->columnWidth( Constants::MISTAKE_COLUMN_LITERAL ) );
+  settings->setValue( Constants::SETTINGS_OUTPUT_PANE_COL_LINE,    d->treeView->columnWidth( Constants::MISTAKE_COLUMN_LINE ) );
+  settings->setValue( Constants::SETTINGS_OUTPUT_PANE_COL_COLUMN,  d->treeView->columnWidth( Constants::MISTAKE_COLUMN_COLUMN ) );
   settings->endGroup(); /* CORE_SETTINGS_OP_GROUP */
   settings->endGroup(); /* CORE_SETTINGS_GROUP */
   settings->sync();

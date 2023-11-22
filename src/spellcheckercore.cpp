@@ -45,7 +45,7 @@
 #include <texteditor/texteditor.h>
 #include <utils/algorithm.h>
 #include <utils/fadingindicator.h>
-#include <utils/runextensions.h>
+#include <utils/async.h>
 #include <utils/fileutils.h>
 
 #include <QFuture>
@@ -375,10 +375,10 @@ void SpellCheckerCore::spellcheckWordsFromParser( const QString& fileName, const
      * soon as possible and it does not need to get queued along with all other
      * futures added to the global thread pool. */
     if( fileName == d->currentFilePath ) {
-      QFuture<WordList> future = Utils::runAsync( QThread::HighPriority, &SpellCheckProcessor::process, processor );
+      QFuture<WordList> future = Utils::asyncRun( QThread::HighPriority, &SpellCheckProcessor::process, processor );
       watcher->setFuture( future );
     } else {
-      QFuture<WordList> future = Utils::runAsync( QThreadPool::globalInstance(), QThread::LowPriority, &SpellCheckProcessor::process, processor );
+      QFuture<WordList> future = Utils::asyncRun( QThreadPool::globalInstance(), QThread::LowPriority, &SpellCheckProcessor::process, processor );
       watcher->setFuture( future );
     }
   }

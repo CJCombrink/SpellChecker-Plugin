@@ -98,8 +98,8 @@ public:
   using Watcher = QFutureWatcher<ResultType>;
   /*! \brief Alias for the Watcher Pointer type. */
   using WatcherPtr = Watcher *;
-  /*! \brief Future Interface alias to simplify some typing and management. */
-  using FutureIF = QFutureInterface<ResultType>;
+  /*! \brief Promise alias to simplify some typing and management. */
+  using Promise = QPromise<ResultType>;
 
   /*! \brief Constructor
    *
@@ -114,7 +114,7 @@ public:
   ~CppDocumentProcessor();
   /*! \brief Process function that the thread will run with the future that will
    * report the result. */
-  void process( FutureIF& future );
+  void process( Promise& promise );
 
 private:
   QStringSet getWordsThatAppearInSource() const;
