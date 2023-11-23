@@ -244,7 +244,7 @@ jobs:
           cmake --preset "${env:CMAKE_PRESET}" `
             -DCMAKE_PREFIX_PATH="${{ steps.qt.outputs.qt_dir }};${{ steps.qt_creator.outputs.qtc_dir }}${prefix_extra}" `
 
-          cmake --build --preset conan-release -- -j
+          cmake --build --preset conan-release
 
       - name: Collect Binaries
         shell: pwsh
@@ -262,7 +262,7 @@ jobs:
                 Copy-Item -Path "${PLUGIN_OBJ}" -Destination "${PLUGIN_DIR_OUT}/"
                 Push-Location ${PLUGIN_DIR_BASE}
                 ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.zip"
-                7z a "${env:PLUGIN_ARCHIVE_NAME}" bin lib
+                7z a "${env:PLUGIN_ARCHIVE_NAME}" lib
                 Pop-Location
               }
               "Linux" {
