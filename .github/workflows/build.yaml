@@ -214,6 +214,8 @@ jobs:
       - name: Build Plugin
         shell: pwsh
         run: |
+          ${env:CMAKE_PRESET} = "conan-release"
+
           switch ("${{runner.os}}")
           {
               "Windows" {
@@ -225,6 +227,7 @@ jobs:
                   Write-Output "  <-> VS Install Path: ${VS_INST_PATH}"
                   Import-Module ${VS_INST_PATH}/Common7/Tools/Microsoft.VisualStudio.DevShell.dll
                   Enter-VsDevShell -VsInstallPath ${VS_INST_PATH} -SkipAutomaticLocation -DevCmdArguments '-arch=${{matrix.config.arch}} -no_logo'
+                  ${env:CMAKE_PRESET} = "conan-default"
               }
               "macOS" {
                   # From the build.py script: on macOS the prefix path must be inside the app bundle...
@@ -238,7 +241,7 @@ jobs:
           conan config install .conan
           conan install . -pr cpp20 --build=missing
 
-          cmake --preset conan-release `
+          cmake --preset "${env:CMAKE_PRESET}" `
             -DCMAKE_PREFIX_PATH="${{ steps.qt.outputs.qt_dir }};${{ steps.qt_creator.outputs.qtc_dir }}${prefix_extra}" `
 
           cmake --build --preset conan-release
@@ -256,7 +259,7 @@ jobs:
                 # ${PLUGIN_DIR_BIN} = "${PLUGIN_DIR_BASE}/bin/"
                 New-Item -ItemType Directory "${PLUGIN_DIR_OUT}" -Force
                 # New-Item -ItemType Directory "${PLUGIN_DIR_BIN}" -Force
-                Copy-Item -Path "SpellChecker-Plugin/build/lib/qtcreator/plugins/Release/SpellChecker.dll" -Destination "${PLUGIN_DIR_OUT}/"
+                Copy-Item -Path "build/lib/qtcreator/plugins/Release/SpellChecker.dll" -Destination "${PLUGIN_DIR_OUT}/"
                 # TODO: Don,t hard code the version here
                 # Copy-Item -Path "build-plugin/lib/qtcreator/plugins/hunspell-1.7-0.dll" -Destination "${PLUGIN_DIR_BIN}/"
                 Push-Location ${PLUGIN_DIR_BASE}
@@ -267,7 +270,7 @@ jobs:
               "Linux" {
                 ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/lib/qtcreator/plugins"
                 New-Item -ItemType Directory "${PLUGIN_DIR_OUT}" -Force
-                Copy-Item -Path "SpellChecker-Plugin/build/lib/qtcreator/plugins/libSpellChecker.so" -Destination "${PLUGIN_DIR_OUT}/"
+                Copy-Item -Path "build/lib/qtcreator/plugins/libSpellChecker.so" -Destination "${PLUGIN_DIR_OUT}/"
                 Push-Location ${PLUGIN_DIR_BASE}
                 ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.tar.gz"
                 7z a -ttar "${PLUGIN_ARCHIVE}.tar" lib
@@ -277,7 +280,7 @@ jobs:
               "macOS" {
                 ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/bin/Qt Creator.app/Contents/PlugIns"
                 New-Item -Path "${PLUGIN_DIR_OUT}" -ItemType Directory -Force
-                Copy-Item -Path "SpellChecker-Plugin/build/Qt Creator.app/Contents/PlugIns/libSpellChecker.dylib" -Destination "${PLUGIN_DIR_OUT}/"
+                Copy-Item -Path "build/Qt Creator.app/Contents/PlugIns/libSpellChecker.dylib" -Destination "${PLUGIN_DIR_OUT}/"
                 Get-ChildItem "${PLUGIN_DIR_OUT}"
                 Push-Location ${PLUGIN_DIR_BASE}
                 ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.tar.gz"
