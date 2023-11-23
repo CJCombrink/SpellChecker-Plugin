@@ -237,12 +237,9 @@ jobs:
           conan profile detect
           conan config install .conan
           conan install . -pr cpp20 --build=missing
-          cmake --preset conan-release
 
-          cmake -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release `
+          cmake --preset conan-release `
             -DCMAKE_PREFIX_PATH="${{ steps.qt.outputs.qt_dir }};${{ steps.qt_creator.outputs.qtc_dir }}${prefix_extra}" `
-            --preset conan-release
 
           cmake --build --preset conan-release
 
