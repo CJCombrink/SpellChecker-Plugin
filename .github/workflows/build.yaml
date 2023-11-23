@@ -11,7 +11,7 @@ on: [push]
 
 env:
   QT_VERSION: "6.4.2"
-  QT_CREATOR_VERSION: "11.0.0"
+  QT_CREATOR_VERSION: "12.0.0"
   QT_MIRRORS: download.qt.io;mirrors.ocf.berkeley.edu/qt;ftp.fau.de/qtproject;mirror.bit.edu.cn/qtproject
 
 # The Jobs
