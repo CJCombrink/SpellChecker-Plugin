@@ -246,11 +246,18 @@ jobs:
 
           cmake --build --preset conan-release
 
+          pwd
+          Get-ChildItem -Path . -Filter SpellChecker.dll -Recurse -ErrorAction SilentlyContinue -Force | %{$_.FullName}
+          Get-ChildItem -Path . -Filter libSpellChecker.so -Recurse -ErrorAction SilentlyContinue -Force | %{$_.FullName}
+          Get-ChildItem -Path . -Filter libSpellChecker.dylib -Recurse -ErrorAction SilentlyContinue -Force | %{$_.FullName}
+
       - name: Collect Binaries
         shell: pwsh
         run: |
           ${PLUGIN_DIR_BASE} = "Plugin/"
           ${PLUGIN_ARCHIVE}  = "SpellChecker-Plugin_QtC${env:QT_CREATOR_VERSION}_${env:OS}_${{matrix.config.arch}}"
+
+          pwd
 
           switch ("${{runner.os}}")
           {
