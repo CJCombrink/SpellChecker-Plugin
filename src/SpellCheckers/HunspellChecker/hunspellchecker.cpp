@@ -24,9 +24,10 @@
 
 #include "../../spellcheckerconstants.h"
 
-#include <hunspell.hxx>
+#include <hunspell/hunspell.hxx>
 
 #include <coreplugin/icore.h>
+#include <utils/qtcsettings.h>
 
 #include <QDir>
 #include <QFile>
@@ -190,12 +191,12 @@ QString HunspellChecker::name() const
 
 void HunspellChecker::loadSettings()
 {
-  QSettings* settings = Core::ICore::settings();
-  settings->beginGroup( QLatin1String( Constants::CORE_SETTINGS_GROUP ) );
-  settings->beginGroup( QLatin1String( Constants::CORE_SPELLCHECKERS_GROUP ) );
-  settings->beginGroup( QLatin1String( SpellCheckers::HunspellChecker::Constants::SETTINGS_GROUP ) );
-  d->dictionary     = settings->value( QLatin1String( SpellCheckers::HunspellChecker::Constants::SETTING_DICTIONARY ), QLatin1String( "" ) ).toString();
-  d->userDictionary = settings->value( QLatin1String( SpellCheckers::HunspellChecker::Constants::SETTING_USER_DICTIONARY ), QLatin1String( "" ) ).toString();
+  Utils::QtcSettings* settings = Core::ICore::settings();
+  settings->beginGroup( Constants::CORE_SETTINGS_GROUP );
+  settings->beginGroup( Constants::CORE_SPELLCHECKERS_GROUP );
+  settings->beginGroup( SpellCheckers::HunspellChecker::Constants::SETTINGS_GROUP );
+  d->dictionary     = settings->value( SpellCheckers::HunspellChecker::Constants::SETTING_DICTIONARY, QLatin1String( "" ) ).toString();
+  d->userDictionary = settings->value( SpellCheckers::HunspellChecker::Constants::SETTING_USER_DICTIONARY, QLatin1String( "" ) ).toString();
   settings->endGroup();
   settings->endGroup();
   settings->endGroup();
@@ -228,12 +229,12 @@ void HunspellChecker::loadUserAddedWords()
 
 void HunspellChecker::saveSettings() const
 {
-  QSettings* settings = Core::ICore::settings();
-  settings->beginGroup( QLatin1String( Constants::CORE_SETTINGS_GROUP ) );
-  settings->beginGroup( QLatin1String( Constants::CORE_SPELLCHECKERS_GROUP ) );
-  settings->beginGroup( QLatin1String( SpellCheckers::HunspellChecker::Constants::SETTINGS_GROUP ) );
-  settings->setValue( QLatin1String( SpellCheckers::HunspellChecker::Constants::SETTING_DICTIONARY ),      d->dictionary );
-  settings->setValue( QLatin1String( SpellCheckers::HunspellChecker::Constants::SETTING_USER_DICTIONARY ), d->userDictionary );
+  Utils::QtcSettings* settings = Core::ICore::settings();
+  settings->beginGroup( Constants::CORE_SETTINGS_GROUP );
+  settings->beginGroup( Constants::CORE_SPELLCHECKERS_GROUP );
+  settings->beginGroup( SpellCheckers::HunspellChecker::Constants::SETTINGS_GROUP );
+  settings->setValue( SpellCheckers::HunspellChecker::Constants::SETTING_DICTIONARY,      d->dictionary );
+  settings->setValue( SpellCheckers::HunspellChecker::Constants::SETTING_USER_DICTIONARY, d->userDictionary );
   settings->endGroup();
   settings->endGroup();
   settings->endGroup();

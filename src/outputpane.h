@@ -48,8 +48,6 @@ public:
 
   QWidget* outputWidget( QWidget* parent );
   QList<QWidget*> toolBarWidgets() const;
-  QString displayName() const;
-  int priorityInStatusBar() const;
   void clearContents();
   void visibilityChanged( bool visible );
   void setFocus();

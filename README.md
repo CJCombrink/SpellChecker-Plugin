@@ -21,6 +21,27 @@ I did look a lot at the code in the TODO plugin as a basis for my own implementa
 
  <a href="https://www.buymeacoffee.com/CJCombrink" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## Build with conan
+```
+# Set up venv
+C:\Python\3.11\python.exe
+python.exe -m venv .venv
+# ps1
+.\.venv\Scripts\Activate.ps1
+# bash
+source ...
+
+# Setup conan
+python -m pip install conan
+conan profile detect
+conan config install .conan
+
+# Build
+conan install . -pr cpp20
+cmake --preset conan-default
+cmake --build --preset conan-release
+```
+
 ## 2. Pre-Built Plugins
 
 I do create pre-built releases for each version of the plugin that I tag. The latest release can be obtained from the [Releases](https://github.com/CJCombrink/SpellChecker-Plugin/releases/latest) page. Read the README.txt file associated with the release for information on how to install the plugin into the relevant Release version of Qt Creator.

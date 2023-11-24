@@ -31,4 +31,9 @@ Makefile*
 spellchecker_local_paths.pri
 
 *.user
+
+# Other
+.venv
+.conan2
 build
+CMakeUserPresets.json

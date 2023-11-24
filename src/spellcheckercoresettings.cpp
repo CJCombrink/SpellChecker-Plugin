@@ -47,27 +47,27 @@ SpellCheckerCoreSettings::~SpellCheckerCoreSettings()
 {}
 // --------------------------------------------------
 
-void SpellCheckerCoreSettings::saveToSettings( QSettings* settings ) const
+void SpellCheckerCoreSettings::saveToSettings( Utils::QtcSettings* settings ) const
 {
-  settings->beginGroup( QLatin1String( Constants::CORE_SETTINGS_GROUP ) );
-  settings->setValue( QLatin1String( Constants::SETTING_ACTIVE_SPELLCHECKER ),  activeSpellChecker );
-  settings->setValue( QLatin1String( Constants::SETTING_ONLY_PARSE_CURRENT ),   onlyParseCurrentFile );
-  settings->setValue( QLatin1String( Constants::SETTING_CHECK_EXTERNAL ),       checkExternalFiles );
-  settings->setValue( QLatin1String( Constants::PROJECTS_TO_IGNORE ),           projectsToIgnore );
-  settings->setValue( QLatin1String( Constants::REPLACE_ALL_FROM_RIGHT_CLICK ), replaceAllFromRightClick );
+  settings->beginGroup( Constants::CORE_SETTINGS_GROUP );
+  settings->setValue( Constants::SETTING_ACTIVE_SPELLCHECKER,  activeSpellChecker );
+  settings->setValue( Constants::SETTING_ONLY_PARSE_CURRENT,   onlyParseCurrentFile );
+  settings->setValue( Constants::SETTING_CHECK_EXTERNAL,       checkExternalFiles );
+  settings->setValue( Constants::PROJECTS_TO_IGNORE,           projectsToIgnore );
+  settings->setValue( Constants::REPLACE_ALL_FROM_RIGHT_CLICK, replaceAllFromRightClick );
   settings->endGroup(); /* CORE_SETTINGS_GROUP */
   settings->sync();
 }
 // --------------------------------------------------
 
-void SpellCheckerCoreSettings::loadFromSettings( QSettings* settings )
+void SpellCheckerCoreSettings::loadFromSettings( Utils::QtcSettings* settings )
 {
-  settings->beginGroup( QLatin1String( Constants::CORE_SETTINGS_GROUP ) );
-  activeSpellChecker       = settings->value( QLatin1String( Constants::SETTING_ACTIVE_SPELLCHECKER ), activeSpellChecker ).toString();
-  onlyParseCurrentFile     = settings->value( QLatin1String( Constants::SETTING_ONLY_PARSE_CURRENT ), onlyParseCurrentFile ).toBool();
-  checkExternalFiles       = settings->value( QLatin1String( Constants::SETTING_CHECK_EXTERNAL ), checkExternalFiles ).toBool();
-  projectsToIgnore         = settings->value( QLatin1String( Constants::PROJECTS_TO_IGNORE ), projectsToIgnore ).toStringList();
-  replaceAllFromRightClick = settings->value( QLatin1String( Constants::REPLACE_ALL_FROM_RIGHT_CLICK ), replaceAllFromRightClick ).toBool();
+  settings->beginGroup( Constants::CORE_SETTINGS_GROUP );
+  activeSpellChecker       = settings->value( Constants::SETTING_ACTIVE_SPELLCHECKER, activeSpellChecker ).toString();
+  onlyParseCurrentFile     = settings->value( Constants::SETTING_ONLY_PARSE_CURRENT, onlyParseCurrentFile ).toBool();
+  checkExternalFiles       = settings->value( Constants::SETTING_CHECK_EXTERNAL, checkExternalFiles ).toBool();
+  projectsToIgnore         = settings->value( Constants::PROJECTS_TO_IGNORE, projectsToIgnore ).toStringList();
+  replaceAllFromRightClick = settings->value( Constants::REPLACE_ALL_FROM_RIGHT_CLICK, replaceAllFromRightClick ).toBool();
   settings->endGroup(); /* CORE_SETTINGS_GROUP */
 }
 // --------------------------------------------------

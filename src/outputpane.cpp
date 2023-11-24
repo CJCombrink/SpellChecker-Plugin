@@ -27,6 +27,7 @@
 #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/icore.h>
 #include <utils/utilsicons.h>
+#include <utils/qtcsettings.h>
 
 #include <QApplication>
 #include <QCheckBox>
@@ -65,6 +66,10 @@ OutputPane::OutputPane( SpellingMistakesModel* model, QObject* parent )
   : IOutputPane( parent )
   , d( new OutputPanePrivate() )
 {
+  setId("SpellingMistakes");
+  setDisplayName(tr( Constants::OUTPUT_PANE_TITLE ));
+  setPriorityInStatusBar(1);
+
   Q_ASSERT( model != nullptr );
   d->model = model;
 
@@ -108,7 +113,7 @@ OutputPane::OutputPane( SpellingMistakesModel* model, QObject* parent )
   connect( d->buttonSuggest, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::giveSuggestionsForWordUnderCursor );
 
   d->buttonIgnore = new QToolButton();
-  d->buttonIgnore->setIcon( Utils::Icons::MINUS.icon() );
+  d->buttonIgnore->setIcon( Utils::Icons::MINUS_TOOLBAR.icon() );
   d->buttonIgnore->setToolTip( tr( "Ignore the word" ) );
   d->toolbarWidgets.push_back( d->buttonIgnore );
   connect( d->buttonIgnore, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::ignoreWordUnderCursor );
@@ -158,18 +163,6 @@ QWidget* OutputPane::outputWidget( QWidget* parent )
 QList<QWidget*> OutputPane::toolBarWidgets() const
 {
   return d->toolbarWidgets;
-}
-// --------------------------------------------------
-
-QString OutputPane::displayName() const
-{
-  return tr( Constants::OUTPUT_PANE_TITLE );
-}
-// --------------------------------------------------
-
-int OutputPane::priorityInStatusBar() const
-{
-  return 1;
 }
 // --------------------------------------------------
 
@@ -262,13 +255,13 @@ void OutputPane::loadColumnSizes()
   int colLine    = 40;
   int colColumn  = 40;
 
-  QSettings* settings = Core::ICore::settings();
-  settings->beginGroup( QLatin1String( Constants::CORE_SETTINGS_GROUP ) );
-  settings->beginGroup( QLatin1String( Constants::CORE_SETTINGS_OP_GROUP ) );
-  colWord    = settings->value( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_WORD ), colWord ).toInt();
-  colLiteral = settings->value( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_LITERAL ), colLiteral ).toInt();
-  colLine    = settings->value( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_LINE ), colLine ).toInt();
-  colColumn  = settings->value( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_COLUMN ), colColumn ).toInt();
+  Utils::QtcSettings* settings = Core::ICore::settings();
+  settings->beginGroup( Constants::CORE_SETTINGS_GROUP );
+  settings->beginGroup( Constants::CORE_SETTINGS_OP_GROUP );
+  colWord    = settings->value( Constants::SETTINGS_OUTPUT_PANE_COL_WORD, colWord ).toInt();
+  colLiteral = settings->value( Constants::SETTINGS_OUTPUT_PANE_COL_LITERAL, colLiteral ).toInt();
+  colLine    = settings->value( Constants::SETTINGS_OUTPUT_PANE_COL_LINE, colLine ).toInt();
+  colColumn  = settings->value( Constants::SETTINGS_OUTPUT_PANE_COL_COLUMN, colColumn ).toInt();
   settings->endGroup(); /* CORE_SETTINGS_OP_GROUP */
   settings->endGroup(); /* CORE_SETTINGS_GROUP */
 
@@ -282,13 +275,13 @@ void OutputPane::loadColumnSizes()
 void OutputPane::saveColumnSizes()
 {
   /* Save the table sizes to the settings file. */
-  QSettings* settings = Core::ICore::settings();
-  settings->beginGroup( QLatin1String( Constants::CORE_SETTINGS_GROUP ) );
-  settings->beginGroup( QLatin1String( Constants::CORE_SETTINGS_OP_GROUP ) );
-  settings->setValue( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_WORD ),    d->treeView->columnWidth( Constants::MISTAKE_COLUMN_WORD ) );
-  settings->setValue( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_LITERAL ), d->treeView->columnWidth( Constants::MISTAKE_COLUMN_LITERAL ) );
-  settings->setValue( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_LINE ),    d->treeView->columnWidth( Constants::MISTAKE_COLUMN_LINE ) );
-  settings->setValue( QLatin1String( Constants::SETTINGS_OUTPUT_PANE_COL_COLUMN ),  d->treeView->columnWidth( Constants::MISTAKE_COLUMN_COLUMN ) );
+  Utils::QtcSettings* settings = Core::ICore::settings();
+  settings->beginGroup( Constants::CORE_SETTINGS_GROUP );
+  settings->beginGroup( Constants::CORE_SETTINGS_OP_GROUP );
+  settings->setValue( Constants::SETTINGS_OUTPUT_PANE_COL_WORD,    d->treeView->columnWidth( Constants::MISTAKE_COLUMN_WORD ) );
+  settings->setValue( Constants::SETTINGS_OUTPUT_PANE_COL_LITERAL, d->treeView->columnWidth( Constants::MISTAKE_COLUMN_LITERAL ) );
+  settings->setValue( Constants::SETTINGS_OUTPUT_PANE_COL_LINE,    d->treeView->columnWidth( Constants::MISTAKE_COLUMN_LINE ) );
+  settings->setValue( Constants::SETTINGS_OUTPUT_PANE_COL_COLUMN,  d->treeView->columnWidth( Constants::MISTAKE_COLUMN_COLUMN ) );
   settings->endGroup(); /* CORE_SETTINGS_OP_GROUP */
   settings->endGroup(); /* CORE_SETTINGS_GROUP */
   settings->sync();

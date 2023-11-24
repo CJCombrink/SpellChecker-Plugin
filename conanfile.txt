@@ -1,0 +1,9 @@
+[requires]
+hunspell/[^1.7]
+
+[generators]
+CMakeDeps
+CMakeToolchain
+
+[layout]
+cmake_layout

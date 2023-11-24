@@ -11,7 +11,7 @@ on: [push]
 
 env:
   QT_VERSION: "6.4.2"
-  QT_CREATOR_VERSION: "11.0.0"
+  QT_CREATOR_VERSION: "12.0.0"
   QT_MIRRORS: download.qt.io;mirrors.ocf.berkeley.edu/qt;ftp.fau.de/qtproject;mirror.bit.edu.cn/qtproject
 
 # The Jobs
@@ -84,8 +84,7 @@ jobs:
               qt_arch: "win64_msvc2019_64",
               qtc_platform: "windows_x64",
               environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
-              is_msvc: true,
-              vcpkg_triplet: x64-windows-release
+              is_msvc: true
             }
           - {
               name: "linux",
@@ -93,8 +92,7 @@ jobs:
               sys: "linux",
               arch: "x64",
               qt_arch: "",
-              qtc_platform: "linux_x64",
-              vcpkg_triplet: x64-linux-release
+              qtc_platform: "linux_x64"
             }
           - {
               name: "macos",
@@ -102,8 +100,7 @@ jobs:
               sys: "osx",
               arch: "x64",
               qt_arch: "",
-              qtc_platform: "mac_x64",
-              vcpkg_triplet: x64-osx-release
+              qtc_platform: "mac_x64"
             }
       fail-fast: false
 
@@ -123,16 +120,10 @@ jobs:
             "macOS"   { brew update; brew install automake autoconf ninja }
           }
 
-      # Install vcpkg and Hunspell for the correct compiler and OS.
-      - name: Vcpkg - Hunspell
-        uses: johnwason/vcpkg-action@v5
-        id: vcpkg
-        with:
-          pkgs: hunspell
-          triplet: ${{ matrix.config.vcpkg_triplet }}
-          cache-key: ${{ matrix.config.os }}
-          revision: master
-          token: ${{ github.token }}
+      # Install Conan
+      - name: Install Conan
+        id: conan
+        uses: turtlebrowser/get-conan@main
 
       - name: Download Qt
         id: qt
@@ -223,6 +214,8 @@ jobs:
       - name: Build Plugin
         shell: pwsh
         run: |
+          ${env:CMAKE_PRESET} = "conan-release"
+
           switch ("${{runner.os}}")
           {
               "Windows" {
@@ -234,6 +227,7 @@ jobs:
                   Write-Output "  <-> VS Install Path: ${VS_INST_PATH}"
                   Import-Module ${VS_INST_PATH}/Common7/Tools/Microsoft.VisualStudio.DevShell.dll
                   Enter-VsDevShell -VsInstallPath ${VS_INST_PATH} -SkipAutomaticLocation -DevCmdArguments '-arch=${{matrix.config.arch}} -no_logo'
+                  ${env:CMAKE_PRESET} = "conan-default"
               }
               "macOS" {
                   # From the build.py script: on macOS the prefix path must be inside the app bundle...
@@ -241,15 +235,16 @@ jobs:
               }
           }
 
-          New-Item -Path "." -Name "build-plugin" -ItemType "directory"
-          Set-Location -Path "build-plugin"
-          cmake -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release `
+          Set-Location -Path "SpellChecker-Plugin"
+
+          conan profile detect
+          conan config install .conan
+          conan install . -pr cpp20 --build=missing
+
+          cmake --preset "${env:CMAKE_PRESET}" `
             -DCMAKE_PREFIX_PATH="${{ steps.qt.outputs.qt_dir }};${{ steps.qt_creator.outputs.qtc_dir }}${prefix_extra}" `
-            -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
-            -DVCPKG_TARGET_TRIPLET=${{ matrix.config.vcpkg_triplet }} -DVCPKG_MANIFEST_MODE=OFF `
-            ../SpellChecker-Plugin/
-          cmake --build .
+
+          cmake --build --preset conan-release
 
       - name: Collect Binaries
         shell: pwsh
@@ -261,21 +256,21 @@ jobs:
           {
               "Windows" {
                 ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/lib/qtcreator/plugins"
-                ${PLUGIN_DIR_BIN} = "${PLUGIN_DIR_BASE}/bin/"
                 New-Item -ItemType Directory "${PLUGIN_DIR_OUT}" -Force
-                New-Item -ItemType Directory "${PLUGIN_DIR_BIN}" -Force
-                Copy-Item -Path "build-plugin/lib/qtcreator/plugins/SpellChecker.dll" -Destination "${PLUGIN_DIR_OUT}/"
-                # TODO: Don,t hard code the version here
-                Copy-Item -Path "build-plugin/lib/qtcreator/plugins/hunspell-1.7-0.dll" -Destination "${PLUGIN_DIR_BIN}/"
+                ${PLUGIN_OBJ} = Get-ChildItem -Path . -Filter SpellChecker.dll -Recurse -ErrorAction SilentlyContinue -Force | %{$_.FullName}
+                Write-Output "PLUGIN_OBJ: ${PLUGIN_OBJ}"
+                Copy-Item -Path "${PLUGIN_OBJ}" -Destination "${PLUGIN_DIR_OUT}/"
                 Push-Location ${PLUGIN_DIR_BASE}
                 ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.zip"
-                7z a "${env:PLUGIN_ARCHIVE_NAME}" bin lib
+                7z a "${env:PLUGIN_ARCHIVE_NAME}" lib
                 Pop-Location
               }
               "Linux" {
                 ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/lib/qtcreator/plugins"
                 New-Item -ItemType Directory "${PLUGIN_DIR_OUT}" -Force
-                Copy-Item -Path "build-plugin/lib/qtcreator/plugins/libSpellChecker.so" -Destination "${PLUGIN_DIR_OUT}/"
+                ${PLUGIN_OBJ} = Get-ChildItem -Path . -Filter libSpellChecker.so -Recurse -ErrorAction SilentlyContinue -Force | %{$_.FullName}
+                Write-Output "PLUGIN_OBJ: ${PLUGIN_OBJ}"
+                Copy-Item -Path "${PLUGIN_OBJ}" -Destination "${PLUGIN_DIR_OUT}/"
                 Push-Location ${PLUGIN_DIR_BASE}
                 ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.tar.gz"
                 7z a -ttar "${PLUGIN_ARCHIVE}.tar" lib
@@ -285,7 +280,9 @@ jobs:
               "macOS" {
                 ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/bin/Qt Creator.app/Contents/PlugIns"
                 New-Item -Path "${PLUGIN_DIR_OUT}" -ItemType Directory -Force
-                Copy-Item -Path "build-plugin/Qt Creator.app/Contents/PlugIns/libSpellChecker.dylib" -Destination "${PLUGIN_DIR_OUT}/"
+                ${PLUGIN_OBJ} = Get-ChildItem -Path . -Filter libSpellChecker.dylib -Recurse -ErrorAction SilentlyContinue -Force | %{$_.FullName}
+                Write-Output "PLUGIN_OBJ: ${PLUGIN_OBJ}"
+                Copy-Item -Path "${PLUGIN_OBJ}" -Destination "${PLUGIN_DIR_OUT}/"
                 Get-ChildItem "${PLUGIN_DIR_OUT}"
                 Push-Location ${PLUGIN_DIR_BASE}
                 ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.tar.gz"

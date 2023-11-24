@@ -1,32 +1,32 @@
 {
-    \"Name\" : \"SpellChecker\",
-    \"Version\" : \"3.4.0\",
-    \"CompatVersion\" : \"3.4.0\",
-    \"Vendor\" : \"Carel Combrink\",
-    \"Copyright\" : \"(C) 2015 - 2022 Carel Combrink\",
-    \"License\" : [ \"GNU Lesser General Public License Usage\",
-                  \"\",
-                  \"This plugin may be used under the terms of the GNU Lesser General Public License version 2.1 or version 3 as published by the Free Software Foundation.  Please review the following information to ensure the GNU Lesser General Public License requirements will be met: https://www.gnu.org/licenses/lgpl.html and http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.\"
+    "Name" : "SpellChecker",
+    "Version" : "3.5.0",
+    "CompatVersion" : "3.5.0",
+    "Vendor" : "Carel Combrink",
+    "Copyright" : "(C) 2015 - 2022 Carel Combrink",
+    "License" : [ "GNU Lesser General Public License Usage",
+                  "",
+                  "This plugin may be used under the terms of the GNU Lesser General Public License version 2.1 or version 3 as published by the Free Software Foundation.  Please review the following information to ensure the GNU Lesser General Public License requirements will be met: https://www.gnu.org/licenses/lgpl.html and http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html."
     ],
-    \"Description\" : [ \"Spellcheck comments in source files.\",
-                      \"An Output Pane, Right Click context menu and a Navigation Widget is added to QtCreator to interact with the results from this plugin.\"
+    "Description" : [ "Spellcheck comments in source files.",
+                      "An Output Pane, Right Click context menu and a Navigation Widget is added to QtCreator to interact with the results from this plugin."
     ],
-    \"Url\" : \"https://github.com/CJCombrink/SpellChecker-Plugin\",
-    $$dependencyList,
+    "Url" : "https://github.com/CJCombrink/SpellChecker-Plugin",
+    ${IDE_PLUGIN_DEPENDENCIES},
 
-    \"Mimetypes\" : [
-        \"<?xml version=\'1.0\' encoding=\'UTF-8\'?>\",
-        \"<mime-info xmlns=\'http://www.freedesktop.org/standards/shared-mime-info\'>\",
-        \"    <mime-type type=\'text/x-c++dox\'>\",
-        \"        <sub-class-of type=\'text/x-c++hdr\'/>\",
-        \"        <comment>Doxygen Files</comment>\",
-        \"        <glob pattern=\'*.dox\'/>\",
-        \"        <glob pattern=\'*.doxy\'/>\",
-        \"        <magic priority=\'50\'>\",
-        \"              <match type=\'string\' offset=\'0\' value=\'/*!\'/>\",
-        \"              <match type=\'string\' offset=\'0\' value=\'/**\'/>\",
-        \"        </magic>\",
-        \"    </mime-type>\",
-        \"</mime-info>\"
+    "Mimetypes" : [
+        "<?xml version=\'1.0\' encoding=\'UTF-8\'?>",
+        "<mime-info xmlns=\'http://www.freedesktop.org/standards/shared-mime-info\'>",
+        "    <mime-type type=\'text/x-c++dox\'>",
+        "        <sub-class-of type=\'text/x-c++hdr\'/>",
+        "        <comment>Doxygen Files</comment>",
+        "        <glob pattern=\'*.dox\'/>",
+        "        <glob pattern=\'*.doxy\'/>",
+        "        <magic priority=\'50\'>",
+        "              <match type=\'string\' offset=\'0\' value=\'/*!\'/>",
+        "              <match type=\'string\' offset=\'0\' value=\'/**\'/>",
+        "        </magic>",
+        "    </mime-type>",
+        "</mime-info>"
     ]
 }

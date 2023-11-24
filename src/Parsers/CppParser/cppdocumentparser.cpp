@@ -41,8 +41,8 @@
 #include <texteditor/texteditor.h>
 #include <utils/algorithm.h>
 #include <utils/mimeutils.h>
-#include <utils/runextensions.h>
 #include <utils/qtcassert.h>
+#include <utils/async.h>
 
 #include <QApplication>
 #include <QFutureWatcher>
@@ -678,10 +678,10 @@ void CppDocumentParser::parseCppDocument( CPlusPlus::Document::Ptr docPtr )
    * soon as possible and it does not need to get queued along with all other
    * futures added to the global thread pool. */
   if( fileName == d->currentEditorFileName ) {
-    QFuture<ResultType> future = Utils::runAsync( QThread::HighPriority, &CppDocumentProcessor::process, parser );
+    QFuture<ResultType> future = Utils::asyncRun( QThread::HighPriority, &CppDocumentProcessor::process, parser );
     watcher->setFuture( future );
   } else {
-    QFuture<ResultType> future = Utils::runAsync( QThreadPool::globalInstance(), QThread::NormalPriority, &CppDocumentProcessor::process, parser );
+    QFuture<ResultType> future = Utils::asyncRun( QThreadPool::globalInstance(), QThread::NormalPriority, &CppDocumentProcessor::process, parser );
     watcher->setFuture( future );
   }
 }
