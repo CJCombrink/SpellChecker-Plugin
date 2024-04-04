@@ -1,7 +1,7 @@
 {
     "Name" : "SpellChecker",
-    "Version" : "3.7.0",
-    "CompatVersion" : "3.7.0",
+    "Version" : "3.6.0",
+    "CompatVersion" : "3.6.0",
     "Vendor" : "Carel Combrink",
     "Copyright" : "(C) 2015 - 2024 Carel Combrink",
     "License" : [ "GNU Lesser General Public License Usage",
