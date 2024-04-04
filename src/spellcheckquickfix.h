@@ -33,7 +33,7 @@ class SpellCheckCppQuickFixFactory
   : public CppEditor::CppQuickFixFactory
 {
 public:
-  void match( const CppEditor::Internal::CppQuickFixInterface& interface, TextEditor::QuickFixOperations& result ) Q_DECL_OVERRIDE;
+  void doMatch( const CppEditor::Internal::CppQuickFixInterface& interface, TextEditor::QuickFixOperations& result ) override;
 };
 
 } // namespace SpellChecker

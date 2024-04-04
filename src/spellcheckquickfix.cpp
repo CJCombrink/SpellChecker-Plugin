@@ -94,7 +94,7 @@ public:
 
 } // namespace Internal
 
-void SpellCheckCppQuickFixFactory::match( const CppEditor::Internal::CppQuickFixInterface& interface, TextEditor::QuickFixOperations& result )
+void SpellCheckCppQuickFixFactory::doMatch( const CppEditor::Internal::CppQuickFixInterface& interface, TextEditor::QuickFixOperations& result )
 {
   Q_UNUSED( interface )
 
