@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <cppeditor/cppquickfix.h>
+#include <cppeditor/quickfixes/cppquickfix.h>
 
 namespace SpellChecker {
 
