@@ -54,10 +54,10 @@
       <string notr="true">QScrollArea { padding: 3px }</string>
      </property>
      <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
+      <enum>QFrame::Shape::NoFrame</enum>
      </property>
      <property name="frameShadow">
-      <enum>QFrame::Sunken</enum>
+      <enum>QFrame::Shadow::Sunken</enum>
      </property>
      <property name="widgetResizable">
       <bool>true</bool>
@@ -68,7 +68,7 @@
         <x>0</x>
         <y>0</y>
         <width>801</width>
-        <height>1638</height>
+        <height>1803</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -106,25 +106,18 @@
          </property>
          <layout class="QFormLayout" name="formLayout_10">
           <property name="fieldGrowthPolicy">
-           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+           <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
           </property>
           <property name="verticalSpacing">
            <number>0</number>
           </property>
-          <item row="0" column="0" colspan="2">
-           <widget class="QRadioButton" name="radioButtonWhatComments">
-            <property name="text">
-             <string>Comments only</string>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="0">
            <spacer name="horizontalSpacer_19">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -148,27 +141,20 @@
              </font>
             </property>
             <property name="text">
-             <string>Only Comments will be checked for spelling mistakes. This includes normal and doxygen comments. Eg: /* Comment to Check */</string>
+             <string>Comments will be checked for spelling mistakes. This includes normal and doxygen comments. Eg: /* Comment to Check */</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="2" column="0" colspan="2">
-           <widget class="QRadioButton" name="radioButtonWhatLiterals">
-            <property name="text">
-             <string>String Literals only</string>
-            </property>
-           </widget>
-          </item>
           <item row="3" column="0">
            <spacer name="horizontalSpacer_20">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -192,27 +178,20 @@
              </font>
             </property>
             <property name="text">
-             <string>Only String Literals will be checked for spelling mistakes. A String Literal is a string inside inverted commas. Eg: &quot;String to Check&quot;.</string>
+             <string>String Literals will be checked for spelling mistakes. A String Literal is a string inside inverted commas. Eg: &quot;String to Check&quot;.</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="4" column="0" colspan="2">
-           <widget class="QRadioButton" name="radioButtonWhatBoth">
-            <property name="text">
-             <string>Comments and String Literals</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
+          <item row="4" column="0">
            <spacer name="horizontalSpacer_21">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -222,24 +201,17 @@
             </property>
            </spacer>
           </item>
-          <item row="5" column="1">
-           <widget class="QLabel" name="label_21">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="font">
-             <font>
-              <italic>true</italic>
-             </font>
-            </property>
+          <item row="0" column="0" colspan="2">
+           <widget class="QCheckBox" name="checkBoxWhatComments">
             <property name="text">
-             <string>Comments and String Literals will be checked. </string>
+             <string>Comments</string>
             </property>
-            <property name="wordWrap">
-             <bool>true</bool>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QCheckBox" name="checkBoxWhatLiterals">
+            <property name="text">
+             <string>String Literals</string>
             </property>
            </widget>
           </item>
@@ -259,7 +231,7 @@
          </property>
          <layout class="QFormLayout" name="formLayout_11">
           <property name="fieldGrowthPolicy">
-           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+           <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
           </property>
           <property name="verticalSpacing">
            <number>0</number>
@@ -274,10 +246,10 @@
           <item row="1" column="0">
            <spacer name="horizontalSpacer_22">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -318,10 +290,10 @@
           <item row="3" column="0">
            <spacer name="horizontalSpacer_23">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -362,10 +334,10 @@
           <item row="5" column="0">
            <spacer name="horizontalSpacer_24">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -411,7 +383,7 @@
           <string>First Comment</string>
          </property>
          <property name="alignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
          </property>
          <property name="flat">
           <bool>false</bool>
@@ -421,7 +393,7 @@
          </property>
          <layout class="QFormLayout" name="formLayout_12">
           <property name="fieldGrowthPolicy">
-           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+           <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
           </property>
           <property name="verticalSpacing">
            <number>0</number>
@@ -436,10 +408,10 @@
           <item row="1" column="0">
            <spacer name="horizontalSpacer_18">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -487,7 +459,7 @@ A multi-line C++ comment will not behave as expected since all lines are interpr
           <string>Email Addresses</string>
          </property>
          <property name="alignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
          </property>
          <property name="flat">
           <bool>false</bool>
@@ -497,7 +469,7 @@ A multi-line C++ comment will not behave as expected since all lines are interpr
          </property>
          <layout class="QFormLayout" name="formLayout_7">
           <property name="fieldGrowthPolicy">
-           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+           <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
           </property>
           <property name="verticalSpacing">
            <number>0</number>
@@ -512,10 +484,10 @@ A multi-line C++ comment will not behave as expected since all lines are interpr
           <item row="1" column="0">
            <spacer name="horizontalSpacer_17">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -562,7 +534,7 @@ The match pattern used is: %1</string>
           <string>Qt Keywords</string>
          </property>
          <property name="alignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
          </property>
          <property name="flat">
           <bool>false</bool>
@@ -572,7 +544,7 @@ The match pattern used is: %1</string>
          </property>
          <layout class="QFormLayout" name="formLayout">
           <property name="fieldGrowthPolicy">
-           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+           <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
           </property>
           <property name="verticalSpacing">
            <number>0</number>
@@ -587,10 +559,10 @@ The match pattern used is: %1</string>
           <item row="1" column="0">
            <spacer name="horizontalSpacer">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -637,7 +609,7 @@ The match pattern used is: %1</string>
          </property>
          <layout class="QFormLayout" name="formLayout_2">
           <property name="fieldGrowthPolicy">
-           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+           <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
           </property>
           <property name="verticalSpacing">
            <number>0</number>
@@ -673,10 +645,10 @@ The match pattern used is: %1</string>
           <item row="1" column="0">
            <spacer name="horizontalSpacer_2">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -702,7 +674,7 @@ The match pattern used is: %1</string>
          </property>
          <layout class="QFormLayout" name="formLayout_3">
           <property name="fieldGrowthPolicy">
-           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+           <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
           </property>
           <property name="verticalSpacing">
            <number>0</number>
@@ -717,10 +689,10 @@ The match pattern used is: %1</string>
           <item row="1" column="0">
            <spacer name="horizontalSpacer_3">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -761,10 +733,10 @@ The match pattern used is: %1</string>
           <item row="3" column="0">
            <spacer name="horizontalSpacer_4">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -805,10 +777,10 @@ The match pattern used is: %1</string>
           <item row="5" column="0">
            <spacer name="horizontalSpacer_5">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -855,7 +827,7 @@ The match pattern used is: %1</string>
          </property>
          <layout class="QFormLayout" name="formLayout_4">
           <property name="fieldGrowthPolicy">
-           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+           <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
           </property>
           <property name="verticalSpacing">
            <number>0</number>
@@ -870,10 +842,10 @@ The match pattern used is: %1</string>
           <item row="1" column="0">
            <spacer name="horizontalSpacer_6">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -914,10 +886,10 @@ The match pattern used is: %1</string>
           <item row="3" column="0">
            <spacer name="horizontalSpacer_7">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -958,10 +930,10 @@ The match pattern used is: %1</string>
           <item row="6" column="0">
            <spacer name="horizontalSpacer_8">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -1008,7 +980,7 @@ The match pattern used is: %1</string>
          </property>
          <layout class="QFormLayout" name="formLayout_5">
           <property name="fieldGrowthPolicy">
-           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+           <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
           </property>
           <property name="verticalSpacing">
            <number>0</number>
@@ -1023,10 +995,10 @@ The match pattern used is: %1</string>
           <item row="1" column="0">
            <spacer name="horizontalSpacer_9">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -1067,10 +1039,10 @@ The match pattern used is: %1</string>
           <item row="3" column="0">
            <spacer name="horizontalSpacer_10">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -1111,10 +1083,10 @@ The match pattern used is: %1</string>
           <item row="5" column="0">
            <spacer name="horizontalSpacer_11">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -1161,7 +1133,7 @@ The match pattern used is: %1</string>
          </property>
          <layout class="QFormLayout" name="formLayout_6">
           <property name="fieldGrowthPolicy">
-           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+           <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
           </property>
           <property name="verticalSpacing">
            <number>0</number>
@@ -1176,10 +1148,10 @@ The match pattern used is: %1</string>
           <item row="1" column="0">
            <spacer name="horizontalSpacer_12">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -1226,7 +1198,7 @@ The match pattern used is: %1</string>
          </property>
          <layout class="QFormLayout" name="formLayout_8">
           <property name="fieldGrowthPolicy">
-           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+           <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
           </property>
           <property name="verticalSpacing">
            <number>0</number>
@@ -1241,10 +1213,10 @@ The match pattern used is: %1</string>
           <item row="1" column="0">
            <spacer name="horizontalSpacer_14">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -1285,10 +1257,10 @@ The match pattern used is: %1</string>
           <item row="3" column="0">
            <spacer name="horizontalSpacer_15">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -1329,10 +1301,10 @@ The match pattern used is: %1</string>
           <item row="6" column="0">
            <spacer name="horizontalSpacer_16">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -1379,7 +1351,7 @@ The match pattern used is: %1</string>
          </property>
          <layout class="QFormLayout" name="formLayout_9">
           <property name="fieldGrowthPolicy">
-           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+           <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
           </property>
           <property name="verticalSpacing">
            <number>0</number>
@@ -1394,10 +1366,10 @@ The match pattern used is: %1</string>
           <item row="1" column="0">
            <spacer name="horizontalSpacer_13">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
+             <enum>QSizePolicy::Policy::Fixed</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -1440,9 +1412,8 @@ The match pattern used is: %1</string>
  </widget>
  <tabstops>
   <tabstop>checkBoxDescriptions</tabstop>
-  <tabstop>radioButtonWhatComments</tabstop>
-  <tabstop>radioButtonWhatLiterals</tabstop>
-  <tabstop>radioButtonWhatBoth</tabstop>
+  <tabstop>checkBoxWhatComments</tabstop>
+  <tabstop>checkBoxWhatLiterals</tabstop>
   <tabstop>scrollArea</tabstop>
   <tabstop>radioButtonCommentsC</tabstop>
   <tabstop>radioButtonCommentsCpp</tabstop>
@@ -1774,70 +1745,6 @@ The match pattern used is: %1</string>
   <connection>
    <sender>checkBoxDescriptions</sender>
    <signal>toggled(bool)</signal>
-   <receiver>label_21</receiver>
-   <slot>setHidden(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>281</x>
-     <y>24</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>325</x>
-     <y>146</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>radioButtonWhatComments</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>groupBox_11</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>324</x>
-     <y>72</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>321</x>
-     <y>213</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>radioButtonWhatLiterals</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>groupBox_11</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>424</x>
-     <y>103</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>386</x>
-     <y>205</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>radioButtonWhatBoth</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>groupBox_11</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>431</x>
-     <y>133</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>410</x>
-     <y>206</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>checkBoxDescriptions</sender>
-   <signal>toggled(bool)</signal>
    <receiver>label_23</receiver>
    <slot>setHidden(bool)</slot>
    <hints>
@@ -1896,54 +1803,6 @@ The match pattern used is: %1</string>
     <hint type="destinationlabel">
      <x>198</x>
      <y>356</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>radioButtonWhatBoth</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>groupBox_13</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>152</x>
-     <y>128</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>120</x>
-     <y>298</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>radioButtonWhatLiterals</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>groupBox_13</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>143</x>
-     <y>95</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>156</x>
-     <y>313</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>radioButtonWhatComments</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>groupBox_13</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>92</x>
-     <y>68</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>96</x>
-     <y>298</y>
     </hint>
    </hints>
   </connection>

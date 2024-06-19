@@ -43,7 +43,6 @@ public:
     Tokens_NONE         = 0,        /*!< Invalid option needed for QFLAGS. */
     CheckComments       = 1 << 0,   /*!< Check Comments. */
     CheckStringLiterals = 1 << 1,   /*!< Check String Literals */
-    CheckBoth           = CheckComments | CheckStringLiterals
   };
   Q_DECLARE_FLAGS( WhatToCheckOptions, WhatToCheck )
 

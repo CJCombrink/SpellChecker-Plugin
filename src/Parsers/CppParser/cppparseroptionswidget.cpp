@@ -37,12 +37,10 @@ CppParserOptionsWidget::CppParserOptionsWidget( const CppParserSettings* const s
   ui->labelDescriptionEmail->setText( ui->labelDescriptionEmail->text().arg( QLatin1String( SpellChecker::Parsers::CppParser::Constants::EMAIL_ADDRESS_REGEXP_PATTERN ) ) );
   ui->labelDescriptionWebsites->setText( ui->labelDescriptionWebsites->text().arg( QLatin1String( SpellChecker::Parsers::CppParser::Constants::WEBSITE_ADDRESS_REGEXP_PATTERN ) ) );
   /* Set up the options for What to Check */
-  ui->radioButtonWhatComments->setProperty( ENUM_VAL_PROPERTY, CppParserSettings::CheckComments );
-  ui->radioButtonWhatLiterals->setProperty( ENUM_VAL_PROPERTY, CppParserSettings::CheckStringLiterals );
-  ui->radioButtonWhatBoth->setProperty( ENUM_VAL_PROPERTY, CppParserSettings::CheckBoth );
-  connect( ui->radioButtonWhatComments, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonWhatToggled );
-  connect( ui->radioButtonWhatLiterals, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonWhatToggled );
-  connect( ui->radioButtonWhatBoth,     &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonWhatToggled );
+  ui->checkBoxWhatComments->setProperty( ENUM_VAL_PROPERTY, CppParserSettings::CheckComments );
+  ui->checkBoxWhatLiterals->setProperty( ENUM_VAL_PROPERTY, CppParserSettings::CheckStringLiterals );
+  connect( ui->checkBoxWhatComments, &QAbstractButton::toggled, this, &CppParserOptionsWidget::checkBoxWhatToggled );
+  connect( ui->checkBoxWhatLiterals, &QAbstractButton::toggled, this, &CppParserOptionsWidget::checkBoxWhatToggled );
   /* Set up the options for Comments to Check */
   ui->radioButtonCommentsC->setProperty( ENUM_VAL_PROPERTY, CppParserSettings::CommentsC );
   ui->radioButtonCommentsCpp->setProperty( ENUM_VAL_PROPERTY, CppParserSettings::CommentsCpp );
@@ -101,11 +99,9 @@ const CppParserSettings& CppParserOptionsWidget::settings()
 }
 // --------------------------------------------------
 
-void CppParserOptionsWidget::radioButtonWhatToggled()
+void CppParserOptionsWidget::checkBoxWhatToggled()
 {
-  if( static_cast<QRadioButton*>( sender() )->isChecked() == true ) {
-    m_settings.whatToCheck = static_cast<CppParserSettings::WhatToCheckOptions>( sender()->property( ENUM_VAL_PROPERTY ).toInt() );
-  }
+  m_settings.whatToCheck.setFlag( static_cast<CppParserSettings::WhatToCheck>( sender()->property( ENUM_VAL_PROPERTY ).toInt() ), static_cast<QAbstractButton *>( sender() )->isChecked() );
 }
 // --------------------------------------------------
 
@@ -154,9 +150,9 @@ void CppParserOptionsWidget::updateWithSettings( const CppParserSettings* const 
   ui->checkBoxRemoveEmailAddresses->setChecked( settings->removeEmailAddresses );
   ui->checkBoxIgnoreKeywords->setChecked( !settings->checkQtKeywords );
   ui->checkBoxIgnoreCaps->setChecked( !settings->checkAllCapsWords );
-  QRadioButton* whatButtons[] = { nullptr, ui->radioButtonWhatComments, ui->radioButtonWhatLiterals, ui->radioButtonWhatBoth };
-  whatButtons[settings->whatToCheck]->setChecked( true );
-  QRadioButton* commentButtons[] = { nullptr, ui->radioButtonCommentsC, ui->radioButtonCommentsCpp, ui->radioButtonCommentsBoth };
+  ui->checkBoxWhatComments->setChecked( settings->whatToCheck.testFlag( CppParserSettings::CheckComments ) );
+  ui->checkBoxWhatLiterals->setChecked( settings->whatToCheck.testFlag( CppParserSettings::CheckStringLiterals ) );
+  QRadioButton *commentButtons[] = { nullptr, ui->radioButtonCommentsC, ui->radioButtonCommentsCpp, ui->radioButtonCommentsBoth };
   commentButtons[settings->commentsToCheck]->setChecked( true );
   QRadioButton* numberButtons[] = { ui->radioButtonNumbersRemove, ui->radioButtonNumbersSplit, ui->radioButtonNumbersLeave };
   numberButtons[settings->wordsWithNumberOption]->setChecked( true );
