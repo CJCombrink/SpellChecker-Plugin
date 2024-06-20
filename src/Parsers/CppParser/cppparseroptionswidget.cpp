@@ -39,8 +39,10 @@ CppParserOptionsWidget::CppParserOptionsWidget( const CppParserSettings* const s
   /* Set up the options for What to Check */
   ui->checkBoxWhatComments->setProperty( ENUM_VAL_PROPERTY, CppParserSettings::CheckComments );
   ui->checkBoxWhatLiterals->setProperty( ENUM_VAL_PROPERTY, CppParserSettings::CheckStringLiterals );
+  ui->checkBoxWhatIdentifiers->setProperty( ENUM_VAL_PROPERTY, CppParserSettings::CheckIdentifiers );
   connect( ui->checkBoxWhatComments, &QAbstractButton::toggled, this, &CppParserOptionsWidget::checkBoxWhatToggled );
   connect( ui->checkBoxWhatLiterals, &QAbstractButton::toggled, this, &CppParserOptionsWidget::checkBoxWhatToggled );
+  connect( ui->checkBoxWhatIdentifiers, &QAbstractButton::toggled, this, &CppParserOptionsWidget::checkBoxWhatToggled );
   /* Set up the options for Comments to Check */
   ui->radioButtonCommentsC->setProperty( ENUM_VAL_PROPERTY, CppParserSettings::CommentsC );
   ui->radioButtonCommentsCpp->setProperty( ENUM_VAL_PROPERTY, CppParserSettings::CommentsCpp );
@@ -152,6 +154,7 @@ void CppParserOptionsWidget::updateWithSettings( const CppParserSettings* const 
   ui->checkBoxIgnoreCaps->setChecked( !settings->checkAllCapsWords );
   ui->checkBoxWhatComments->setChecked( settings->whatToCheck.testFlag( CppParserSettings::CheckComments ) );
   ui->checkBoxWhatLiterals->setChecked( settings->whatToCheck.testFlag( CppParserSettings::CheckStringLiterals ) );
+  ui->checkBoxWhatIdentifiers->setChecked( settings->whatToCheck.testFlag( CppParserSettings::CheckIdentifiers ) );
   QRadioButton *commentButtons[] = { nullptr, ui->radioButtonCommentsC, ui->radioButtonCommentsCpp, ui->radioButtonCommentsBoth };
   commentButtons[settings->commentsToCheck]->setChecked( true );
   QRadioButton* numberButtons[] = { ui->radioButtonNumbersRemove, ui->radioButtonNumbersSplit, ui->radioButtonNumbersLeave };

@@ -398,7 +398,6 @@ CppDocumentParser::CppDocumentParser( QObject* parent )
       modelManager->disconnect( this );
       SpellCheckerCore::instance()->disconnect( this );
       this->disconnect( SpellCheckerCore::instance() ); }, Qt::DirectConnection );
-
   Core::Context context( CppEditor::Constants::CPPEDITOR_ID );
   Core::ActionContainer* cppEditorContextMenu = Core::ActionManager::createMenu( CppEditor::Constants::M_CONTEXT );
   Core::ActionContainer* contextMenu          = Core::ActionManager::createMenu( Constants::CONTEXT_MENU_ID );

@@ -68,7 +68,7 @@
         <x>0</x>
         <y>0</y>
         <width>801</width>
-        <height>1803</height>
+        <height>1843</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -111,6 +111,13 @@
           <property name="verticalSpacing">
            <number>0</number>
           </property>
+          <item row="0" column="0" colspan="2">
+           <widget class="QCheckBox" name="checkBoxWhatComments">
+            <property name="text">
+             <string>Comments</string>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="0">
            <spacer name="horizontalSpacer_19">
             <property name="orientation">
@@ -145,6 +152,13 @@
             </property>
             <property name="wordWrap">
              <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QCheckBox" name="checkBoxWhatLiterals">
+            <property name="text">
+             <string>String Literals</string>
             </property>
            </widget>
           </item>
@@ -201,19 +215,46 @@
             </property>
            </spacer>
           </item>
-          <item row="0" column="0" colspan="2">
-           <widget class="QCheckBox" name="checkBoxWhatComments">
+          <item row="5" column="0" colspan="2">
+           <widget class="QCheckBox" name="checkBoxWhatIdentifiers">
             <property name="text">
-             <string>Comments</string>
+             <string>Identifiers</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="0" colspan="2">
-           <widget class="QCheckBox" name="checkBoxWhatLiterals">
+          <item row="7" column="1">
+           <widget class="QLabel" name="label">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <italic>true</italic>
+             </font>
+            </property>
             <property name="text">
-             <string>String Literals</string>
+             <string>Identifiers, such as variable, type, and function names.</string>
             </property>
            </widget>
+          </item>
+          <item row="7" column="0">
+           <spacer name="horizontalSpacer_25">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Policy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </widget>
