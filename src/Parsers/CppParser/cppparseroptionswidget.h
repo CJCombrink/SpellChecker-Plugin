@@ -45,7 +45,7 @@ public:
   const CppParserSettings& settings();
 
 public slots:
-  void radioButtonWhatToggled();
+  void checkBoxWhatToggled();
   void radioButtonCommentsToggled();
   void radioButtonNumbersToggled();
   void radioButtonUnderscoresToggled();

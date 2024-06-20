@@ -56,7 +56,8 @@ struct WordTokens
   enum class Type {
     Comment = 0,
     Doxygen,
-    Literal
+    Literal,
+    Identifier,
   };
 
   HashWords::key_type hash;
