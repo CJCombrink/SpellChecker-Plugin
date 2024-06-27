@@ -38,6 +38,7 @@
 #include <QRegularExpression>
 
 #include <memory>
+#include <string>
 
 namespace {
 /*! \brief Wrapper around Hunspell object */
@@ -77,13 +78,11 @@ public:
     QStringList suggestionsList;
     QMutexLocker lock( &d_mutex );
     HunspellPtr  hunspell = d_hunspell;
-    char** suggestions;
-    int numSuggestions = d_hunspell->suggest( &suggestions, encode( word ) );
-    suggestionsList.reserve( numSuggestions );
-    for( int i = 0; i < numSuggestions; ++i ) {
-      suggestionsList << decode( suggestions[i] );
+    std::vector<std::string> suggestions = d_hunspell->suggest( encode( word ) );
+    suggestionsList.reserve( suggestions.size() );
+    for ( const std::string& s : suggestions ) {
+      suggestionsList << decode( s );
     }
-    hunspell->free_list( &suggestions, numSuggestions );
     return suggestionsList;
   }
   /*! \brief Add the given word to the Hunspell object.
@@ -96,7 +95,7 @@ public:
   {
     QMutexLocker lock( &d_mutex );
     HunspellPtr  hunspell = d_hunspell;
-    d_hunspell->add( encode( word ).constData() );
+    d_hunspell->add( encode( word ) );
   }
 
 private:
@@ -109,12 +108,12 @@ private:
    *
    * If the codec is not set or valid the word is converted to
    * its Latin-1 representation. */
-  QByteArray encode( const QString& word ) const
+  std::string encode( const QString& word ) const
   {
     if( d_codec != nullptr ) {
-      return d_codec->fromUnicode( word );
+      return d_codec->fromUnicode( word ).toStdString();
     }
-    return word.toLatin1();
+    return word.toLatin1().toStdString();
   }
 
   /*! \brief Decode a word from the encoding of the selected dictionary.
@@ -125,10 +124,10 @@ private:
    *
    * If the codec is not set or invalid the word is converted to
    * its Latin-1 representation. */
-  QString decode( const QByteArray& word ) const
+  QString decode( const std::string& word ) const
   {
     if( d_codec != nullptr ) {
-      return d_codec->toUnicode( word );
+      return d_codec->toUnicode( word.c_str(), word.size() );
     }
     return QLatin1String( word );
   }
