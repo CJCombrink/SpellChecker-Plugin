@@ -40,10 +40,10 @@ public:
   ~CppParserSettings();
 
   enum WhatToCheck {
-    Tokens_NONE         = 0,        /*!< Invalid option needed for QFLAGS. */
-    CheckComments       = 1 << 0,   /*!< Check Comments. */
-    CheckStringLiterals = 1 << 1,   /*!< Check String Literals */
-    CheckBoth           = CheckComments | CheckStringLiterals
+    Tokens_NONE         = 0,      /*!< Invalid option needed for QFLAGS. */
+    CheckComments       = 1 << 0, /*!< Check Comments. */
+    CheckStringLiterals = 1 << 1, /*!< Check String Literals */
+    CheckIdentifiers    = 1 << 2, /*!< Check Identifiers */
   };
   Q_DECLARE_FLAGS( WhatToCheckOptions, WhatToCheck )
 
