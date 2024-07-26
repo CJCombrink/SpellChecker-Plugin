@@ -52,6 +52,7 @@ const char SETTINGS_OUTPUT_PANE_COL_WORD[]    = "ColWord";
 const char SETTINGS_OUTPUT_PANE_COL_LITERAL[] = "ColLiteral";
 const char SETTINGS_OUTPUT_PANE_COL_LINE[]    = "ColLine";
 const char SETTINGS_OUTPUT_PANE_COL_COLUMN[]  = "ColColumn";
+const char SETTINGS_ERRORS_COLOR[]            = "ErrorsColor";
 
 const char OUTPUT_PANE_TITLE[] = QT_TRANSLATE_NOOP( "SpellChecker::Internal::OutputPane", "Spelling Mistakes" );
 
