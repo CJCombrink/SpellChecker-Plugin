@@ -22,6 +22,7 @@
 
 #include <utils/qtcsettings.h>
 
+#include <QColor>
 #include <QObject>
 
 namespace SpellChecker {
@@ -43,6 +44,7 @@ public:
   bool operator==( const SpellCheckerCoreSettings& other ) const;
 
   QString activeSpellChecker;
+  QColor errorsColor{ Qt::red };
   bool onlyParseCurrentFile;
   bool checkExternalFiles;
   QStringList projectsToIgnore;
