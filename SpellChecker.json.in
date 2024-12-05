@@ -1,8 +1,8 @@
 {
     "Id" : "spellchecker",
     "Name" : "SpellChecker",
-    "Version" : "3.7.0",
-    "CompatVersion" : "3.7.0",
+    "Version" : "3.8.0",
+    "CompatVersion" : "3.8.0",
     "VendorId" : "carel_combrink",
     "Vendor" : "Carel Combrink",
     "Copyright" : "(C) 2015 - 2024 Carel Combrink",
