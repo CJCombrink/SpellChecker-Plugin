@@ -60,7 +60,7 @@ private slots:
     void toolButtonRemoveProjectClicked();
     void listWidgetItemChanged( QListWidgetItem* item );
 
-private:
+  private:
     void updateWithSettings( const SpellCheckerCoreSettings* const settings );
 
     Ui::SpellCheckerCoreOptionsWidget ui;
@@ -96,6 +96,7 @@ SpellCheckerCoreOptionsWidget::SpellCheckerCoreOptionsWidget( SpellCheckerCoreSe
    * is for the toolbar since nowhere else is a normal one needed. */
   ui.toolButtonRemoveProject->setIcon( Utils::Icon( { { ":/utils/images/minus.png"
                                                        , Utils::Theme::PaletteText } }, Utils::Icon::Tint ).icon() );
+  ui.buttonErrorsColor->setAlphaAllowed( false );
 
   const QMap<QString, ISpellChecker*> availableSpellCheckers = SpellCheckerCore::instance()->addedSpellCheckers();
   // todo: change QMap to std::map and use std::views::keys
@@ -129,6 +130,7 @@ SpellCheckerCoreSettings SpellCheckerCoreOptionsWidget::settings()
   settings.checkExternalFiles       = ui.checkBoxCheckExternal->isChecked();
   settings.projectsToIgnore         = m_projectsToIgnore;
   settings.replaceAllFromRightClick = ui.checkBoxReplaceAllRightClick->isChecked();
+  settings.errorsColor              = ui.buttonErrorsColor->color();
   return settings;
 }
 // --------------------------------------------------
@@ -180,6 +182,7 @@ void SpellCheckerCoreOptionsWidget::updateWithSettings( const SpellCheckerCoreSe
   ui.listWidget->clear();
   ui.listWidget->addItems( m_projectsToIgnore );
   ui.checkBoxReplaceAllRightClick->setChecked( settings->replaceAllFromRightClick );
+  ui.buttonErrorsColor->setColor( settings->errorsColor );
 }
 // --------------------------------------------------
 
