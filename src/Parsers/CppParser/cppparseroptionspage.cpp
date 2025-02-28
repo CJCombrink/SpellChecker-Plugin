@@ -31,7 +31,9 @@ CppParserOptionsPage::CppParserOptionsPage( CppParserSettings* settings )
   setId( "SpellChecker::CppDocumentParserSettings" );
   setDisplayName( CppParserOptionsWidget::tr( "C++ Parser" ) );
   setCategory( "SpellChecker" );
-  setDisplayCategory( CppParserOptionsWidget::tr( "Spell Checker" ) );
+  registerCategory("SpellChecker",
+                   CppParserOptionsWidget::tr( "Spell Checker" ),
+                   ":/spellcheckerplugin/images/optionspageicon_solid.png");
 }
 // --------------------------------------------------
 

@@ -269,8 +269,9 @@ SpellChecker::Internal::SpellCheckerCoreOptionsPage::SpellCheckerCoreOptionsPage
   setId( "SpellChecker::CoreSettings" );
   setDisplayName( SpellCheckerCoreOptionsWidget::tr( "SpellChecker" ) );
   setCategory( "SpellChecker" );
-  setDisplayCategory( SpellCheckerCoreOptionsWidget::tr( "Spell Checker" ) );
-  setCategoryIconPath( ":/spellcheckerplugin/images/optionspageicon_solid.png" );
+  registerCategory("SpellChecker::CoreSettings",
+                   SpellCheckerCoreOptionsWidget::tr( "Spell Checker" ),
+                   ":/spellcheckerplugin/images/optionspageicon_solid.png");
   setWidgetCreator([settings, onApply] { return new SpellCheckerCoreOptionsWidget(settings, onApply); });
 }
 // --------------------------------------------------
