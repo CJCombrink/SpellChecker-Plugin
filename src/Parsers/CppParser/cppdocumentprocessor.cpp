@@ -155,6 +155,23 @@ void CppDocumentProcessor::process( CppDocumentProcessor::Promise& promise )
     return;
   }
 
+  if (d->settings.whatToCheck.testFlag(CppParserSettings::CheckIdentifiers)) {
+    /* Parse identifiers (consider merging all the 3 loops, because we now touch each token) */
+    unsigned int tokenCount = d->trUnit->tokenCount();
+    for ( unsigned int tokenIndex = 0; tokenIndex < tokenCount; ++tokenIndex ) {
+      const CPlusPlus::Token &token{ d->trUnit->tokenAt( tokenIndex ) };
+      const CPlusPlus::Identifier *identifier{ token.identifier };
+      if ( identifier ) {
+        wordTokens.push_back( parseToken( token, WordTokens::Type::Identifier ) );
+      }
+    }
+  }
+
+  if (promise.isCanceled() == true) {
+    promise.future().cancel();
+    return;
+  }
+
   /* At this point the DocPtr can be released since it will no longer be
    * Used */
   d->docPtr->releaseSourceAndAST();

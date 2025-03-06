@@ -113,7 +113,7 @@ void CppParserSettings::saveToSetting(Utils::QtcSettings *settings ) const
 
 void CppParserSettings::setDefaults()
 {
-  whatToCheck                   = CheckBoth;
+  whatToCheck                   = { CheckComments | CheckStringLiterals };
   commentsToCheck               = CommentsBoth;
   removeEmailAddresses          = true;
   checkQtKeywords               = false;
