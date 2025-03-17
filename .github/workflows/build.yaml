@@ -296,6 +296,10 @@ jobs:
               "macOS" {
                   # From the build.py script: on macOS the prefix path must be inside the app bundle...
                   ${prefix_extra}=";${{ steps.qt_creator.outputs.qtc_dir }}/Qt Creator.app/Contents/Resources"
+
+                  # Universal macOS Binaries (experimental feature)
+                  # https://docs.conan.io/2/reference/tools/cmake/cmaketoolchain.html#support-for-universal-binaries-in-macos
+                  ${arch_override}="-s=arch=armv8|x86_64"
               }
           }
 
@@ -303,7 +307,7 @@ jobs:
 
           conan profile detect
           conan config install .conan
-          conan install . -pr cpp20 --build=missing
+          conan install . -pr cpp20 --build=missing ${arch_override}
 
           cmake --preset "${env:CMAKE_PRESET}" `
             -DCMAKE_PREFIX_PATH="${{ steps.qt.outputs.qt_dir }};${{ steps.qt_creator.outputs.qtc_dir }}${prefix_extra}" `
