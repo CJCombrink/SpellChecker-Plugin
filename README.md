@@ -24,7 +24,7 @@ I did look a lot at the code in the TODO plugin as a basis for my own implementa
 ## Build with conan
 ```
 # Set up venv
-# Use administrator powe shell
+# Use administrator powershell
 cd C:\Python312  #Or path to your powershell
 python.exe -m venv .venv
 # ps1
