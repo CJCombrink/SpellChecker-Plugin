@@ -25,7 +25,8 @@ I did look a lot at the code in the TODO plugin as a basis for my own implementa
 ```
 # Set up venv
 # Use administrator powershell
-cd C:\Python312  #Or path to your powershell
+# Go to pyhton directory
+cd C:\Python312  
 python.exe -m venv .venv
 # ps1
 # cd <path to script> eg:
@@ -33,8 +34,8 @@ cd C:\Python312\.venv\Scripts
 .\Activate.ps1
 # If you get UnauthorizedAccess then run the following command
 Set-ExecutionPolicy Unrestricted -Scope Process -Force
-# If you got the error then re run .\Activate.ps1
-cd <paht to source of this project> eg:
+# If you got the error then re-run .\Activate.ps1
+cd <path to source of this project> eg:
 cd c:\SpellChecker-Plugin-main
 # You need hunspell already downlowded https://github.com/hunspell/hunspell
 # Setup conan
@@ -45,7 +46,7 @@ conan config install .conan
 # Build
 conan install . -pr cpp20
 python -m pip install cmake
-# We have to set the environment before build rn the following command
+# We have to set the environment before build so run the following command
 $Env:CMAKE_PREFIX_PATH="<Path to qt>;<path to QtCreator>;<path to hunspell source code>;<Path to qt build>" eg:
 $Env:CMAKE_PREFIX_PATH="C:\Qt;C:\Qt\Tools\QtCreator;C:\hunspell-master;C:\Qt\6.8.2\msvc2022_64"
 cmake --preset conan-default
