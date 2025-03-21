@@ -8,387 +8,334 @@ name: Build SpellChecker-Plugin
 
 # Controls when the action will run. Triggers the workflow on any push event.
 on: [push]
-
 env:
-  QT_VERSION: "6.6.2"
-  QT_CREATOR_VERSION: "16.0.0"
-  QT_MIRRORS: download.qt.io;mirrors.ocf.berkeley.edu/qt;ftp.fau.de/qtproject;mirror.bit.edu.cn/qtproject
+  PLUGIN_NAME: SpellChecker-Plugin
+  QT_VERSION: 6.8.2
+  QT_CREATOR_VERSION: 16.0.0
+  MACOS_DEPLOYMENT_TARGET: "11.0"
+  CMAKE_VERSION: "3.29.6"
+  NINJA_VERSION: "1.12.1"
 
-# The Jobs
 jobs:
-  # The release job.
-  # If the github.ref contains /tags/v a release will be set up.
-  # This is done before the builds to simplify the logic to upload the build artifacts to the release.
-  # The release stage a file that contains the URL of where the build artifacts must go.
-  # It is also executed only once, on one agent.
-  release:
-    name: Create release
-    if: contains(github.ref, '/tags/v')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create release
-        if: contains(github.ref, '/tags/v')
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          body: |
-            Release for Qt Creator ${{env.QT_CREATOR_VERSION}}.
-
-            Download the correct file based on operating system and architecture of Qt Creator.
-
-            To deploy into Qt Creator, extract the archive into the root folder of where Qt Creator is installed.
-
-            Please refer to the main page of the project for usage information.
-
-            From version 3.0.0 a more semantic versioning approach will be followed to follow the version of Qt Creator more closely.
-
-            On Windows, make sure to download the correct version for the Qt Creator used, not the architecture of the Operating System.
-            To check this: From Qt Creator, go to "Help" -> "About Qt Creator..."
-
-            NOTE: From Qt Creator version 4.14 only 64 bit binaries are provided for Windows since Qt does not ship a 32 bit version of Qt Creator anymore. If this
-            is a problem please file a bug and I can see if I can provide binaries in the mean time.
-
-            *PS: I have a "Buy me a coffee" account if you want to supporting me, see the main page if interested in contributing something to say thank you for the plugin*.
-
-          draft: false
-          prerelease: false
-
-      - name: Store release url
-        shell: pwsh
-        run: Write-Output "${{ steps.create_release.outputs.upload_url }}" > ./release_upload_url.txt
-
-      - name: Upload release url
-        uses: actions/upload-artifact@v4
-        with:
-          path: ./release_upload_url.txt
-          name: release_upload_url.txt
-
-  # Build the plugin and upload the archives
   build:
-    name: Build ${{ matrix.config.name }}
+    name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
-    env:
-      OS: ${{ matrix.config.name }}
+    outputs:
+        tag: ${{ steps.git.outputs.tag }}
     strategy:
       matrix:
         config:
-          - {
-              name: "win64",
-              os: windows-latest,
-              sys: "windows",
-              arch: "x64",
-              qt_arch: "win64_msvc2019_64",
-              qtc_platform: "windows_x64",
-              environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
-              is_msvc: true
-            }
-          - {
-              name: "linux",
-              os: ubuntu-latest,
-              sys: "linux",
-              arch: "x64",
-              qt_arch: "",
-              qtc_platform: "linux_x64"
-            }
-          - {
-              name: "macos",
-              os: macos-13,
-              sys: "osx",
-              arch: "x64",
-              qt_arch: "",
-              qtc_platform: "mac_x64"
-            }
-      fail-fast: false
-
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE/SpellChecker-Plugin, so your job can access it
-      - uses: actions/checkout@v4
-        with:
-          path: SpellChecker-Plugin
-
-      - name: System Packages
-        shell: pwsh
-        run: |
-          switch ("${{runner.os}}")
-          {
-            "Windows" { choco install ninja }
-            "Linux"   { sudo apt update; sudo apt install libclang-dev ninja-build gettext libgl1-mesa-dev libvulkan-dev libxcb-xinput-dev libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev }
-            "macOS"   { brew update; brew install automake autoconf ninja }
+        - {
+            name: "win64",
+            os: windows-latest,
+            platform: windows_x64,
+            cc: "cl", cxx: "cl",
+            environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
+          }
+        - {
+            name: "linux",
+            os: ubuntu-latest,
+            platform: linux_x64,
+            cc: "gcc", cxx: "g++"
+          }
+        - {
+            name: "macos",
+            os: macos-13,
+            platform: mac_x64,
+            cc: "clang", cxx: "clang++"
           }
 
-      # Install Conan
-      - name: Install Conan
-        id: conan
-        uses: turtlebrowser/get-conan@main
+    steps:
+    - uses: actions/checkout@v4
+    - name: Checkout submodules
+      id: git
+      shell: cmake -P {0}
+      run: |
+        if (${{github.ref}} MATCHES "tags/v(.*)")
+            file(APPEND "$ENV{GITHUB_OUTPUT}" "tag=${CMAKE_MATCH_1}")
+        else()
+            file(APPEND "$ENV{GITHUB_OUTPUT}" "tag=${{github.run_id}}")
+        endif()
 
-      - name: Download Qt
-        id: qt
-        shell: cmake -P {0}
-        run: |
-          set(qt_version "$ENV{QT_VERSION}")
+    - name: Download Ninja and CMake
+      uses: lukka/get-cmake@latest
+      with:
+        cmakeVersion: ${{ env.CMAKE_VERSION }}
+        ninjaVersion: ${{ env.NINJA_VERSION }}
 
+    - name: Install Conan
+      id: conan
+      uses: turtlebrowser/get-conan@main
+
+    - name: Install system libs
+      shell: cmake -P {0}
+      run: |
+        if ("${{ matrix.config.platform }}" STREQUAL "linux_x64")
+          execute_process(
+            COMMAND sudo apt-get update
+          )
+          execute_process(
+            COMMAND sudo apt-get install -y libgl1-mesa-dev
+            RESULT_VARIABLE result
+          )
+          if (NOT result EQUAL 0)
+            message(FATAL_ERROR "Failed to install dependencies")
+          endif()
+        elseif ("${{ matrix.config.platform }}" STREQUAL "linux_arm64")
+          execute_process(COMMAND sudo dpkg --add-architecture arm64)
+
+          # TODO: Check to see if the azure.ubuntu added arm64 support
+          execute_process(COMMAND sudo apt-get install -y bash curl apt-transport-https ca-certificates)
+          execute_process(COMMAND sudo curl https://raw.githubusercontent.com/vegardit/fast-apt-mirror.sh/v1/fast-apt-mirror.sh -o /usr/local/bin/fast-apt-mirror.sh)
+          execute_process(COMMAND sudo chmod 755 /usr/local/bin/fast-apt-mirror.sh)
+
+          #execute_process(COMMAND sudo /usr/local/bin/fast-apt-mirror.sh set https://mirrors.ocf.berkeley.edu/ubuntu-ports/)
+          execute_process(COMMAND sudo /usr/local/bin/fast-apt-mirror.sh set https://mirror.kumi.systems/ubuntu-ports/)
+
+          execute_process(
+            COMMAND sudo apt-get update
+          )
+          execute_process(
+            COMMAND
+              sudo apt-get install -y crossbuild-essential-arm64 libgl1-mesa-dev:arm64
+            RESULT_VARIABLE result
+          )
+          if (NOT result EQUAL 0)
+            message(FATAL_ERROR "Failed to install dependencies")
+          endif()
+        endif()
+
+    - name: Download Qt
+      id: qt
+      shell: cmake -P {0}
+      run: |
+        set(qt_version "$ENV{QT_VERSION}")
+
+        function(download_qt platform export_qt_dir)
           string(REPLACE "." "" qt_version_dotless "${qt_version}")
-          if ("${{ runner.os }}" STREQUAL "Windows")
+          if (platform STREQUAL "windows_x64")
             set(url_os "windows_x86")
-            if ("x${{ matrix.config.environment_script }}" STREQUAL "x")
-              set(qt_package_arch_suffix "win64_mingw")
-              set(qt_dir_prefix "${qt_version}/mingw_64")
-              set(qt_package_suffix "-Windows-Windows_10_22H2-Mingw-Windows-Windows_10_22H2-X86_64")
-            elseif ("${{ matrix.config.environment_script }}" MATCHES "vcvars64.bat")
-              set(qt_package_arch_suffix "win64_msvc2019_64")
-              set(qt_dir_prefix "${qt_version}/msvc2019_64")
-              set(qt_package_suffix "-Windows-Windows_10_22H2-MSVC2019-Windows-Windows_10_22H2-X86_64")
-            endif()
-          elseif ("${{ runner.os }}" STREQUAL "Linux")
+            set(qt_package_arch_suffix "win64_msvc2022_64")
+            set(qt_dir_prefix "${qt_version}/msvc_64")
+            set(qt_package_suffix "-Windows-Windows_11_23H2-MSVC2022-Windows-Windows_11_23H2-X86_64")
+          elseif (platform STREQUAL "windows_arm64")
+            set(url_os "windows_x86")
+            set(qt_package_arch_suffix "win64_msvc2022_arm64_cross_compiled")
+            set(qt_dir_prefix "${qt_version}/msvc_arm64")
+            set(qt_package_suffix "-Windows-Windows_11_23H2-MSVC2022-Windows-Windows_11_23H2-ARM64")
+          elseif (platform STREQUAL "linux_x64")
             set(url_os "linux_x64")
-            set(qt_package_arch_suffix "gcc_64")
+            set(qt_package_arch_suffix "linux_gcc_64")
             set(qt_dir_prefix "${qt_version}/gcc_64")
-            set(qt_package_suffix "-Linux-RHEL_8_8-GCC-Linux-RHEL_8_8-X86_64")
-          elseif ("${{ runner.os }}" STREQUAL "macOS")
+            set(qt_package_suffix "-Linux-RHEL_8_10-GCC-Linux-RHEL_8_10-X86_64")
+          elseif (platform STREQUAL "linux_arm64")
+            set(url_os "linux_arm64")
+            set(qt_package_arch_suffix "linux_gcc_arm64")
+            set(qt_dir_prefix "${qt_version}/gcc_arm64")
+            set(qt_package_suffix "-Linux-Ubuntu_24_04-GCC-Linux-Ubuntu_24_04-AARCH64")
+          elseif (platform STREQUAL "mac_x64")
             set(url_os "mac_x64")
             set(qt_package_arch_suffix "clang_64")
             set(qt_dir_prefix "${qt_version}/macos")
-            set(qt_package_suffix "-MacOS-MacOS_13-Clang-MacOS-MacOS_13-X86_64-ARM64")
+            set(qt_package_suffix "-MacOS-MacOS_14-Clang-MacOS-MacOS_14-X86_64-ARM64")
           endif()
 
-          set(qt_base_url "https://\${qt_mirror}/online/qtsdkrepository/${url_os}/desktop/qt6_${qt_version_dotless}")
-          foreach(qt_mirror $ENV{QT_MIRRORS})
-            cmake_language(EVAL CODE "
-              message(\"Downloading: ${qt_base_url}/Updates.xml\")
-              file(DOWNLOAD \"${qt_base_url}/Updates.xml\" ./Updates.xml)
-            ")
-            file(SIZE ./Updates.xml fileSize)
-            if (fileSize GREATER 0)
-              break()
-            endif()
-          endforeach()
+          set(qt_base_url "https://download.qt.io/online/qtsdkrepository/${url_os}/desktop/qt6_${qt_version_dotless}/qt6_${qt_version_dotless}")
+          file(DOWNLOAD "${qt_base_url}/Updates.xml" ./Updates.xml SHOW_PROGRESS)
 
           file(READ ./Updates.xml updates_xml)
           string(REGEX MATCH "<Name>qt.qt6.*<Version>([0-9+-.]+)</Version>" updates_xml_output "${updates_xml}")
           set(qt_package_version ${CMAKE_MATCH_1})
 
-          file(MAKE_DIRECTORY qt6)
-
           # Save the path for other steps
           file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/qt6/${qt_dir_prefix}" qt_dir)
-          file(APPEND "$ENV{GITHUB_OUTPUT}" "qt_dir=${qt_dir}")
 
-          function(downloadAndExtract url archive)
-            foreach(qt_mirror $ENV{QT_MIRRORS})
-              cmake_language(EVAL CODE "
-                message(\"Downloading ${url}\")
-                file(DOWNLOAD \"${url}\" ./${archive})
-              ")
-              file(SIZE ./${archive} fileSize)
-              if (fileSize GREATER 0)
-                break()
-              endif()
-            endforeach()
-            execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ../${archive} WORKING_DIRECTORY qt6)
+          if (export_qt_dir)
+            file(APPEND "$ENV{GITHUB_OUTPUT}" "qt_dir=${qt_dir}")
+          endif()
+
+          message("Downloading Qt to ${qt_dir}")
+          function(downloadAndExtract url archive subdir)
+            file(MAKE_DIRECTORY "${qt_dir}/${subdir}")
+            message("Downloading ${url}")
+            message("... extracting to ${qt_dir}/${subdir}")
+            file(DOWNLOAD "${url}" "$ENV{GITHUB_WORKSPACE}/${archive}" SHOW_PROGRESS)
+            execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf "$ENV{GITHUB_WORKSPACE}/${archive}" WORKING_DIRECTORY "${qt_dir}/${subdir}")
           endfunction()
 
-          foreach(package qtbase qtdeclarative qttools qtsvg qttranslations)
+          foreach(package qtbase qtdeclarative)
             downloadAndExtract(
               "${qt_base_url}/qt.qt6.${qt_version_dotless}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
               ${package}.7z
+              ""
             )
           endforeach()
 
-          foreach(package qtimageformats qtserialport)
+          foreach(package qt5compat qtshadertools)
             downloadAndExtract(
               "${qt_base_url}/qt.qt6.${qt_version_dotless}.addons.${package}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
               ${package}.7z
+              ""
             )
           endforeach()
 
-          foreach(package qtquicktimeline qtquick3d qt5compat qtshadertools)
-            downloadAndExtract(
-              "${qt_base_url}/qt.qt6.${qt_version_dotless}.${package}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
-              ${package}.7z
-            )
-          endforeach()
-
-          # uic depends on libicu56.so
-          if ("${{ runner.os }}" STREQUAL "Linux")
-            downloadAndExtract(
-              "${qt_base_url}/qt.qt6.${qt_version_dotless}.${qt_package_arch_suffix}/${qt_package_version}icu-linux-Rhel7.2-x64.7z"
-              icu.7z
-            )
-          endif()
-
-          file(READ "qt6/${qt_dir_prefix}/mkspecs/qconfig.pri" qtconfig)
-          string(REPLACE "Enterprise" "OpenSource" qtconfig "${qtconfig}")
-          string(REPLACE "licheck.exe" "" qtconfig "${qtconfig}")
-          string(REPLACE "licheck64" "" qtconfig "${qtconfig}")
-          string(REPLACE "licheck_mac" "" qtconfig "${qtconfig}")
-          file(WRITE "qt6/${qt_dir_prefix}/mkspecs/qconfig.pri" "${qtconfig}")
-
-          if ("${{ runner.os }}" STREQUAL "Windows")
-            # deploy "system" runtimes into Qt, so they get deployed as well
-            if ("x${{ matrix.config.environment_script }}" STREQUAL "x")
-              # deploy MinGW
-              foreach(file libwinpthread-1.dll libstdc++-6.dll libgcc_s_seh-1.dll)
-                file(INSTALL "$ENV{GITHUB_WORKSPACE}/${{ matrix.config.toolchain_path }}/${file}"
-                    DESTINATION "qt6/${qt_dir_prefix}/bin"
-                    USE_SOURCE_PERMISSIONS)
-              endforeach()
+          # uic depends on libicu*.so
+          if (platform STREQUAL "linux_x64")
+            if (qt_version VERSION_LESS "6.7.0")
+              set(uic_suffix "Rhel7.2-x64")
             else()
-              # deploy MSVC
-              foreach(file vcruntime140.dll concrt140.dll msvcp140_1.dll msvcp140_2.dll
-                          msvcp140_codecvt_ids.dll vcruntime140_1.dll msvcp140.dll)
-                file(INSTALL "C:/Windows/System32/${file}"
-                    DESTINATION "qt6/${qt_dir_prefix}/bin")
-              endforeach()
+              set(uic_suffix "Rhel8.6-x86_64")
             endif()
+            downloadAndExtract(
+              "${qt_base_url}/qt.qt6.${qt_version_dotless}.${qt_package_arch_suffix}/${qt_package_version}icu-linux-${uic_suffix}.7z"
+              icu.7z
+              "lib"
+            )
           endif()
 
-      - name: Download Qt Creator
-        id: qt_creator
-        shell: cmake -P {0}
-        run: |
-          string(REGEX MATCH "([0-9]+.[0-9]+).[0-9]+" outvar "$ENV{QT_CREATOR_VERSION}")
-          set(qtc_base_url "https://download.qt.io/official_releases/qtcreator/${CMAKE_MATCH_1}/$ENV{QT_CREATOR_VERSION}/installer_source")
-          set(qtc_snapshot "$ENV{QT_CREATOR_SNAPSHOT}")
-          if (qtc_snapshot)
-            set(qtc_base_url "https://download.qt.io/snapshots/qtcreator/${CMAKE_MATCH_1}/$ENV{QT_CREATOR_VERSION}/installer_source/${qtc_snapshot}")
-          endif()
-          if ("${{ runner.os }}" STREQUAL "Windows")
-            set(qtc_platform "windows_x64")
-          elseif ("${{ runner.os }}" STREQUAL "Linux")
-            set(qtc_platform "linux_x64")
-          elseif ("${{ runner.os }}" STREQUAL "macOS")
-            set(qtc_platform "mac_x64")
-          endif()
-          file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/qtcreator" qtc_dir)
-          # Save the path for other steps
-          message("::set-output name=qtc_dir::${qtc_dir}")
-          file(MAKE_DIRECTORY qtcreator)
-          message("Downloading Qt Creator from ${qtc_base_url}/${qtc_platform}")
-          foreach(package qtcreator qtcreator_dev)
-            file(DOWNLOAD
-              "${qtc_base_url}/${qtc_platform}/${package}.7z" ./${package}.7z SHOW_PROGRESS)
-            execute_process(COMMAND
-              ${CMAKE_COMMAND} -E tar xvf ../${package}.7z WORKING_DIRECTORY qtcreator)
-          endforeach()
+          execute_process(COMMAND ${qt_dir}/bin/qmake -query)
+        endfunction()
 
-      - name: Build Plugin
-        shell: pwsh
-        run: |
-          ${env:CMAKE_PRESET} = "conan-release"
+        if ("${{ matrix.config.platform }}" STREQUAL "windows_x64")
+          download_qt(windows_x64 TRUE)
+        elseif ("${{ matrix.config.platform }}" STREQUAL "windows_arm64")
+          download_qt(windows_x64 FALSE)
+          download_qt(windows_arm64 TRUE)
+        elseif ("${{ matrix.config.platform }}" STREQUAL "linux_x64")
+          download_qt(linux_x64 TRUE)
+        elseif ("${{ matrix.config.platform }}" STREQUAL "linux_arm64")
+          download_qt(linux_x64 FALSE)
+          download_qt(linux_arm64 TRUE)
+        elseif ("${{ runner.os }}" STREQUAL "macOS")
+          download_qt(mac_x64 TRUE)
+        endif()
 
-          switch ("${{runner.os}}")
-          {
-              "Windows" {
-                  Write-Output "<+> Setting up MSBuild"
-                  # https://github.com/microsoft/terminal/issues/3821#issuecomment-651506501
-                  # The setup-msbuild action is not used since it does not set up the path to 'cl'
-                  # see: https://github.com/microsoft/setup-msbuild/issues/24
-                  ${VS_INST_PATH} = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationPath
-                  Write-Output "  <-> VS Install Path: ${VS_INST_PATH}"
-                  Import-Module ${VS_INST_PATH}/Common7/Tools/Microsoft.VisualStudio.DevShell.dll
-                  Enter-VsDevShell -VsInstallPath ${VS_INST_PATH} -SkipAutomaticLocation -DevCmdArguments '-arch=${{matrix.config.arch}} -no_logo'
-                  ${env:CMAKE_PRESET} = "conan-default"
-              }
-              "macOS" {
-                  # From the build.py script: on macOS the prefix path must be inside the app bundle...
-                  ${prefix_extra}=";${{ steps.qt_creator.outputs.qtc_dir }}/Qt Creator.app/Contents/Resources"
-              }
-          }
+    - name: Download Qt Creator
+      uses: qt-creator/install-dev-package@v1.6
+      with:
+        version: ${{ env.QT_CREATOR_VERSION }}
+        unzip-to: 'qtcreator'
+        platform: ${{ matrix.config.platform }}
 
-          Set-Location -Path "SpellChecker-Plugin"
+    - name: Extract Qt Creator
+      id: qt_creator
+      shell: cmake -P {0}
+      run: |
+        file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/qtcreator" qtc_dir)
+        file(APPEND "$ENV{GITHUB_OUTPUT}" "qtc_dir=${qtc_dir}")
 
-          conan profile detect
-          conan config install .conan
-          conan install . -pr cpp20 --build=missing
+    - name: Build
+      shell: pwsh
+      run: |
+        ${env:CMAKE_PRESET} = "conan-release"
 
-          cmake --preset "${env:CMAKE_PRESET}" `
-            -DCMAKE_PREFIX_PATH="${{ steps.qt.outputs.qt_dir }};${{ steps.qt_creator.outputs.qtc_dir }}${prefix_extra}" `
-            -DCMAKE_INCLUDE_PATH="${env:GITHUB_WORKSPACE}/qtc_src/src/libs/3rdparty/syntax-highlighting/autogenerated/include"
+        switch ("${{runner.os}}")
+        {
+            "Windows" {
+                Write-Output "<+> Setting up MSBuild"
+                # https://github.com/microsoft/terminal/issues/3821#issuecomment-651506501
+                # The setup-msbuild action is not used since it does not set up the path to 'cl'
+                # see: https://github.com/microsoft/setup-msbuild/issues/24
+                ${VS_INST_PATH} = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationPath
+                Write-Output "  <-> VS Install Path: ${VS_INST_PATH}"
+                Import-Module ${VS_INST_PATH}/Common7/Tools/Microsoft.VisualStudio.DevShell.dll
+                Enter-VsDevShell -VsInstallPath ${VS_INST_PATH} -SkipAutomaticLocation -DevCmdArguments '-arch=${{matrix.config.arch}} -no_logo'
+                ${env:CMAKE_PRESET} = "conan-default"
+            }
+            "macOS" {
+                # From the build.py script: on macOS the prefix path must be inside the app bundle...
+                ${prefix_extra}=";${{ steps.qt_creator.outputs.qtc_dir }}/Qt Creator.app/Contents/Resources"
+            }
+        }
 
-          cmake --build --preset conan-release
+        conan profile detect
+        conan config install .conan
+        conan install . -pr cpp20 --build=missing
 
-      - name: Collect Binaries
-        shell: pwsh
-        run: |
-          ${PLUGIN_DIR_BASE} = "Plugin/"
-          ${PLUGIN_ARCHIVE}  = "SpellChecker-Plugin_QtC${env:QT_CREATOR_VERSION}_${env:OS}_${{matrix.config.arch}}"
+        cmake --preset "${env:CMAKE_PRESET}" `
+          -DCMAKE_PREFIX_PATH="${{ steps.qt.outputs.qt_dir }};${{ steps.qt_creator.outputs.qtc_dir }}${prefix_extra}" `
+          -DCMAKE_INCLUDE_PATH="${env:GITHUB_WORKSPACE}/qtc_src/src/libs/3rdparty/syntax-highlighting/autogenerated/include"
 
-          switch ("${{runner.os}}")
-          {
-              "Windows" {
-                ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/lib/qtcreator/plugins"
-                New-Item -ItemType Directory "${PLUGIN_DIR_OUT}" -Force
-                ${PLUGIN_OBJ} = Get-ChildItem -Path . -Filter SpellChecker.dll -Recurse -ErrorAction SilentlyContinue -Force | %{$_.FullName}
-                Write-Output "PLUGIN_OBJ: ${PLUGIN_OBJ}"
-                Copy-Item -Path "${PLUGIN_OBJ}" -Destination "${PLUGIN_DIR_OUT}/"
-                Push-Location ${PLUGIN_DIR_BASE}
-                ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.zip"
-                7z a "${env:PLUGIN_ARCHIVE_NAME}" lib
-                Pop-Location
-              }
-              "Linux" {
-                ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/lib/qtcreator/plugins"
-                New-Item -ItemType Directory "${PLUGIN_DIR_OUT}" -Force
-                ${PLUGIN_OBJ} = Get-ChildItem -Path . -Filter libSpellChecker.so -Recurse -ErrorAction SilentlyContinue -Force | %{$_.FullName}
-                Write-Output "PLUGIN_OBJ: ${PLUGIN_OBJ}"
-                Copy-Item -Path "${PLUGIN_OBJ}" -Destination "${PLUGIN_DIR_OUT}/"
-                Push-Location ${PLUGIN_DIR_BASE}
-                ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.tar.gz"
-                7z a -ttar "${PLUGIN_ARCHIVE}.tar" lib
-                7z a -tgzip "${env:PLUGIN_ARCHIVE_NAME}" "${PLUGIN_ARCHIVE}.tar"
-                Pop-Location
-              }
-              "macOS" {
-                ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/bin/Qt Creator.app/Contents/PlugIns"
-                New-Item -Path "${PLUGIN_DIR_OUT}" -ItemType Directory -Force
-                ${PLUGIN_OBJ} = Get-ChildItem -Path . -Filter libSpellChecker.dylib -Recurse -ErrorAction SilentlyContinue -Force | %{$_.FullName}
-                Write-Output "PLUGIN_OBJ: ${PLUGIN_OBJ}"
-                Copy-Item -Path "${PLUGIN_OBJ}" -Destination "${PLUGIN_DIR_OUT}/"
-                Get-ChildItem "${PLUGIN_DIR_OUT}"
-                Push-Location ${PLUGIN_DIR_BASE}
-                ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.tar.gz"
-                7z a -ttar "${PLUGIN_ARCHIVE}.tar" bin
-                7z a -tgzip "${env:PLUGIN_ARCHIVE_NAME}" "${PLUGIN_ARCHIVE}.tar"
-                Pop-Location
-              }
-          }
-          ${env:PLUGIN_ARCHIVE_FULL} = "${PLUGIN_DIR_BASE}/${env:PLUGIN_ARCHIVE_NAME}"
+        cmake --build --preset conan-release
 
-          Write-Output "PLUGIN_ARCHIVE_FULL=${{github.workspace}}/${env:PLUGIN_ARCHIVE_FULL}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Output "PLUGIN_ARCHIVE_NAME=${env:PLUGIN_ARCHIVE_NAME}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+    - name: Collect Binaries
+      shell: pwsh
+      run: |
+        ${PLUGIN_DIR_BASE} = "Plugin/"
+        ${PLUGIN_ARCHIVE}  = "SpellChecker-Plugin_QtC${env:QT_CREATOR_VERSION}_${{matrix.config.platform}}"
 
-      - uses: actions/upload-artifact@v4
-        id: upload_artifact
-        with:
-          path: ${{env.PLUGIN_ARCHIVE_FULL}}
-          name: ${{env.PLUGIN_ARCHIVE_NAME}}
+        switch ("${{runner.os}}")
+        {
+            "Windows" {
+              ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/lib/qtcreator/plugins"
+              New-Item -ItemType Directory "${PLUGIN_DIR_OUT}" -Force
+              ${PLUGIN_OBJ} = Get-ChildItem -Path . -Filter SpellChecker.dll -Recurse -ErrorAction SilentlyContinue -Force | %{$_.FullName}
+              Write-Output "PLUGIN_OBJ: ${PLUGIN_OBJ}"
+              Copy-Item -Path "${PLUGIN_OBJ}" -Destination "${PLUGIN_DIR_OUT}/"
+              Push-Location ${PLUGIN_DIR_BASE}
+              ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.zip"
+              7z a "${env:PLUGIN_ARCHIVE_NAME}" lib
+              Pop-Location
+            }
+            "Linux" {
+              ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/lib/qtcreator/plugins"
+              New-Item -ItemType Directory "${PLUGIN_DIR_OUT}" -Force
+              ${PLUGIN_OBJ} = Get-ChildItem -Path . -Filter libSpellChecker.so -Recurse -ErrorAction SilentlyContinue -Force | %{$_.FullName}
+              Write-Output "PLUGIN_OBJ: ${PLUGIN_OBJ}"
+              Copy-Item -Path "${PLUGIN_OBJ}" -Destination "${PLUGIN_DIR_OUT}/"
+              Push-Location ${PLUGIN_DIR_BASE}
+              ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.tar.gz"
+              7z a -ttar "${PLUGIN_ARCHIVE}.tar" lib
+              7z a -tgzip "${env:PLUGIN_ARCHIVE_NAME}" "${PLUGIN_ARCHIVE}.tar"
+              Pop-Location
+            }
+            "macOS" {
+              ${PLUGIN_DIR_OUT} = "${PLUGIN_DIR_BASE}/bin/Qt Creator.app/Contents/PlugIns"
+              New-Item -Path "${PLUGIN_DIR_OUT}" -ItemType Directory -Force
+              ${PLUGIN_OBJ} = Get-ChildItem -Path . -Filter libSpellChecker.dylib -Recurse -ErrorAction SilentlyContinue -Force | %{$_.FullName}
+              Write-Output "PLUGIN_OBJ: ${PLUGIN_OBJ}"
+              Copy-Item -Path "${PLUGIN_OBJ}" -Destination "${PLUGIN_DIR_OUT}/"
+              Get-ChildItem "${PLUGIN_DIR_OUT}"
+              Push-Location ${PLUGIN_DIR_BASE}
+              ${env:PLUGIN_ARCHIVE_NAME} = "${PLUGIN_ARCHIVE}.tar.gz"
+              7z a -ttar "${PLUGIN_ARCHIVE}.tar" bin
+              7z a -tgzip "${env:PLUGIN_ARCHIVE_NAME}" "${PLUGIN_ARCHIVE}.tar"
+              Pop-Location
+            }
+        }
+        ${env:PLUGIN_ARCHIVE_FULL} = "${PLUGIN_DIR_BASE}/${env:PLUGIN_ARCHIVE_NAME}"
 
-      - name: Download release url
-        if: contains(github.ref, '/tags/v')
-        uses: actions/download-artifact@v4
-        with:
-          name: release_upload_url.txt
-          path: ./
+        Write-Output "PLUGIN_ARCHIVE_FULL=${{github.workspace}}/${env:PLUGIN_ARCHIVE_FULL}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        Write-Output "PLUGIN_ARCHIVE_NAME=${env:PLUGIN_ARCHIVE_NAME}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Set Release Var
-        if: contains(github.ref, '/tags/v')
-        shell: pwsh
-        run: |
-          ${RELEASE_URL} = Get-Content ./release_upload_url.txt
-          Write-Output "Release URL: ${RELEASE_URL}"
-          Write-Output "RELEASE_URL=${RELEASE_URL}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+    - uses: actions/upload-artifact@v4
+      id: upload_artifact
+      with:
+        path: ${{env.PLUGIN_ARCHIVE_FULL}}
+        name: ${{env.PLUGIN_ARCHIVE_NAME}}
 
-      - name: Upload release artifacts
-        if: contains(github.ref, '/tags/v')
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{env.RELEASE_URL}}
-          asset_path: ${{env.PLUGIN_ARCHIVE_FULL}}
-          asset_name: ${{env.PLUGIN_ARCHIVE_NAME}}
-          asset_content_type: application/zip
+    - name: Download release url
+      if: contains(github.ref, '/tags/v')
+      uses: actions/download-artifact@v4
+      with:
+        name: release_upload_url.txt
+        path: ./
+
+    - name: Set Release Var
+      if: contains(github.ref, '/tags/v')
+      shell: pwsh
+      run: |
+        ${RELEASE_URL} = Get-Content ./release_upload_url.txt
+        Write-Output "Release URL: ${RELEASE_URL}"
+        Write-Output "RELEASE_URL=${RELEASE_URL}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Upload release artifacts
+      if: contains(github.ref, '/tags/v')
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{env.RELEASE_URL}}
+        asset_path: ${{env.PLUGIN_ARCHIVE_FULL}}
+        asset_name: ${{env.PLUGIN_ARCHIVE_NAME}}
+        asset_content_type: application/zip
