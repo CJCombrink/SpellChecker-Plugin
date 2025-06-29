@@ -102,7 +102,7 @@ SpellCheckerPlugin::~SpellCheckerPlugin()
   delete d;
 }
 
-bool SpellCheckerPlugin::initialize( const QStringList& arguments, QString* errorString )
+Utils::Result<> SpellCheckerPlugin::initialize(const QStringList& arguments)
 {
   // Create the core
   // Load settings
@@ -112,7 +112,6 @@ bool SpellCheckerPlugin::initialize( const QStringList& arguments, QString* erro
   // depends on have initialized their members.
 
   Q_UNUSED( arguments )
-  Q_UNUSED( errorString )
 #ifdef DEBUG_INSTALL_MESSAGE_HANDLER
   qInstallMessageHandler( myMessageOutput );
 #endif /* DEBUG_INSTALL_MESSAGE_HANDLER */
@@ -189,7 +188,7 @@ bool SpellCheckerPlugin::initialize( const QStringList& arguments, QString* erro
   /* Quick fix provider */
   d->quickFixFactory = std::make_unique<SpellCheckCppQuickFixFactory>();
 
-  return true;
+  return Utils::ResultOk;
 }
 
 void SpellCheckerPlugin::extensionsInitialized()

@@ -47,7 +47,7 @@ public:
   SpellCheckerPlugin();
   ~SpellCheckerPlugin();
 
-  bool initialize( const QStringList& arguments, QString* errorString );
+  Utils::Result<> initialize(const QStringList& arguments);
   void extensionsInitialized();
   ShutdownFlag aboutToShutdown();
 private:
