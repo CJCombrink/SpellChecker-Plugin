@@ -6,8 +6,11 @@
 
 name: Build SpellChecker-Plugin
 
-# Controls when the action will run. Triggers the workflow on any push event.
-on: [push]
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
 
 env:
   QT_VERSION: "6.6.2"
