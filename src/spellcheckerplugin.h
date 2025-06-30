@@ -47,9 +47,10 @@ public:
   SpellCheckerPlugin();
   ~SpellCheckerPlugin();
 
-  Utils::Result<> initialize(const QStringList& arguments);
-  void extensionsInitialized();
-  ShutdownFlag aboutToShutdown();
+  Utils::Result<> initialize(const QStringList& arguments) override;
+  void extensionsInitialized() override;
+  ShutdownFlag aboutToShutdown() override;
+
 private:
   SpellCheckerPluginPrivate* const d;
 };
