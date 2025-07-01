@@ -797,7 +797,8 @@ void SpellCheckerCore::editorOpened( Core::IEditor* editor )
   if( editor == nullptr ) {
     return;
   }
-  connect( qobject_cast<QPlainTextEdit*>( editor->widget() ), &QPlainTextEdit::cursorPositionChanged, this, &SpellCheckerCore::cursorPositionChanged );
+  TextEditor::TextEditorWidget* tew = qobject_cast<TextEditor::TextEditorWidget*>(editor->widget());
+  connect( tew, &TextEditor::TextEditorWidget::cursorPositionChanged, this, &SpellCheckerCore::cursorPositionChanged );
 }
 // --------------------------------------------------
 
@@ -806,7 +807,8 @@ void SpellCheckerCore::editorAboutToClose( Core::IEditor* editor )
   if( editor == nullptr ) {
     return;
   }
-  disconnect( qobject_cast<QPlainTextEdit*>( editor->widget() ), &QPlainTextEdit::cursorPositionChanged, this, &SpellCheckerCore::cursorPositionChanged );
+  TextEditor::TextEditorWidget* tew = qobject_cast<TextEditor::TextEditorWidget*>(editor->widget());
+  disconnect( tew, &TextEditor::TextEditorWidget::cursorPositionChanged, this, &SpellCheckerCore::cursorPositionChanged );
 }
 // --------------------------------------------------
 
