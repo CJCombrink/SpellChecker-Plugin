@@ -5,14 +5,14 @@
 ## 1. Introduction
 
 The SpellChecker Plugin is a spellchecker plugin for the Qt Creator IDE.
-This plugin spell checks Comments and String Literals in source files for spelling mistakes and suggest the correct spelling for misspelled words, if possible.
+This plugin spell checks Comments and String Literals in source files for spelling mistakes and suggests the correct spelling for misspelled words, if possible.
 
 Currently the plugin only checks C++ files and uses the Hunspell Spell Checker to check words for spelling mistakes.
 The plugin provides an options page in Qt Creator that can be used to configure the parsers as well as the spell checkers available.
 
 To download a pre-built version of the plugin, refer to section 2.
 
-To build the plugin self, see section 6.
+To build the plugin yourself, see section 6.
 
 The motivation for this plugin is that my spelling is terrible and I was looking for a plugin that could spell check my Doxygen comments. I feel that good comments are essential to any piece of software. I could not find one suitable to my needs so I decided to challenge myself to see if I can implement one myself. In one of my courses on varsity I investigated the Qt Creator source code and was amazed with the whole plugin system, thus it also inspired me to try and
 contribute to such a project.
@@ -25,7 +25,7 @@ I did look a lot at the code in the TODO plugin as a basis for my own implementa
 ```
 # Set up venv
 # Use administrator powershell
-# Go to pyhton directory
+# Go to the Python directory
 cd C:\Python312  
 python.exe -m venv .venv
 # ps1
@@ -37,7 +37,7 @@ Set-ExecutionPolicy Unrestricted -Scope Process -Force
 # If you got the error then re-run .\Activate.ps1
 cd <path to source of this project> eg:
 cd c:\SpellChecker-Plugin-main
-# You need hunspell already downlowded https://github.com/hunspell/hunspell
+# You need hunspell already downloaded https://github.com/hunspell/hunspell
 # Setup conan
 python -m pip install conan
 conan profile detect
@@ -86,11 +86,11 @@ After opening Qt Creator and the plugin loaded successfully the following steps 
       Currently there is only one parser available, a C++ Parser. Change its settings according to what is required. For more information
       regarding this parser, refer to section 5.
 1. Get commenting
-    - While typing comments or opening a C++ text editor, the plugin will parse the comments and check words. If a spelling mistake is made the spell checker will add it to the output pane at the bottom of the page. There a user can perform the following actions on a misspelled word:
+    - While typing comments or opening a C++ text editor, the plugin will parse the comments and check words. If a spelling mistake is made the spell checker will add it to the output pane at the bottom of the page. There, a user can perform the following actions on a misspelled word:
       * **Give Suggestions**: The spell checker will suggest alternative spellings for the misspelled word. The user can then replace the misspelled word with a suggested word.
       * **Ignore Word**: The word will be ignored for the current Qt Creator instance. Closing and opening Qt Creator will once again flag the word as a spelling mistake
-      * **Add Word**: The word will be added to the user dictionary and will be not again be marked as a spelling mistake until the word is manually removed from the user dictionary.
-      * **Feeling Lucky**: The word will be replaced with the first suggestion for the word. This option will only be available if there are at least one suggestion for the word.
+      * **Add Word**: The word will be added to the user dictionary and will not be marked again as a spelling mistake until the word is manually removed from the user dictionary.
+      * **Feeling Lucky**: The word will be replaced with the first suggestion for the word. This option will only be available if there is at least one suggestion for the word.
    - Right clicking on a misspelled word will also allow the user to perform the above actions using the popup menu.
    - Under "*Tools*" -> "*Spell Checker*" the above actions can also be performed.
    - When the cursor is on a misspelled word the Qt Creator quick fix action will also pop up a menu to perform the above actions (Alt + Enter by default on most systems)
@@ -99,7 +99,7 @@ After opening Qt Creator and the plugin loaded successfully the following steps 
 
 ## 4. Useful Widgets
 
-The following useful widgets are added to the QtCreator user interface to allows the user to interact with the plugin:
+The following useful widgets are added to the QtCreator user interface to allow the user to interact with the plugin:
 - **Output Pane** at the bottom of the IDE that shows the number of mistakes in the current editor, the misspelled words as well as suggestions for the words. From the pane there are controls to handle the mistakes.
 - **Navigation Widget** that can be added that shows all documents that have mistakes along with the number of mistakes on that page. Note that this widget will only show parsed files based on the "Only check current editor" setting of the plugin.
 - **Give Suggestions Widget** will give the user the option to replace all occurrences of a mistake in the current file with the specified word.
@@ -116,13 +116,13 @@ When this setting is not set the plugin will parse all files in the project when
 
 ### 5.2. Projects to ignore
 
-A list of projects that will not be checked for spelling mistakes if opened, even of the setting is enabled to scan complete projects.
+A list of projects that will not be checked for spelling mistakes if opened, even if the setting is enabled to scan complete projects.
 
 ### 5.3. C++ Document Parser
 
 The C++ parser can be configured to parse only Comments, only String Literals or both.
 
-The parser also has settings that affects how the following types of words will be handled:
+The parser also has settings that affect how the following types of words will be handled:
 - Email Addresses
 - Qt Keywords
 - Words in CAPS
@@ -141,7 +141,7 @@ Apart from these settings, the plugin also attempts to remove Doxygen Tags in Do
 Since version 2.0.7 GitHub Actions are used to build the plugin in the cloud.
 
 Since Qt Creator v7.0 qmake was removed as the build system and replaced it with cmake.
-In reaction the version of the plugin was stepped to version 3. With this a lot of
+In response the version of the plugin was stepped to version 3. With this a lot of
 effort went into getting the GitHub Action updated to build the plugin and documented
 steps were removed from this README. Please refer to the GitHub Action script for
 the steps to build.
