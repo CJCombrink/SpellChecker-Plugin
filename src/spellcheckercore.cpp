@@ -439,8 +439,9 @@ void SpellCheckerCore::futureFinished()
                                       , Qt::QueuedConnection
                                       , Q_ARG( QString, fileName )
                                       , Q_ARG( SpellChecker::WordList, wordsToSpellCheck ) );
+  } else {
+      locker.unlock();
   }
-  locker.unlock();
   watcher->deleteLater();
   /* Add the list of misspelled words to the mistakes model */
   addMisspelledWords( fileName, checkedWords );
