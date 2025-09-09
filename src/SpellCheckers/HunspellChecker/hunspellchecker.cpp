@@ -33,9 +33,9 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QMutex>
-#include <QSharedPointer>
-#include <QTextCodec>
 #include <QRegularExpression>
+#include <QSharedPointer>
+#include <QStringConverter>
 
 #include <memory>
 #include <string>
@@ -56,7 +56,8 @@ public:
     /* Get the affix dictionary path */
     QString affPath = QString( dictionary ).replace( QRegularExpression("\\.dic$"), ".aff");
     d_hunspell = HunspellPtr( new ::Hunspell( affPath.toLatin1(), dictionary.toLatin1() ) );
-    d_codec    = QTextCodec::codecForName( d_hunspell->get_dic_encoding() );
+    d_decoder       = QStringDecoder{ d_hunspell->get_dic_encoding() };
+    d_encoder       = QStringEncoder{ d_hunspell->get_dic_encoding() };
   }
   /*! \brief Check if the supplied \a word is a spelling mistake or not.
    *
@@ -110,8 +111,9 @@ private:
    * its Latin-1 representation. */
   std::string encode( const QString& word ) const
   {
-    if( d_codec != nullptr ) {
-      return d_codec->fromUnicode( word ).toStdString();
+    if ( d_encoder.isValid() ) {
+      QByteArray encoded = d_encoder( word );
+      return encoded.toStdString();
     }
     return word.toLatin1().toStdString();
   }
@@ -126,8 +128,8 @@ private:
    * its Latin-1 representation. */
   QString decode( const std::string& word ) const
   {
-    if( d_codec != nullptr ) {
-      return d_codec->toUnicode( word.c_str(), word.size() );
+    if ( d_decoder.isValid() ) {
+      return d_decoder.decode( QByteArrayView{ word.c_str(), static_cast<qsizetype>( word.size() ) } );
     }
     return QLatin1String( word );
   }
@@ -135,7 +137,8 @@ private:
 private:
   using HunspellPtr = QSharedPointer< ::Hunspell>;
   HunspellPtr d_hunspell;
-  QTextCodec* d_codec;
+  mutable QStringDecoder d_decoder;
+  mutable QStringEncoder d_encoder;
   mutable QMutex d_mutex;
 };
 
