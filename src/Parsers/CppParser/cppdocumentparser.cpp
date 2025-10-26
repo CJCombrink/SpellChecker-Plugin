@@ -342,7 +342,7 @@ public:
   QStringSet getCppFiles( const QStringSet& list )
   {
     return Utils::filtered( list, []( const QString& file ) {
-            const CppEditor::ProjectFile::Kind kind = CppEditor::ProjectFile::classify( file );
+            const CppEditor::ProjectFile::Kind kind = CppEditor::ProjectFile::classify( Utils::FilePath::fromString( file ) );
             switch( kind ) {
               case CppEditor::ProjectFile::Unclassified:
                 return false;
