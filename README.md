@@ -76,7 +76,7 @@ After opening Qt Creator and the plugin loaded successfully the following steps 
    - On the "*SpellChecker*" tab, select the required Spell Checker in the dropdown box.
       Currently only the Hunspell Spell Checker will be available, but perhaps in future more might be added.
    - Set the "*Dictionary*" and "*User Dictionary*" paths for the spell checker to use.
-      - English Dictionaries can be downloaded from: http://cgit.freedesktop.org/libreoffice/dictionaries/tree/en
+      - English Dictionaries can be downloaded from: https://cgit.freedesktop.org/libreoffice/dictionaries/tree/en
       - Both the *.dic and *.aff files for the selected dictionary must be downloaded to the same folder.
       - **NB**: Make sure to use the `"plain"` link on the above page when downloading the dictionary files and not the file names directly.
       - The *User Dictionary* is a custom file used to store words added to the dictionary of the spell checker. If such a file does not exist, the plugin will create the file for this purpose. The plugin will attempt to create this file in the User Resource path. On Windows this is in `%APPDATA%\QtProject\` and on Linux this is in `~/.config/QtProject/`.
