@@ -244,8 +244,7 @@ void SpellCheckerCore::addMisspelledWords( const QString& fileName, const WordLi
      * and color stays the same, we just want to underline the mistake. */
     QTextCharFormat format = cursor.charFormat();
     format.setFontUnderline( true );
-    static const QColor underLineColor = QColor( Qt::red );
-    format.setUnderlineColor( underLineColor );
+    format.setUnderlineColor( d->settings.underlineColor );
     format.setUnderlineStyle( QTextCharFormat::WaveUnderline );
     format.setToolTip( word.suggestions.isEmpty()
                        ? QStringLiteral( "Incorrect spelling" )

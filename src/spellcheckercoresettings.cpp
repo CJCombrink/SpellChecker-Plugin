@@ -55,6 +55,7 @@ void SpellCheckerCoreSettings::saveToSettings( Utils::QtcSettings* settings ) co
   settings->setValue( Constants::SETTING_CHECK_EXTERNAL,       checkExternalFiles );
   settings->setValue( Constants::PROJECTS_TO_IGNORE,           projectsToIgnore );
   settings->setValue( Constants::REPLACE_ALL_FROM_RIGHT_CLICK, replaceAllFromRightClick );
+  settings->setValue( Constants::SETTINGS_UNDERLINE_COLOR, underlineColor );
   settings->endGroup(); /* CORE_SETTINGS_GROUP */
   settings->sync();
 }
@@ -68,6 +69,7 @@ void SpellCheckerCoreSettings::loadFromSettings( Utils::QtcSettings* settings )
   checkExternalFiles       = settings->value( Constants::SETTING_CHECK_EXTERNAL, checkExternalFiles ).toBool();
   projectsToIgnore         = settings->value( Constants::PROJECTS_TO_IGNORE, projectsToIgnore ).toStringList();
   replaceAllFromRightClick = settings->value( Constants::REPLACE_ALL_FROM_RIGHT_CLICK, replaceAllFromRightClick ).toBool();
+  underlineColor           = settings->value( Constants::SETTINGS_UNDERLINE_COLOR, underlineColor ).value<QColor>();
   settings->endGroup(); /* CORE_SETTINGS_GROUP */
 }
 // --------------------------------------------------
@@ -81,6 +83,7 @@ SpellCheckerCoreSettings& SpellCheckerCoreSettings::operator=( const SpellChecke
     this->checkExternalFiles       = other.checkExternalFiles;
     this->projectsToIgnore         = other.projectsToIgnore;
     this->replaceAllFromRightClick = other.replaceAllFromRightClick;
+    this->underlineColor           = other.underlineColor;
     emit settingsChanged();
   }
   return *this;
@@ -89,12 +92,13 @@ SpellCheckerCoreSettings& SpellCheckerCoreSettings::operator=( const SpellChecke
 
 bool SpellCheckerCoreSettings::operator==( const SpellCheckerCoreSettings& other ) const
 {
-  bool different = false;
+  bool different{ false };
   different = different | ( activeSpellChecker != other.activeSpellChecker );
   different = different | ( onlyParseCurrentFile != other.onlyParseCurrentFile );
   different = different | ( checkExternalFiles != other.checkExternalFiles );
   different = different | ( projectsToIgnore != other.projectsToIgnore );
   different = different | ( replaceAllFromRightClick != other.replaceAllFromRightClick );
+  different = different | ( underlineColor != other.underlineColor );
   return ( different == false );
 }
 // --------------------------------------------------
