@@ -9,7 +9,7 @@ name: Build SpellChecker-Plugin
 on: [push]
 
 env:
-  QT_VERSION: "6.10.2"
+  QT_VERSION: "6.8.3"
   QT_CREATOR_VERSION: "19.0.0"
   QT_MIRRORS: download.qt.io;mirrors.ocf.berkeley.edu/qt;ftp.fau.de/qtproject;mirror.bit.edu.cn/qtproject
 
