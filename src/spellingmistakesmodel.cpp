@@ -122,8 +122,8 @@ void SpellingMistakesModel::setCurrentSpellingMistakes( const SpellChecker::Word
 {
   beginResetModel();
   d->wordList = words.values();
-  sort( d->sortColumn, d->sortOrder );
   endResetModel();
+  sort( d->sortColumn, d->sortOrder );
   emit layoutChanged();
   emit mistakesUpdated();
 }
