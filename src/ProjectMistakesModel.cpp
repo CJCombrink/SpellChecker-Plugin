@@ -244,7 +244,8 @@ int ProjectMistakesModel::columnCount( const QModelIndex& parent ) const
   if( parent.isValid() == true ) {
     return 0;
   } else {
-    return COLUMN_COUNT - Qt::UserRole;
+    const Columns columnsOffset = static_cast<Columns>(Qt::UserRole);
+    return COLUMN_COUNT - columnsOffset;
   }
 }
 // --------------------------------------------------
@@ -294,7 +295,7 @@ void ProjectMistakesModel::sort( int column, Qt::SortOrder order )
   beginResetModel();
   d->sortedColumn = static_cast<Columns>( column );
   d->sortOrder    = order;
-  std::sort( d->sortedKeys.begin(), d->sortedKeys.end(), [=]( const QString& stringLhs, const QString& strinRhs ) -> bool {
+  std::sort( d->sortedKeys.begin(), d->sortedKeys.end(), [=, this]( const QString& stringLhs, const QString& strinRhs ) -> bool {
     FileMistakes::ConstIterator iterLhs = d->spellingMistakes.find( stringLhs );
     FileMistakes::ConstIterator iterRhs = d->spellingMistakes.find( strinRhs );
     if( ( iterLhs == d->spellingMistakes.constEnd() )

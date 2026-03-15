@@ -274,7 +274,7 @@ void SpellingMistakesModel::setActiveProject( ProjectExplorer::Project* activePr
     d->projectDir.setPath( QStringLiteral( "." ) );
     return;
   }
-  d->projectDir.setPath( activeProject->projectDirectory().toString() );
+  d->projectDir.setPath( activeProject->projectDirectory().path() );
   Q_ASSERT( d->projectDir.exists() == true );
 }
 // --------------------------------------------------

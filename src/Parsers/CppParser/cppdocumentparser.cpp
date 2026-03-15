@@ -393,7 +393,7 @@ CppDocumentParser::CppDocumentParser( QObject* parent )
 
   CppEditor::CppModelManager* modelManager = CppEditor::CppModelManager::instance();
   connect( modelManager, &CppEditor::CppModelManager::documentUpdated, this, &CppDocumentParser::parseCppDocumentOnUpdate, Qt::DirectConnection );
-  connect(         qApp, &QApplication::aboutToQuit,                  this, [=]() {
+  connect(         qApp, &QApplication::aboutToQuit,                  this, [=, this]() {
           /* Disconnect any signals that might still get emitted. */
           modelManager->disconnect( this );
           SpellCheckerCore::instance()->disconnect( this );
@@ -467,7 +467,7 @@ void CppDocumentParser::parseCppDocumentOnUpdate( CPlusPlus::Document::Ptr docPt
     return;
   }
 
-  const QString fileName = docPtr->filePath().toString();
+  const QString fileName = docPtr->filePath().path();
   const bool shouldParse = shouldParseDocument( fileName );
 
   bool queueMore;
@@ -527,7 +527,7 @@ void CppDocumentParser::reparseProject()
   }
 
   const Utils::FilePaths projectFiles = d->activeProject->files( ProjectExplorer::Project::SourceFiles );
-  const auto fileList                 = Utils::transform<QStringSet>( projectFiles, &Utils::FilePath::toString );
+  const auto fileList                 = Utils::transform<QStringSet>( projectFiles, &Utils::FilePath::path );
 
   const QStringSet fileSet = d->getCppFiles( fileList );
   d->filesInStartupProject = fileSet;
@@ -643,7 +643,7 @@ void CppDocumentParser::parseCppDocument( CPlusPlus::Document::Ptr docPtr )
   using Watcher    = CppDocumentProcessor::Watcher;
   using WatcherPtr = CppDocumentProcessor::WatcherPtr;
   using ResultType = CppDocumentProcessor::ResultType;
-  const QString fileName = docPtr->filePath().toString();
+  const QString fileName = docPtr->filePath().path();
   HashWords hashes;
   if( fileName == d->currentEditorFileName ) {
     hashes = d->tokenHashes.get();
