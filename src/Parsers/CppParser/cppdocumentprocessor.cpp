@@ -56,7 +56,7 @@ CppDocumentProcessorPrivate::CppDocumentProcessorPrivate( CPlusPlus::Document::P
   , tokenHashes( hashWords )
   , settings( cppSettings )
   , trUnit( documentPointer->translationUnit() )
-  , fileName( documentPointer->filePath().toString() )
+  , fileName( documentPointer->filePath().path() )
 {}
 // --------------------------------------------------
 

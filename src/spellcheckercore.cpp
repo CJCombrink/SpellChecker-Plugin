@@ -118,7 +118,7 @@ SpellCheckerCore::SpellCheckerCore( QObject* parent )
   connect( this, &SpellCheckerCore::activeProjectChanged, d->mistakesModel, &SpellingMistakesModel::setActiveProject );
 
   d->outputPane = new OutputPane( d->mistakesModel, this );
-  connect( d->spellingMistakesModel, &ProjectMistakesModel::editorOpened, d->outputPane, [=]() { d->outputPane->popup( Core::IOutputPane::NoModeSwitch ); } );
+  connect( d->spellingMistakesModel, &ProjectMistakesModel::editorOpened, d->outputPane, [this]() { d->outputPane->popup( Core::IOutputPane::NoModeSwitch ); } );
 
   /* Connect to the editor changed signal for the core to act on */
   Core::EditorManager* editorManager = Core::EditorManager::instance();
@@ -504,7 +504,7 @@ bool SpellCheckerCore::isWordUnderCursorMistake( Word& word ) const
 
   int32_t column           = d->currentEditor->currentColumn();
   int32_t line             = d->currentEditor->currentLine();
-  QString  currentFileName = d->currentEditor->document()->filePath().toString();
+  QString  currentFileName = d->currentEditor->document()->filePath().path();
   WordList wl;
   wl = d->spellingMistakesModel->mistakesForFile( currentFileName );
   if( wl.isEmpty() == true ) {
@@ -532,7 +532,7 @@ bool SpellCheckerCore::getAllOccurrencesOfWord( const Word& word, WordList& word
     return false;
   }
   WordList wl;
-  QString  currentFileName = d->currentEditor->document()->filePath().toString();
+  QString  currentFileName = d->currentEditor->document()->filePath().path();
   wl = d->spellingMistakesModel->mistakesForFile( currentFileName );
   if( wl.isEmpty() == true ) {
     return false;
@@ -633,7 +633,7 @@ void SpellCheckerCore::removeWordUnderCursor( RemoveAction action )
   if( d->spellChecker == nullptr ) {
     return;
   }
-  QString currentFileName = d->currentEditor->document()->filePath().toString();
+  QString currentFileName = d->currentEditor->document()->filePath().path();
   if( d->spellingMistakesModel->indexOfFile( currentFileName ) == -1 ) {
     return;
   }
@@ -723,7 +723,7 @@ void SpellCheckerCore::startupProjectChanged( ProjectExplorer::Project* startupP
   if( startupProject != nullptr ) {
     /* Check if the current project is not set to be ignored by the settings. */
     if( d->settings.projectsToIgnore.contains( startupProject->displayName() ) == false ) {
-      const auto fileList = Utils::transform<QSet<QString>>( startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FilePath::toString );
+      const auto fileList = Utils::transform<QSet<QString>>( startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FilePath::path );
       d->filesInStartupProject = fileList;
     } else {
       /* The Project should be ignored and not be spell checked. */
@@ -747,7 +747,7 @@ void SpellCheckerCore::fileListChanged()
   }
 
   const QStringSet oldFiles = d->filesInStartupProject;
-  const auto newFiles = Utils::transform<QStringSet>( d->startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FilePath::toString );
+  const auto newFiles = Utils::transform<QStringSet>( d->startupProject->files( ProjectExplorer::Project::SourceFiles ), &Utils::FilePath::path );
 
   /* Compare the two sets with each other to get the lists of files
    * added and removed.
@@ -779,7 +779,7 @@ void SpellCheckerCore::mangerEditorChanged( Core::IEditor* editor )
   d->currentFilePath.clear();
   d->currentEditor = editor;
   if( editor != nullptr ) {
-    d->currentFilePath = editor->document()->filePath().toString();
+    d->currentFilePath = editor->document()->filePath().path();
   }
 
   emit currentEditorChanged( d->currentFilePath );

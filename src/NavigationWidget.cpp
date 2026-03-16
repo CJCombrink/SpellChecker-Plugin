@@ -125,7 +125,7 @@ void NavigationWidget::updateCurrentItem( Core::IEditor* editor )
     clearSelection();
     return;
   }
-  QString fileName       = editor->document()->filePath().toString();
+  QString fileName       = editor->document()->filePath().path();
   int idx                = d->model->indexOfFile( fileName );
   QModelIndex modelIndex = model()->index( idx, 0 );
   if( modelIndex.isValid() == false ) {
