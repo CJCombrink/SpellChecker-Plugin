@@ -95,7 +95,7 @@ jobs:
             }
           - {
               name: "macos",
-              os: macos-13,
+              os: macos-latest,
               sys: "osx",
               arch: "x64",
               qt_arch: "",
