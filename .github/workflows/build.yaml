@@ -105,7 +105,7 @@ jobs:
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE/SpellChecker-Plugin, so your job can access it
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: SpellChecker-Plugin
 
@@ -368,7 +368,7 @@ jobs:
           Write-Output "PLUGIN_ARCHIVE_FULL=${{github.workspace}}/${env:PLUGIN_ARCHIVE_FULL}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Output "PLUGIN_ARCHIVE_NAME=${env:PLUGIN_ARCHIVE_NAME}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         id: upload_artifact
         with:
           path: ${{env.PLUGIN_ARCHIVE_FULL}}
@@ -376,7 +376,7 @@ jobs:
 
       - name: Download release url
         if: contains(github.ref, '/tags/v')
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release_upload_url.txt
           path: ./
