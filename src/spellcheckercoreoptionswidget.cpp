@@ -125,10 +125,16 @@ SpellCheckerCoreOptionsWidget::SpellCheckerCoreOptionsWidget( SpellCheckerCoreSe
   });
 
   connect(ui.comboBoxSpellChecker, &QComboBox::currentIndexChanged, this, [](){ Utils::markSettingsDirty(); });
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
   connect(ui.checkBoxOnlyCheckCurrent, &QCheckBox::checkStateChanged, this, [](){ Utils::markSettingsDirty(); });
   connect(ui.checkBoxCheckExternal, &QCheckBox::checkStateChanged, this, [](){ Utils::markSettingsDirty(); });
-  connect(ui.listWidget, &QListWidget::itemChanged, this, [](){ Utils::markSettingsDirty(); });
   connect(ui.checkBoxReplaceAllRightClick, &QCheckBox::checkStateChanged, this, [](){ Utils::markSettingsDirty(); });
+#else
+  connect(ui.checkBoxOnlyCheckCurrent, &QCheckBox::stateChanged, this, [](){ Utils::markSettingsDirty(); });
+  connect(ui.checkBoxCheckExternal, &QCheckBox::stateChanged, this, [](){ Utils::markSettingsDirty(); });
+  connect(ui.checkBoxReplaceAllRightClick, &QCheckBox::stateChanged, this, [](){ Utils::markSettingsDirty(); });
+#endif
+  connect(ui.listWidget, &QListWidget::itemChanged, this, [](){ Utils::markSettingsDirty(); });
   connect(ui.buttonUnderlineColor, &Utils::QtColorButton::colorChanged, this, [](){ Utils::markSettingsDirty(); });
 }
 // --------------------------------------------------

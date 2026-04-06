@@ -79,12 +79,21 @@ CppParserOptionsWidget::CppParserOptionsWidget(CppParserSettings* settings)
   connect( ui->radioButtonDotsRemove, &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonDotsToggled );
   connect( ui->radioButtonDotsSplit,  &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonDotsToggled );
   connect( ui->radioButtonDotsLeave,  &QRadioButton::toggled, this, &CppParserOptionsWidget::radioButtonDotsToggled );
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
   connect( ui->checkBoxRemoveEmailAddresses, &QCheckBox::checkStateChanged, this, [](){ Utils::markSettingsDirty(); });
   connect( ui->checkBoxIgnoreKeywords, &QCheckBox::checkStateChanged, this, [](){ Utils::markSettingsDirty(); });
   connect( ui->checkBoxIgnoreCaps, &QCheckBox::checkStateChanged, this, [](){ Utils::markSettingsDirty(); });
   connect( ui->checkBoxWordsInSource, &QCheckBox::checkStateChanged, this, [](){ Utils::markSettingsDirty(); });
   connect( ui->checkBoxWebsiteAddresses, &QCheckBox::checkStateChanged, this, [](){ Utils::markSettingsDirty(); });
   connect( ui->checkBoxRemoveFirstComment, &QCheckBox::checkStateChanged, this, [](){ Utils::markSettingsDirty(); });
+#else
+  connect( ui->checkBoxRemoveEmailAddresses, &QCheckBox::stateChanged, this, [](){ Utils::markSettingsDirty(); });
+  connect( ui->checkBoxIgnoreKeywords, &QCheckBox::stateChanged, this, [](){ Utils::markSettingsDirty(); });
+  connect( ui->checkBoxIgnoreCaps, &QCheckBox::stateChanged, this, [](){ Utils::markSettingsDirty(); });
+  connect( ui->checkBoxWordsInSource, &QCheckBox::stateChanged, this, [](){ Utils::markSettingsDirty(); });
+  connect( ui->checkBoxWebsiteAddresses, &QCheckBox::stateChanged, this, [](){ Utils::markSettingsDirty(); });
+  connect( ui->checkBoxRemoveFirstComment, &QCheckBox::stateChanged, this, [](){ Utils::markSettingsDirty(); });
+#endif
 }
 // --------------------------------------------------
 
