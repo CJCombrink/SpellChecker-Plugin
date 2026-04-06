@@ -44,6 +44,8 @@ public:
    */
   virtual void apply() = 0;
 
+  virtual bool isDirty() const = 0;
+
 signals:
   /**
    * @brief Signal that the widget can emit on errors.

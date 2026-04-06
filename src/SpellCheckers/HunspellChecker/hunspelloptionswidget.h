@@ -42,6 +42,7 @@ public:
   ~HunspellOptionsWidget() override;
 
   void apply() override;
+  bool isDirty() const override;
 
 signals:
   void dictionaryChanged( const QString& dictionary );
@@ -57,6 +58,8 @@ private slots:
 
 private:
   Ui::HunspellOptionsWidget* ui;
+  QString m_dictionary;
+  QString m_userDictionary;
 };
 
 

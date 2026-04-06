@@ -21,6 +21,7 @@
 #pragma once
 
 #include <QWidget>
+#include <coreplugin/dialogs/ioptionspage.h>
 #include "cppparsersettings.h"
 
 namespace SpellChecker {
@@ -34,12 +35,12 @@ class CppParserOptionsWidget;
 } // namespace Ui
 
 class CppParserOptionsWidget
-  : public QWidget
+  : public Core::IOptionsPageWidget
 {
   Q_OBJECT
 
 public:
-  CppParserOptionsWidget( const CppParserSettings* const settings, QWidget* parent = 0 );
+  CppParserOptionsWidget( CppParserSettings* settings);
   ~CppParserOptionsWidget();
 
   const CppParserSettings& settings();

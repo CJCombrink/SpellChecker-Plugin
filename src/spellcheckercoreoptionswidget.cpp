@@ -66,7 +66,7 @@ private slots:
     Ui::SpellCheckerCoreOptionsWidget ui;
     SpellCheckerCoreSettings* m_settings = nullptr;
     QStringList m_projectsToIgnore;
-    QWidget* m_currentCheckerOptionsWidget; /*! Pointer to keep track of the current
+    IOptionsWidget* m_currentCheckerOptionsWidget; /*! Pointer to keep track of the current
                                            *  options widget that is shown on the
                                            *  options page. This is needed to remove
                                            *  the options if the checker changes. */
@@ -81,6 +81,7 @@ SpellCheckerCoreOptionsWidget::SpellCheckerCoreOptionsWidget( SpellCheckerCoreSe
   , m_onApply(onApply)
   , m_currentCheckerOptionsWidget( nullptr )
 {
+  setDirtyChecker([](){ return false; });
   ui.setupUi( this );
   connect( ui.comboBoxSpellChecker,    &QComboBox::currentTextChanged, this, &SpellCheckerCoreOptionsWidget::comboBoxSpellCheckerCurrentTextChanged );
   connect( ui.toolButtonAddProject,    &QToolButton::clicked,          this, &SpellCheckerCoreOptionsWidget::toolButtonAddProjectClicked );
@@ -119,6 +120,16 @@ SpellCheckerCoreOptionsWidget::SpellCheckerCoreOptionsWidget( SpellCheckerCoreSe
   ui.comboBoxSpellChecker->setCurrentIndex( index );
 
   updateWithSettings( settings );
+  setDirtyChecker([this](){
+      return *m_settings != this->settings() || m_currentCheckerOptionsWidget->isDirty();
+  });
+
+  connect(ui.comboBoxSpellChecker, &QComboBox::currentIndexChanged, this, [](){ Utils::markSettingsDirty(); });
+  connect(ui.checkBoxOnlyCheckCurrent, &QCheckBox::checkStateChanged, this, [](){ Utils::markSettingsDirty(); });
+  connect(ui.checkBoxCheckExternal, &QCheckBox::checkStateChanged, this, [](){ Utils::markSettingsDirty(); });
+  connect(ui.listWidget, &QListWidget::itemChanged, this, [](){ Utils::markSettingsDirty(); });
+  connect(ui.checkBoxReplaceAllRightClick, &QCheckBox::checkStateChanged, this, [](){ Utils::markSettingsDirty(); });
+  connect(ui.buttonUnderlineColor, &Utils::QtColorButton::colorChanged, this, [](){ Utils::markSettingsDirty(); });
 }
 // --------------------------------------------------
 
