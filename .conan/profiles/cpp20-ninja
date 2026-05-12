@@ -1,0 +1,4 @@
+include(cpp20)
+
+[conf]
+tools.cmake.cmaketoolchain:generator=Ninja
