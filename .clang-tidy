@@ -3,3 +3,5 @@ Checks: >
   modernize-use-override,
   modernize-use-equals-default,
   modernize-use-nullptr
+ExtraArgs:
+  - "-Wno-unknown-argument"
