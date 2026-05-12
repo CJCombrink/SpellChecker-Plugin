@@ -34,38 +34,20 @@ CppParserOptionsPage::CppParserOptionsPage( CppParserSettings* settings )
   registerCategory("SpellChecker",
                    CppParserOptionsWidget::tr( "Spell Checker" ),
                    ":/spellcheckerplugin/images/optionspageicon_solid.png");
+  setWidgetCreator([this]() -> Core::IOptionsPageWidget *{
+    if( m_widget == nullptr ) {
+      m_widget = new CppParserOptionsWidget( m_settings );
+      m_widget->setOnApply([this](){
+        *m_settings = m_widget->settings();
+      });
+      m_widget->setDirtyChecker([this](){ return  *m_settings != m_widget->settings(); });
+    }
+    return m_widget;
+  });
+  setFixedKeywords({ QLatin1String( "SpellChecker" ) });
 }
 // --------------------------------------------------
 
 CppParserOptionsPage::~CppParserOptionsPage()
-{}
-// --------------------------------------------------
-
-bool CppParserOptionsPage::matches( const QString& searchKeyWord ) const
-{
-  return ( searchKeyWord == QLatin1String( "SpellChecker" ) );
-}
-// --------------------------------------------------
-
-QWidget* CppParserOptionsPage::widget()
-{
-  if( m_widget == nullptr ) {
-    m_widget = new CppParserOptionsWidget( m_settings );
-  }
-  return m_widget;
-}
-// --------------------------------------------------
-
-void CppParserOptionsPage::apply()
-{
-  if( m_widget == nullptr ) {
-    Q_ASSERT( m_widget != nullptr );
-    return;
-  }
-  *m_settings = m_widget->settings();
-}
-// --------------------------------------------------
-
-void CppParserOptionsPage::finish()
 {}
 // --------------------------------------------------

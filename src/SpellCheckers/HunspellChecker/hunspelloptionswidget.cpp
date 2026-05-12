@@ -25,11 +25,14 @@
 
 #include <QFileDialog>
 #include <QRegularExpression>
+#include <utils/guiutils.h>
 
 using namespace SpellChecker::Checker::Hunspell;
 
 HunspellOptionsWidget::HunspellOptionsWidget( const QString& dictionary, const QString& userDictionary, QWidget* parent )
   : IOptionsWidget()
+  , m_dictionary(dictionary)
+  , m_userDictionary(userDictionary)
   , ui( new Ui::HunspellOptionsWidget )
 {
   ui->setupUi( this );
@@ -47,6 +50,8 @@ HunspellOptionsWidget::HunspellOptionsWidget( const QString& dictionary, const Q
 
   updateDictionary( dictionary );
   updateUserDictionary( userDictionary );
+  connect(ui->lineEditUserDictionary, &QLineEdit::textChanged, this, [](){ Utils::markSettingsDirty(); });
+  connect(ui->lineEditDictionary, &QLineEdit::textChanged, this, [](){ Utils::markSettingsDirty(); });
 }
 // --------------------------------------------------
 
@@ -90,6 +95,13 @@ void HunspellOptionsWidget::apply()
   /* At this point the user dictionary specified should be valid. */
   emit userDictionaryChanged( ui->lineEditUserDictionary->text() );
 }
+
+bool HunspellOptionsWidget::isDirty() const
+{
+    return m_dictionary != ui->lineEditDictionary->text()
+           || m_userDictionary != ui->lineEditUserDictionary->text();
+}
+
 // --------------------------------------------------
 
 void HunspellOptionsWidget::updateDictionary( const QString& dictionary )

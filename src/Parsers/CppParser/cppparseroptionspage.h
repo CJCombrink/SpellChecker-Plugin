@@ -35,12 +35,7 @@ class CppParserOptionsPage : public Core::IOptionsPage
 {
 public:
   CppParserOptionsPage( CppParserSettings* settings );
-  virtual ~CppParserOptionsPage();
-
-  bool matches( const QString& searchKeyWord ) const;
-  QWidget* widget();
-  void apply();
-  void finish();
+  virtual ~CppParserOptionsPage() override;
 
 private:
   CppParserSettings* const m_settings;
