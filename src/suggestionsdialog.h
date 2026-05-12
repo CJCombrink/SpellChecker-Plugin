@@ -34,7 +34,7 @@ class SuggestionsDialog
   Q_OBJECT
 
 public:
-  explicit SuggestionsDialog( const QString& word, const QStringList& suggestions, qint32 occurrences, QWidget* parent = 0 );
+  explicit SuggestionsDialog( const QString& word, const QStringList& suggestions, qint32 occurrences, QWidget* parent = nullptr );
   QString replacementWord() const;
   ~SuggestionsDialog() override;
 

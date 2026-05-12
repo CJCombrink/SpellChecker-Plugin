@@ -142,7 +142,7 @@ void HunspellOptionsWidget::toolButtonBrowseDictionaryClicked()
                                                      tr( "Dictionary File" ),
                                                      ui->lineEditDictionary->text(),
                                                      tr( "Dictionaries (*.dic)" ),
-                                                     0,
+                                                     nullptr,
                                                      QFileDialog::ReadOnly );
   if( dictionary.isEmpty() == false ) {
     updateDictionary( dictionary );

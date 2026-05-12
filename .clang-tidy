@@ -1,3 +1,5 @@
 Checks: >
   -*,
-  modernize-use-override
+  modernize-use-override,
+  modernize-use-equals-default,
+  modernize-use-nullptr

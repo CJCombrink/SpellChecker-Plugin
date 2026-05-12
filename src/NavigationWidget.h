@@ -94,7 +94,7 @@ class SpellingMistakeDelegate
 {
   Q_OBJECT
 public:
-  SpellingMistakeDelegate( QObject* parent = 0 );
+  SpellingMistakeDelegate( QObject* parent = nullptr );
 private:
   void paint( QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override;
 };

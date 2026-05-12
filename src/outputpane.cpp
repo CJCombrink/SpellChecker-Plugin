@@ -53,7 +53,7 @@ public:
   OutputPaneDelegate* delegate;
   QModelIndex indexAfterReplace;
 
-  OutputPanePrivate() {}
+  OutputPanePrivate() = default;
 };
 // --------------------------------------------------
 // --------------------------------------------------
@@ -378,7 +378,7 @@ public:
                                                   "  background-color: palette(dark);"
                                                   "}" );
 
-  OutputPaneDelegatePrivate() {}
+  OutputPaneDelegatePrivate() = default;
 };
 // --------------------------------------------------
 // --------------------------------------------------

@@ -116,7 +116,7 @@ find_program(CLANG_TIDY_EXE NAMES "clang-tidy"
 if(CLANG_TIDY_EXE)
     message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
     if (MSVC)
-        set(CLANG_TIDY_COMMAND "${CLANG_TIDY_EXE}" "--extra-arg=--driver-mode=cl")
+        set(CLANG_TIDY_COMMAND "${CLANG_TIDY_EXE}" "--extra-arg=--driver-mode=cl" "--fix")
     else()
         set(CLANG_TIDY_COMMAND "${CLANG_TIDY_EXE}")
     endif()

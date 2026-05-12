@@ -43,7 +43,7 @@ class OutputPane
 {
   Q_OBJECT
 public:
-  OutputPane( SpellingMistakesModel* model, QObject* parent = 0 );
+  OutputPane( SpellingMistakesModel* model, QObject* parent = nullptr );
   ~OutputPane() override;
 
   QWidget* outputWidget( QWidget* parent ) override;

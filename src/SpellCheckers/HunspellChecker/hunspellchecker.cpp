@@ -158,7 +158,7 @@ public:
     : dictionary()
     , userDictionary()
   {}
-  ~HunspellCheckerPrivate() {}
+  ~HunspellCheckerPrivate() = default;
 };
 // --------------------------------------------------
 // --------------------------------------------------

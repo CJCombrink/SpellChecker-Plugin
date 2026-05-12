@@ -43,8 +43,7 @@ SpellCheckerCoreSettings::SpellCheckerCoreSettings( const SpellCheckerCoreSettin
 {}
 // --------------------------------------------------
 
-SpellCheckerCoreSettings::~SpellCheckerCoreSettings()
-{}
+SpellCheckerCoreSettings::~SpellCheckerCoreSettings() = default;
 // --------------------------------------------------
 
 void SpellCheckerCoreSettings::saveToSettings( Utils::QtcSettings* settings ) const

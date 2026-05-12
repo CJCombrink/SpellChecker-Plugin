@@ -35,7 +35,7 @@ class SpellingMistakesModel
 {
   Q_OBJECT
 public:
-  SpellingMistakesModel( QObject* parent = 0 );
+  SpellingMistakesModel( QObject* parent = nullptr );
   ~SpellingMistakesModel() override;
 
   /*! \ brief Set the words of the model.

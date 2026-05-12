@@ -39,8 +39,8 @@ class ISpellChecker
 {
   Q_OBJECT
 public:
-  ISpellChecker() {}
-  ~ISpellChecker() override {}
+  ISpellChecker() = default;
+  ~ISpellChecker() override = default;
 
   /*! \brief Get the name of the Spell Checker.
    * \return String name of the spell checker.

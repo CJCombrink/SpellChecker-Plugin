@@ -36,8 +36,7 @@ SpellCheckProcessor::SpellCheckProcessor( ISpellChecker* spellChecker, const QSt
 {}
 // --------------------------------------------------
 
-SpellCheckProcessor::~SpellCheckProcessor()
-{}
+SpellCheckProcessor::~SpellCheckProcessor() = default;
 // --------------------------------------------------
 
 void SpellCheckProcessor::process( QPromise<WordList>& promise )
