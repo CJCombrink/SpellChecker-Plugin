@@ -47,7 +47,7 @@ class IDocumentParser
   Q_OBJECT
 public:
   IDocumentParser( QObject* parent = nullptr );
-  virtual ~IDocumentParser() Q_DECL_OVERRIDE;
+  ~IDocumentParser() override;
   virtual QString displayName()             = 0;
   virtual Core::IOptionsPage* optionsPage() = 0;
 

@@ -36,7 +36,7 @@ class SpellingMistakesModel
   Q_OBJECT
 public:
   SpellingMistakesModel( QObject* parent = 0 );
-  ~SpellingMistakesModel();
+  ~SpellingMistakesModel() override;
 
   /*! \ brief Set the words of the model.
    *
@@ -54,11 +54,11 @@ public:
   * \return Index of the given word. */
   QModelIndex indexOfWord( const Word& word ) const;
 
-  int rowCount( const QModelIndex& parent    = QModelIndex() ) const;
-  int columnCount( const QModelIndex& parent = QModelIndex() ) const;
-  QVariant data( const QModelIndex& index, int role ) const;
-  QVariant headerData( int section, Qt::Orientation orientation, int role ) const;
-  void sort( int column, Qt::SortOrder order );
+  int rowCount( const QModelIndex& parent    = QModelIndex() ) const override;
+  int columnCount( const QModelIndex& parent = QModelIndex() ) const override;
+  QVariant data( const QModelIndex& index, int role ) const override;
+  QVariant headerData( int section, Qt::Orientation orientation, int role ) const override;
+  void sort( int column, Qt::SortOrder order ) override;
 
 signals:
   void mistakesUpdated();

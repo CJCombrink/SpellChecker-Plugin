@@ -57,7 +57,7 @@ class SpellCheckerCore
   Q_OBJECT
 public:
   SpellCheckerCore( QObject* parent = 0 );
-  ~SpellCheckerCore();
+  ~SpellCheckerCore() override;
 
   static SpellCheckerCore* instance();
   /*!

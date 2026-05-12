@@ -44,20 +44,20 @@ class OutputPane
   Q_OBJECT
 public:
   OutputPane( SpellingMistakesModel* model, QObject* parent = 0 );
-  ~OutputPane();
+  ~OutputPane() override;
 
-  QWidget* outputWidget( QWidget* parent );
-  QList<QWidget*> toolBarWidgets() const;
-  void clearContents();
-  void visibilityChanged( bool visible );
-  void setFocus();
-  bool hasFocus() const;
-  bool canFocus() const;
-  bool canNavigate() const;
-  bool canNext() const;
-  bool canPrevious() const;
-  void goToNext();
-  void goToPrev();
+  QWidget* outputWidget( QWidget* parent ) override;
+  QList<QWidget*> toolBarWidgets() const override;
+  void clearContents() override;
+  void visibilityChanged( bool visible ) override;
+  void setFocus() override;
+  bool hasFocus() const override;
+  bool canFocus() const override;
+  bool canNavigate() const override;
+  bool canNext() const override;
+  bool canPrevious() const override;
+  void goToNext() override;
+  void goToPrev() override;
 private:
   /*! \brief Load the column sizes from the application settings.
    *
@@ -117,11 +117,11 @@ class OutputPaneDelegate
   Q_OBJECT
 public:
   OutputPaneDelegate( QTreeView* parent );
-  virtual ~OutputPaneDelegate();
+  ~OutputPaneDelegate() override;
 private:
-  void paint( QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const;
+  void paint( QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override;
   QWidget* createEditor( QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const Q_DECL_OVERRIDE;
-  void updateEditorGeometry( QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index ) const;
+  void updateEditorGeometry( QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index ) const override;
   void setEditorData( QWidget* editor, const QModelIndex& index ) const Q_DECL_OVERRIDE;
   void setModelData( QWidget* editor, QAbstractItemModel* model, const QModelIndex& index ) const Q_DECL_OVERRIDE;
 signals:

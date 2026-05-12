@@ -35,7 +35,7 @@ class SpellCheckerCoreSettings
 public:
   SpellCheckerCoreSettings();
   SpellCheckerCoreSettings( const SpellCheckerCoreSettings& settings );
-  ~SpellCheckerCoreSettings();
+  ~SpellCheckerCoreSettings() override;
 
   void saveToSettings( Utils::QtcSettings* settings ) const;
   void loadFromSettings( Utils::QtcSettings* settings );

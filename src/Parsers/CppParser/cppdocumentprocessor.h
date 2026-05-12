@@ -111,7 +111,7 @@ public:
    * \param cppSettings Settings that should be applied. */
   CppDocumentProcessor( CPlusPlus::Document::Ptr documentPointer, const HashWords& hashWords, const CppParserSettings& cppSettings );
   /*! Destructor. */
-  ~CppDocumentProcessor();
+  ~CppDocumentProcessor() override;
   /*! \brief Process function that the thread will run with the future that will
    * report the result. */
   void process( Promise& promise );

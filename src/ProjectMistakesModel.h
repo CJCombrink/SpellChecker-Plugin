@@ -48,14 +48,14 @@ public:
   };
 
   ProjectMistakesModel();
-  ~ProjectMistakesModel();
+  ~ProjectMistakesModel() override;
 
-  QModelIndex index( int row, int column, const QModelIndex& parent = QModelIndex() ) const;
-  QModelIndex parent( const QModelIndex& child ) const;
-  int rowCount( const QModelIndex& parent           = QModelIndex() ) const;
-  int columnCount( const QModelIndex& parent        = QModelIndex() ) const;
-  QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const;
-  void sort( int column, Qt::SortOrder order );
+  QModelIndex index( int row, int column, const QModelIndex& parent = QModelIndex() ) const override;
+  QModelIndex parent( const QModelIndex& child ) const override;
+  int rowCount( const QModelIndex& parent           = QModelIndex() ) const override;
+  int columnCount( const QModelIndex& parent        = QModelIndex() ) const override;
+  QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const override;
+  void sort( int column, Qt::SortOrder order ) override;
 
   /*! \brief Get the Index Of the File for the current sort setup.
    * \param[in] fileName Name of the file to search for.

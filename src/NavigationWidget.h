@@ -54,7 +54,7 @@ class NavigationWidget
   Q_OBJECT
 public:
   explicit NavigationWidget( ProjectMistakesModel* model );
-  ~NavigationWidget();
+  ~NavigationWidget() override;
 public slots:
   void updateCurrentItem( Core::IEditor* editor );
 private:
@@ -76,11 +76,11 @@ class NavigationWidgetFactory
   Q_OBJECT
 public:
   NavigationWidgetFactory( ProjectMistakesModel* model );
-  ~NavigationWidgetFactory();
+  ~NavigationWidgetFactory() override;
 private slots:
   void sortingActionActivated( QAction* action );
 private:
-  Core::NavigationView createWidget();
+  Core::NavigationView createWidget() override;
   NavigationWidgetFactoryPrivate* const d;
 };
 // --------------------------------------------------
@@ -96,7 +96,7 @@ class SpellingMistakeDelegate
 public:
   SpellingMistakeDelegate( QObject* parent = 0 );
 private:
-  void paint( QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const;
+  void paint( QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override;
 };
 // --------------------------------------------------
 

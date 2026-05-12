@@ -45,7 +45,7 @@ class SpellCheckerPlugin
 
 public:
   SpellCheckerPlugin();
-  ~SpellCheckerPlugin();
+  ~SpellCheckerPlugin() override;
 
   Utils::Result<> initialize(const QStringList& arguments) override;
   void extensionsInitialized() override;

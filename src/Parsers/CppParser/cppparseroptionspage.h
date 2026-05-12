@@ -35,7 +35,7 @@ class CppParserOptionsPage : public Core::IOptionsPage
 {
 public:
   CppParserOptionsPage( CppParserSettings* settings );
-  virtual ~CppParserOptionsPage() override;
+  ~CppParserOptionsPage() override;
 
 private:
   CppParserSettings* const m_settings;
