@@ -21,40 +21,6 @@ I did look a lot at the code in the TODO plugin as a basis for my own implementa
 
  <a href="https://www.buymeacoffee.com/CJCombrink" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
-## Build with conan
-```
-# Set up venv
-# Use administrator powershell
-# Go to the Python directory
-cd C:\Python312  
-python.exe -m venv .venv
-# ps1
-# cd <path to script> eg:
-cd C:\Python312\.venv\Scripts
-.\Activate.ps1
-# If you get UnauthorizedAccess then run the following command
-Set-ExecutionPolicy Unrestricted -Scope Process -Force
-# If you got the error then re-run .\Activate.ps1
-cd <path to source of this project> eg:
-cd c:\SpellChecker-Plugin-main
-# You need hunspell already downloaded https://github.com/hunspell/hunspell
-# Setup conan
-python -m pip install conan
-conan profile detect
-conan config install .conan
-
-# Build
-conan install . -pr cpp20
-python -m pip install cmake
-# We have to set the environment before build so run the following command
-$Env:CMAKE_PREFIX_PATH="<Path to qt>;<path to QtCreator>;<path to hunspell source code>;<Path to qt build>" eg:
-$Env:CMAKE_PREFIX_PATH="C:\Qt;C:\Qt\Tools\QtCreator;C:\hunspell-master;C:\Qt\6.8.2\msvc2022_64"
-cmake --preset conan-default
-cmake --build --preset conan-release
-# Done, assembly should be inside the source of this project under build\lib\qtcreator\plugins\Release eg:
-c:\SpellChecker-Plugin-main\build\lib\qtcreator\plugins\Release
-```
-
 ## 2. Pre-Built Plugins
 
 I do create pre-built releases for each version of the plugin that I tag. The latest release can be obtained from the [Releases](https://github.com/CJCombrink/SpellChecker-Plugin/releases/latest) page. Read the README.txt file associated with the release for information on how to install the plugin into the relevant Release version of Qt Creator.
@@ -145,6 +111,11 @@ In response the version of the plugin was stepped to version 3. With this a lot 
 effort went into getting the GitHub Action updated to build the plugin and documented
 steps were removed from this README. Please refer to the GitHub Action script for
 the steps to build.
+
+Alternatively some wiki pages exist with building instructions but always assume the GitHub Action
+is the difinative source of truth:
+
+- [Building on Windows using MSVC, conan and ninja](https://github.com/CJCombrink/SpellChecker-Plugin/wiki/Building-on-Windows-using-MSVC-and-ninja)
 
 ## TODO
 
