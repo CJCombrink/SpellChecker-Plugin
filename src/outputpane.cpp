@@ -131,6 +131,12 @@ OutputPane::OutputPane( SpellingMistakesModel* model, QObject* parent )
   d->toolbarWidgets.push_back( d->buttonLucky );
   connect( d->buttonLucky, &QAbstractButton::clicked, SpellCheckerCore::instance(), &SpellCheckerCore::replaceWordUnderCursorFirstSuggestion );
 
+  std::ranges::for_each(qAsConst(d->toolbarWidgets), [](auto* widget){
+    if(auto* button = qobject_cast<QToolButton*>(widget); button) {
+      button->setEnabled(false);
+    }
+  });
+
   SpellCheckerCore* core = SpellCheckerCore::instance();
   connect( core, &SpellCheckerCore::wordUnderCursorMistake, this, &OutputPane::wordUnderCursorMistake, Qt::DirectConnection );
 
