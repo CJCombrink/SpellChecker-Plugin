@@ -38,7 +38,7 @@ class HunspellOptionsWidget
   Q_OBJECT
 
 public:
-  HunspellOptionsWidget( const QString& dictionary, const QString& userDictionary, QWidget* parent = 0 );
+  HunspellOptionsWidget( const QString& dictionary, const QString& userDictionary, QWidget* parent = nullptr );
   ~HunspellOptionsWidget() override;
 
   void apply() override;

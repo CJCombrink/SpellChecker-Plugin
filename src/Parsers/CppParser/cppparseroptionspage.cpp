@@ -48,6 +48,5 @@ CppParserOptionsPage::CppParserOptionsPage( CppParserSettings* settings )
 }
 // --------------------------------------------------
 
-CppParserOptionsPage::~CppParserOptionsPage()
-{}
+CppParserOptionsPage::~CppParserOptionsPage() = default;
 // --------------------------------------------------

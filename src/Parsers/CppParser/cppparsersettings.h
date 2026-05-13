@@ -37,7 +37,7 @@ class CppParserSettings
 public:
   CppParserSettings();
   CppParserSettings( const CppParserSettings& settings );
-  ~CppParserSettings();
+  ~CppParserSettings() override;
 
   enum WhatToCheck {
     Tokens_NONE         = 0,        /*!< Invalid option needed for QFLAGS. */

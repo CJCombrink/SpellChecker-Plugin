@@ -41,7 +41,7 @@ class CppParserOptionsWidget
 
 public:
   CppParserOptionsWidget( CppParserSettings* settings);
-  ~CppParserOptionsWidget();
+  ~CppParserOptionsWidget() override;
 
   const CppParserSettings& settings();
 

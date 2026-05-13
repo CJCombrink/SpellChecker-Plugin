@@ -39,8 +39,8 @@ class ISpellChecker
 {
   Q_OBJECT
 public:
-  ISpellChecker() {}
-  virtual ~ISpellChecker() {}
+  ISpellChecker() = default;
+  ~ISpellChecker() override = default;
 
   /*! \brief Get the name of the Spell Checker.
    * \return String name of the spell checker.
@@ -119,7 +119,7 @@ public:
    * \param[in] previousMistakes List of words that were identified as spelling mistakes in
    *      the previous processing run of the current file.*/
   SpellCheckProcessor( ISpellChecker* spellChecker, const QString& fileName, const WordList& wordList, const WordList& previousMistakes );
-  ~SpellCheckProcessor();
+  ~SpellCheckProcessor() override;
   /*! Function that will run in the background/thread. */
   void process(QPromise<WordList>& promise );
 protected:

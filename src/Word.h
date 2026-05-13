@@ -42,8 +42,8 @@ using QStringSet = QSet<QString>;
 class Word
 {
 public:
-  Word() {}
-  ~Word() {}
+  Word() = default;
+  ~Word() = default;
 
   int32_t start;
   int32_t end;
@@ -77,7 +77,7 @@ class WordList
   : public QMultiHash<QString, Word>
 {
 public:
-  inline WordList() {}
+  inline WordList() = default;
   void append( const Word& t ) { this->insert( t.text, t ); }
   void append( const WordList& l )
   {

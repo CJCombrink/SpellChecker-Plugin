@@ -91,7 +91,7 @@ void SpellingMistakeDelegate::paint( QPainter* painter, const QStyleOptionViewIt
 class SpellChecker::Internal::NavigationWidgetPrivate
 {
 public:
-  NavigationWidgetPrivate() {}
+  NavigationWidgetPrivate() = default;
   ProjectMistakesModel* model;
 };
 // --------------------------------------------------
@@ -143,7 +143,7 @@ void NavigationWidget::updateCurrentItem( Core::IEditor* editor )
 class SpellChecker::Internal::NavigationWidgetFactoryPrivate
 {
 public:
-  NavigationWidgetFactoryPrivate() {}
+  NavigationWidgetFactoryPrivate() = default;
   ProjectMistakesModel* model;
   QAction* sortActionFileName;
   QAction* sortActionFileType;

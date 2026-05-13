@@ -92,7 +92,7 @@ public:
     , startupProject( nullptr )
     , filesInStartupProject()
   {}
-  ~SpellCheckerCorePrivate() {}
+  ~SpellCheckerCorePrivate() = default;
 };
 // --------------------------------------------------
 // --------------------------------------------------

@@ -27,8 +27,7 @@ IDocumentParser::IDocumentParser( QObject* parent )
 {}
 // --------------------------------------------------
 
-IDocumentParser::~IDocumentParser()
-{}
+IDocumentParser::~IDocumentParser() = default;
 // --------------------------------------------------
 
 bool IDocumentParser::isReservedWord( const QString& word )

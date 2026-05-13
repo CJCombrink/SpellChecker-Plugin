@@ -20,6 +20,8 @@ find_package(QtCreator COMPONENTS Core REQUIRED)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 set(QtX Qt${QT_VERSION_MAJOR})
 
+message(STATUS "Using Qt Creator from: ${QtCreator_DIR}")
+
 add_qtc_plugin(SpellChecker
   PLUGIN_DEPENDS
     QtCreator::Core
@@ -106,3 +108,21 @@ extend_qtc_plugin(SpellChecker
     hunspelloptionswidget.h
     hunspelloptionswidget.ui
 )
+option(ENABLE_CLANG_TIDY "Enable clang-tidy static analysis" OFF)
+if(ENABLE_CLANG_TIDY)
+  find_program(CLANG_TIDY_EXE NAMES "clang-tidy"
+      HINTS
+          "${CLANG_TIDY_DIR}/bin"
+          "${CLANG_TIDY_DIR}")
+  if(CLANG_TIDY_EXE)
+      message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
+      if (MSVC)
+          set(CLANG_TIDY_COMMAND "${CLANG_TIDY_EXE}" "--extra-arg=--driver-mode=cl" "--fix")
+      else()
+          set(CLANG_TIDY_COMMAND "${CLANG_TIDY_EXE}")
+      endif()
+      set_target_properties(SpellChecker PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
+  else()
+      message(WARNING "clang-tidy not found — pass -DCLANG_TIDY_DIR=<llvm root>")
+  endif()
+endif()

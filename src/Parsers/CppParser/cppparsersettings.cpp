@@ -52,8 +52,7 @@ CppParserSettings::CppParserSettings( const CppParserSettings& settings )
 }
 // --------------------------------------------------
 
-CppParserSettings::~CppParserSettings()
-{}
+CppParserSettings::~CppParserSettings() = default;
 // --------------------------------------------------
 
 void CppParserSettings::loadFromSettings( Utils::QtcSettings* settings )
