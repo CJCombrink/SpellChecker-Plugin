@@ -33,6 +33,8 @@
 
 using namespace SpellChecker::Internal;
 
+namespace {
+
 #define ENUM_VAL_PROPERTY "enum.Value"
 
 enum SortBy {
@@ -41,6 +43,11 @@ enum SortBy {
   SortByLiterals,
   SortByFileType
 };
+
+/** Vertical padding used by the SpellingMistakeDelegate */
+constexpr int32_t VPAD = 2;
+} // namespace
+
 // --------------------------------------------------
 // --------------------------------------------------
 // --------------------------------------------------
@@ -49,6 +56,13 @@ SpellingMistakeDelegate::SpellingMistakeDelegate( QObject* parent )
   : QStyledItemDelegate( parent )
 {}
 // --------------------------------------------------
+
+QSize SpellingMistakeDelegate::sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const
+{
+  QFontMetrics fm( option.font );
+  QSize base = QStyledItemDelegate::sizeHint( option, index );
+  return QSize( base.width(), fm.height() + 2 * VPAD );
+}
 
 void SpellingMistakeDelegate::paint( QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const
 {
@@ -74,13 +88,14 @@ void SpellingMistakeDelegate::paint( QPainter* painter, const QStyleOptionViewIt
     painter->setPen( Qt::lightGray );
   }
 
+  const int textY = VPAD + opt.rect.top() + fm.ascent() - 1;
   /* Write the File Name */
-  painter->drawText( 6, 2 + opt.rect.top() + fm.ascent(), fileName );
+  painter->drawText( 6, textY, fileName );
   /* Write the number of mistakes */
-  painter->drawText( colMist - fm.horizontalAdvance( nrMistakes ), 2 + opt.rect.top() + fm.ascent(), nrMistakes );
+  painter->drawText( colMist - fm.horizontalAdvance( nrMistakes ), textY, nrMistakes );
   /* Draw the number of String Literal Mistakes. */
   painter->setPen( Qt::darkGreen );
-  painter->drawText( colLit - fm.horizontalAdvance( nrLiterals ), 2 + opt.rect.top() + fm.ascent(), nrLiterals );
+  painter->drawText( colLit - fm.horizontalAdvance( nrLiterals ), textY, nrLiterals );
   painter->restore();
 }
 // --------------------------------------------------
