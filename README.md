@@ -115,7 +115,7 @@ the steps to build.
 Alternatively some wiki pages exist with building instructions but always assume the GitHub Action
 is the difinative source of truth:
 
-- [Building on Windows using MSVC, conan and ninja](https://github.com/CJCombrink/SpellChecker-Plugin/wiki/Building-on-Windows-using-MSVC-and-ninja)
+- [Building on Windows using MSVC, conan and ninja](https://github.com/CJCombrink/SpellChecker-Plugin/wiki/Building-on-Windows-using-MSVC,-conan-and-ninja)
 
 ## TODO
 
