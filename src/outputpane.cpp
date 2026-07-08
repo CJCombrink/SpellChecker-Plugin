@@ -377,11 +377,13 @@ public:
   const QString buttonStylesheet = QLatin1String( "QPushButton { "
                                                   "  border-radius: 3px;"
                                                   "  padding: 0px 2px;"
+                                                  "  color: palette(button-text);"
                                                   "  background-color: palette(button);"
                                                   "}"
                                                   "QPushButton:hover {"
                                                   "  border-style: solid; "
-                                                  "  background-color: palette(dark);"
+                                                  "  color: palette(highlighted-text);"
+                                                  "  background-color: palette(highlight);"
                                                   "}" );
 
   OutputPaneDelegatePrivate() = default;
