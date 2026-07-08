@@ -19,6 +19,7 @@ set(CMAKE_CXX_STANDARD 20)
 find_package(QtCreator COMPONENTS Core REQUIRED)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 set(QtX Qt${QT_VERSION_MAJOR})
+find_package(${QtX} COMPONENTS Widgets Test REQUIRED)
 
 message(STATUS "Using Qt Creator from: ${QtCreator_DIR}")
 
@@ -28,9 +29,11 @@ add_qtc_plugin(SpellChecker
     QtCreator::TextEditor
     QtCreator::ProjectExplorer
     QtCreator::CppEditor
+    QtCreator::QmlJSEditor
   DEPENDS
     ${QtX}::Widgets
     QtCreator::ExtensionSystem
+    QtCreator::QmlJS
     QtCreator::Utils
   SOURCES
     .github/workflows/build.yaml
@@ -94,6 +97,38 @@ extend_qtc_plugin(SpellChecker
      cppparsersettings.cpp
      cppparsersettings.h
 )
+
+extend_qtc_plugin(SpellChecker
+  SOURCES_PREFIX src/Parsers/QmlParser
+  SOURCES
+     qmldocumentparser.cpp
+     qmldocumentparser.h
+     qmldocumentprocessor.cpp
+     qmldocumentprocessor.h
+     qmlparserconstants.h
+     qmlparseroptionspage.cpp
+     qmlparseroptionspage.h
+     qmlparseroptionswidget.cpp
+     qmlparseroptionswidget.h
+     qmlparsersettings.cpp
+     qmlparsersettings.h
+)
+
+include(CTest)
+if(BUILD_TESTING)
+  add_executable(tst_qmldocumentprocessor
+    tests/qmlparser/tst_qmldocumentprocessor.cpp
+    src/Parsers/QmlParser/qmldocumentprocessor.cpp
+    src/Parsers/QmlParser/qmlparsersettings.cpp
+  )
+  target_link_libraries(tst_qmldocumentprocessor
+    PRIVATE
+      ${QtX}::Test
+      ${QtX}::Core
+      QtCreator::Utils
+  )
+  add_test(NAME tst_qmldocumentprocessor COMMAND tst_qmldocumentprocessor)
+endif()
 
 find_package(hunspell)
 extend_qtc_plugin(SpellChecker
