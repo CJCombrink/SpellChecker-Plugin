@@ -31,6 +31,7 @@
 /* Parsers */
 #include "Parsers/CppParser/cppdocumentparser.h"
 #include "Parsers/CppParser/cppparsersettings.h"
+#include "Parsers/QmlParser/qmldocumentparser.h"
 
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -62,6 +63,7 @@ public:
   std::unique_ptr<NavigationWidgetFactory> navFactory;
   std::unique_ptr<SpellChecker::ISpellChecker> spellChecker;
   std::unique_ptr<SpellChecker::IDocumentParser> cppParser;
+  std::unique_ptr<SpellChecker::IDocumentParser> qmlParser;
   std::unique_ptr<SpellCheckCppQuickFixFactory>  quickFixFactory;
 };
 
@@ -182,8 +184,11 @@ Utils::Result<> SpellCheckerPlugin::initialize(const QStringList& arguments)
 
   /* Cpp Document Parser */
   d->cppParser = std::make_unique<SpellChecker::CppSpellChecker::Internal::CppDocumentParser>();
-
   d->spellCheckerCore->addDocumentParser( d->cppParser.get() );
+
+  /* QML Document Parser */
+  d->qmlParser = std::make_unique<SpellChecker::QmlSpellChecker::Internal::QmlDocumentParser>();
+  d->spellCheckerCore->addDocumentParser( d->qmlParser.get() );
 
   /* Quick fix provider */
   d->quickFixFactory = std::make_unique<SpellCheckCppQuickFixFactory>();

@@ -7,7 +7,7 @@
 The SpellChecker Plugin is a spellchecker plugin for the Qt Creator IDE.
 This plugin spell checks Comments and String Literals in source files for spelling mistakes and suggests the correct spelling for misspelled words, if possible.
 
-Currently the plugin only checks C++ files and uses the Hunspell Spell Checker to check words for spelling mistakes.
+Currently the plugin checks C++ and QML files and uses the Hunspell Spell Checker to check words for spelling mistakes.
 The plugin provides an options page in Qt Creator that can be used to configure the parsers as well as the spell checkers available.
 
 To download a pre-built version of the plugin, refer to section 2.
@@ -101,6 +101,20 @@ The parser also has settings that affect how the following types of words will b
 - First comment in file (File license headers)
 
 Apart from these settings, the plugin also attempts to remove Doxygen Tags in Doxygen comments, in an effort to reduce the number of false positives.
+
+### 5.4. QML Document Parser
+
+The QML parser checks `.qml` files. It extracts words from:
+
+- `//` line comments
+- `/* ... */` block comments
+- single-quoted, double-quoted, and template string literals
+
+The parser intentionally ignores QML and JavaScript code tokens such as imports, ids, property names, bindings, and component names. It also filters common false positives such as URLs, email addresses, numbers, color-like values, and all-caps words by default.
+
+The QML parser has its own options page under "*Tools*" -> "*Options...*" -> "*Spell Checker*" -> "*QML Parser*". Comments and string literals can be enabled independently.
+
+The current implementation is a focused lexical parser. It reparses QML files when they become the current editor, when a QML file is saved, when project files change, and when parser settings change.
 
 ## 6. Building The Plugin
 
