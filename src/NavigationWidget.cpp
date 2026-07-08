@@ -28,7 +28,9 @@
 #include <QActionGroup>
 #include <QHeaderView>
 #include <QMenu>
+#include <QPalette>
 #include <QPainter>
+#include <QStyle>
 #include <QToolButton>
 
 using namespace SpellChecker::Internal;
@@ -84,8 +86,18 @@ void SpellingMistakeDelegate::paint( QPainter* painter, const QStyleOptionViewIt
   QString nrLiterals    = index.data( ProjectMistakesModel::COLUMN_LITERAL_COUNT ).toString();
   nrLiterals.append( QLatin1String( "\"" ) );
   nrLiterals.prepend( QLatin1String( "\"" ) );
+
+  const bool isSelected = opt.state.testFlag( QStyle::State_Selected );
+  const QPalette::ColorGroup colorGroup = opt.state.testFlag( QStyle::State_Active )
+                                            ? QPalette::Active
+                                            : QPalette::Inactive;
+  const QPalette::ColorRole textRole = isSelected ? QPalette::HighlightedText : QPalette::Text;
+  const QPalette::ColorRole secondaryTextRole = isSelected ? QPalette::HighlightedText : QPalette::PlaceholderText;
+  const QPalette::ColorRole literalTextRole = isSelected ? QPalette::HighlightedText : QPalette::Link;
+
+  painter->setPen( opt.palette.color( colorGroup, textRole ) );
   if( inStartupProject == false ) {
-    painter->setPen( Qt::lightGray );
+    painter->setPen( opt.palette.color( colorGroup, secondaryTextRole ) );
   }
 
   const int textY = VPAD + opt.rect.top() + fm.ascent() - 1;
@@ -94,7 +106,7 @@ void SpellingMistakeDelegate::paint( QPainter* painter, const QStyleOptionViewIt
   /* Write the number of mistakes */
   painter->drawText( colMist - fm.horizontalAdvance( nrMistakes ), textY, nrMistakes );
   /* Draw the number of String Literal Mistakes. */
-  painter->setPen( Qt::darkGreen );
+  painter->setPen( opt.palette.color( colorGroup, literalTextRole ) );
   painter->drawText( colLit - fm.horizontalAdvance( nrLiterals ), textY, nrLiterals );
   painter->restore();
 }
