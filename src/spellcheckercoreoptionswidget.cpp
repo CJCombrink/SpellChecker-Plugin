@@ -25,6 +25,7 @@
 #include "spellcheckercoresettings.h"
 #include "ui_spellcheckercoreoptionswidget.h"
 
+#include <utils/guiutils.h>
 #include <utils/utilsicons.h>
 
 using namespace SpellChecker;
