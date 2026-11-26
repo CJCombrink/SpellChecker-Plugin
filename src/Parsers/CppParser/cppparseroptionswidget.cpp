@@ -22,6 +22,7 @@
 #include "cppparseroptionswidget.h"
 #include "cppparsersettings.h"
 #include "ui_cppparseroptionswidget.h"
+#include <utils/guiutils.h>
 
 namespace SpellChecker {
 namespace CppSpellChecker {
